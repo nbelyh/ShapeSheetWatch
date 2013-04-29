@@ -1,0 +1,57 @@
+// AddIn.idl : IDL source for AddIn
+//
+
+// This file will be processed by the MIDL tool to
+// produce the type library (AddIn.tlb) and marshalling code.
+
+import "oaidl.idl";
+import "ocidl.idl";
+
+[
+	uuid(03AB8311-3616-4692-A9BE-447DD0F3F6DF),
+	version(1.0),
+	helpstring("DockingShapeSheetAddin 1.0 Type Library")
+]
+library AddinLib
+{
+	importlib("stdole2.tlb");
+
+	[
+		object,
+		uuid(07B14CAE-D68A-4f09-AE0E-74DE3B9399CF),
+		dual,
+		pointer_default(unique)
+	]
+	interface ICallbackInterface : IDispatch
+	{
+		[id(1)] 
+		HRESULT OnRibbonButtonClicked([in] IDispatch * RibbonControl);
+
+		[id(2)]
+		HRESULT OnRibbonLoad([in] IDispatch* disp);
+
+		[id(3)]
+		HRESULT OnRibbonLoadImage([in] BSTR pbstrImageId, [out, retval] IPictureDisp ** ppdispImage);
+
+		[id(4)]
+		HRESULT IsRibbonButtonEnabled([in] IDispatch * RibbonControl, [out, retval] VARIANT_BOOL* pResult);
+
+		[id(5)]
+		HRESULT IsRibbonButtonVisible([in] IDispatch * RibbonControl, [out, retval] VARIANT_BOOL* pResult);
+
+		[id(6)]
+		HRESULT GetRibbonLabel([in] IDispatch *pControl, [out, retval] BSTR *pbstrLabel);
+
+		[id(7)]
+		HRESULT OnRibbonCheckboxClicked([in] IDispatch *pControl, [in] VARIANT_BOOL *pvarfPressed);
+	};
+
+	[
+		uuid(46288C2D-7FDA-4f64-91C3-17BD6773640D),
+		helpstring("Connect Class")
+	]
+	coclass Connect
+	{
+		[default] interface ICallbackInterface;
+	};
+};

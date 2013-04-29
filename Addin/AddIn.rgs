@@ -1,0 +1,26 @@
+HKCR
+{
+	DockingShapeSheetAddin.Connect.1 = s 'Connect Class'
+	{
+		CLSID = s '{46288C2D-7FDA-4f64-91C3-17BD6773640D}'
+	}
+	DockingShapeSheetAddin.Connect = s 'Connect Class'
+	{
+		CLSID = s '{46288C2D-7FDA-4f64-91C3-17BD6773640D}'
+		CurVer = s 'DockingShapeSheetAddin.Connect.1'
+	}
+	NoRemove CLSID
+	{
+		ForceRemove '{46288C2D-7FDA-4f64-91C3-17BD6773640D}' = s 'Connect Class'
+		{
+			ProgID = s 'DockingShapeSheetAddin.Connect.1'
+			VersionIndependentProgID = s 'DockingShapeSheetAddin.Connect'
+			ForceRemove 'Programmable'
+			InprocServer32 = s '%MODULE%'
+			{
+				val ThreadingModel = s 'Apartment'
+			}
+			'TypeLib' = s '{03AB8311-3616-4692-A9BE-447DD0F3F6DF}'
+		}
+	}
+}

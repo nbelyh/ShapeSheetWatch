@@ -1,0 +1,12 @@
+# Untracked files
+x64
+x86
+*.user
+*.aps
+obj
+*_i.c
+*_i.h
+*.sln.cache
+*.suo
+*.ncb
+ship.bat
