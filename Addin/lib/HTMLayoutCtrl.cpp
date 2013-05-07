@@ -5,15 +5,6 @@
 #include "stdafx.h"
 
 #include "HTMLayoutCtrl.h"
-
-#pragma warning(push)
-#pragma warning(disable:4996)	/// secure deprecation, ISO C++ conforming swprintf
-#include "behaviors/behavior_aux.h"
-#include "behaviors/behavior_collapsible_by_icon.cpp"
-#include "behaviors/behavior_grid.cpp"
-#include "value.h"
-#pragma warning(pop)
-
 #include "ShapeSheetCtrl.h"
 
 /**-----------------------------------------------------------------------------
@@ -116,6 +107,21 @@ struct CHTMLayoutCtrl::Impl
 		Attach your own behavior to the element
 	------------------------------------------------------------------------------*/
 
+	LRESULT OnDestroyControl(  LPNMHL_DESTROY_CONTROL lpdc)
+	{
+		CWnd* wnd = CWnd::FromHandlePermanent(lpdc->inoutControlHwnd);
+		if (wnd)
+		{
+			CShapeSheetGrid* grid = DYNAMIC_DOWNCAST(CShapeSheetGrid, wnd);
+			ASSERT_VALID(grid);
+
+			m_grids.Remove(grid);
+			delete grid;
+		}
+
+		return 0;
+	}
+
 	LRESULT OnCreateControl( LPNMHL_CREATE_CONTROL lpcc )
 	{
 		htmlayout::dom::element el(lpcc->helement);
@@ -126,8 +132,11 @@ struct CHTMLayoutCtrl::Impl
 			const wchar_t* name = el.get_attribute("name");
 			const wchar_t* id = el.get_attribute("id");
 
-			CShapeSheetGrid* grid = new CShapeSheetGrid(name);
+			CShapeSheetGrid* grid = new CShapeSheetGrid(name, lpcc->helement);
 			lpcc->outControlHwnd = grid->Create(lpcc->inHwndParent, StrToInt(id));
+
+			grid->AutoSize();
+
 			m_grids.Add(grid);
 		}
 
@@ -175,7 +184,7 @@ struct CHTMLayoutCtrl::Impl
 			return 0;
 
 		case HLN_DESTROY_CONTROL:   
-			return 0;
+			return OnDestroyControl((LPNMHL_DESTROY_CONTROL)lParam);
 
 		case HLN_LOAD_DATA:         
 			return 0;
@@ -229,8 +238,7 @@ BOOL CHTMLayoutCtrl::PreTranslateMessage(MSG* pMsg )
 	{
 		BOOL bHandled = FALSE;
 		::HTMLayoutProcND(m_hWnd, pMsg->message, pMsg->wParam, pMsg->lParam, &bHandled);
-		if(bHandled)
-			return TRUE;
+		if(bHandled) return TRUE;
 	}
 
 	return CWnd::PreTranslateMessage(pMsg);
@@ -313,7 +321,34 @@ void CHTMLayoutCtrl::SetElementValueLong(const char* id, long v)
 	el.set_value(json::value(v));
 }
 
+LRESULT CHTMLayoutCtrl::WindowProc(UINT message,WPARAM wParam,LPARAM lParam )
+{
+	BOOL handled = FALSE;
+	BOOL scrolling =
+		(message == WM_MOUSEWHEEL);
+
+	if (scrolling)
+	{
+		SetRedraw(FALSE);
+	}
+	LRESULT lr = HTMLayoutProcND(m_hWnd, message, wParam, lParam, &handled);
+	if (scrolling)
+	{
+		SetRedraw(TRUE);
+
+		HELEMENT rt;
+		HTMLayoutGetRootElement(m_hWnd, &rt);
+		HTMLayoutUpdateElementEx(rt, MEASURE_INPLACE);
+	}
+
+	if( handled ) return lr; // HTMLayout processed the message
+	return CWnd::WindowProc(message,wParam,lParam ); // call superclass window proc
+}
+
 IMPLEMENT_DYNAMIC(CHTMLayoutCtrl, CWnd)
+
+BEGIN_MESSAGE_MAP(CHTMLayoutCtrl, CWnd)
+END_MESSAGE_MAP()
 
 CShapeSheetGrid* CHTMLayoutCtrl::FindGrid(LPCWSTR name) const
 {
@@ -331,12 +366,4 @@ CShapeSheetGrid* CHTMLayoutCtrl::FindGrid(LPCWSTR name) const
 const GridControls& CHTMLayoutCtrl::GetGridControls() const
 {
 	return m_impl->m_grids;
-}
-
-void CHTMLayoutCtrl::DeleteAllGrids()
-{
-	for (int i = 0; i < m_impl->m_grids.GetSize(); ++i)
-		m_impl->m_grids[i]->DestroyWindow();
-
-	m_impl->m_grids.RemoveAll();
 }

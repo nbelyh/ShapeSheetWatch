@@ -8,6 +8,7 @@
 #include "AddIn_i.c"
 
 #include "lib/VisioFrameWnd.h"
+#include "lib/Visio.h"
 
 CComModule _Module;
 
@@ -102,8 +103,22 @@ void CAddinApp::OnCommand(UINT id)
 	{
 	case ID_ShowSheetWindow:
 		{
-			CVisioFrameWnd* wnd = new CVisioFrameWnd();
-			wnd->Create(m_app);
+			Visio::IVWindowPtr window = m_app->GetActiveWindow();
+
+			HWND hwnd = GetVisioWindowHandle(window);
+
+			CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);
+			if (wnd)
+			{
+				wnd->Destroy();
+				RegisterWindow(hwnd, NULL);
+			}
+			else
+			{
+				wnd = new CVisioFrameWnd();
+				wnd->Create(window);
+				RegisterWindow(hwnd, wnd);
+			}
 		}
 	}
 }
@@ -116,6 +131,36 @@ Visio::IVApplicationPtr CAddinApp::GetVisioApp()
 void CAddinApp::SetVisioApp( Visio::IVApplicationPtr app )
 {
 	m_app = app;
+}
+
+Office::IRibbonUIPtr CAddinApp::GetRibbon()
+{
+	return m_ribbon;
+}
+
+void CAddinApp::SetRibbon(Office::IRibbonUIPtr ribbon)
+{
+	m_ribbon = ribbon;
+}
+
+CVisioFrameWnd* CAddinApp::GetWindowShapeSheet(HWND hwnd) const
+{
+	int idx = m_shown_windows.FindKey(hwnd);
+
+	if (idx < 0)
+		return NULL;
+	return
+		m_shown_windows.GetValueAt(idx);
+}
+
+void CAddinApp::RegisterWindow(HWND hwnd, CVisioFrameWnd* window)
+{
+	if (window)
+		m_shown_windows.Add(hwnd, window);
+	else
+		m_shown_windows.Remove(hwnd);
+
+	m_ribbon->Invalidate();
 }
 
 CAddinApp theApp;

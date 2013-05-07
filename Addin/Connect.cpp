@@ -158,6 +158,21 @@ struct CConnect::Impl
 		
 	-------------------------------------------------------------------------*/
 
+	VARIANT_BOOL IsRibbonButtonPressed(IDispatch * pControl)
+	{
+		Visio::IVApplicationPtr app = theApp.GetVisioApp();
+
+		Visio::IVWindowPtr window;
+		if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
+			return VARIANT_FALSE;
+
+		return theApp.GetWindowShapeSheet(GetVisioWindowHandle(window)) != NULL ? VARIANT_TRUE : VARIANT_FALSE;
+	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	CString GetRibbonLabel(IDispatch* pControl) 
 	{
 		UINT cmd_id = GetControlCommand(pControl);
@@ -174,13 +189,11 @@ struct CConnect::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	void SetupRibbon(IDispatchPtr disp) 
+	void SetRibbon(IDispatchPtr disp) 
 	{
-		m_ribbon = disp;
 	}
 
 	IDispatchPtr m_addin;
-	Office::IRibbonUIPtr m_ribbon;
 
 	Visio::IVApplicationPtr application;
 	IDispatchPtr addin;
@@ -218,7 +231,7 @@ struct CConnect::Impl
 
 	void OnWindowActivated()
 	{
-		m_ribbon->Invalidate();
+		theApp.GetRibbon()->Invalidate();
 	}
 
 
@@ -237,11 +250,20 @@ struct CConnect::Impl
 		msg.pt.y    = key_msg->Getpty();
 		msg.time    = key_msg->Getposttime();
 
-		if (!CWnd::WalkPreTranslateTree(NULL, &msg))
-			*pvResult = variant_t(false);
-		else
-			*pvResult = variant_t(true);
+		bool result = false;
 
+		if (CWnd::FromHandlePermanent(msg.hwnd))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+			result = true;
+		}
+		else
+		{
+			result = CWnd::WalkPreTranslateTree(NULL, &msg) != FALSE;
+		}
+
+		*pvResult = variant_t(result);
 		return S_OK;
 	}
 
@@ -367,7 +389,7 @@ STDMETHODIMP CConnect::OnRibbonLoad(IDispatch* disp)
 {
 	ENTER_METHOD();
 
-	m_impl->SetupRibbon(disp);
+	theApp.SetRibbon(disp);
 	return S_OK;
 
 	LEAVE_METHOD();
@@ -382,6 +404,20 @@ STDMETHODIMP CConnect::OnRibbonLoadImage(BSTR bstrID, IPictureDisp ** ppdispImag
 	ENTER_METHOD();
 
 	return CustomUiGetPng(MAKEINTRESOURCE(StrToInt(bstrID)), ppdispImage, NULL);
+
+	LEAVE_METHOD();
+}
+
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
+
+STDMETHODIMP CConnect::IsRibbonButtonPressed(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
+{
+	ENTER_METHOD();
+
+	*pResult = m_impl->IsRibbonButtonPressed(RibbonControl);
+	return S_OK;
 
 	LEAVE_METHOD();
 }

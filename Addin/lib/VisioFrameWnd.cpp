@@ -9,6 +9,7 @@
 #include "VisioFrameWnd.h"
 #include "lib/Visio.h"
 #include "lib/Utils.h"
+#include "Addin.h"
 
 using namespace Visio;
 
@@ -21,7 +22,9 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_WM_DESTROY()
 	ON_WM_ERASEBKGND()
 	ON_WM_SIZE()
+	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
+
 
 struct CVisioFrameWnd::Impl : public VEventHandler
 {
@@ -44,7 +47,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		switch(nEventCode) 
 		{
 		case (short)(visEvtCodeWinSelChange):
-			OnVisioSelChange();
+			Reload();
 			break;
 		}
 
@@ -53,32 +56,46 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		LEAVE_METHOD()
 	}
 
-	void UpdateGrids()
+	void AutoSizeGrids()
 	{
 		const GridControls& controls = m_html.GetGridControls();
 		for (int i = 0; i < controls.GetSize(); ++i)
 		{
 			CShapeSheetGrid* grid = controls[i];
-			grid->AutoSize(GVS_BOTH);
+			grid->AutoSize();
 		}
 	}
 
-	void OnVisioSelChange()
+	void Reload()
 	{
-		m_html.DeleteAllGrids();
+		m_html.SetRedraw(FALSE);
 
 		CString html = 
 			LoadTextFromModule(AfxGetResourceHandle(), IDR_HTML);
 
 		m_html.LoadHtml(html);
 
-		UpdateGrids();
+		AutoSizeGrids();
+
+		m_html.SetRedraw(TRUE);
+
+		HELEMENT rt;
+		HTMLayoutGetRootElement(m_html, &rt);
+		HTMLayoutUpdateElementEx(rt, MEASURE_INPLACE);
 	}
 
 	CHTMLayoutCtrl m_html;
-	Visio::IVWindowPtr m_visio_wnd;
+
+	Visio::IVWindowPtr	visio_window;
+	Visio::IVWindowPtr	this_window;
+
 	CVisioEvent	evt_sel_changed;
 };
+
+BOOL CVisioFrameWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+	return FALSE;
+}
 
 /**------------------------------------------------------------------------------
 	Creates and initializes a new Visio (top-level) window, and subclasses the 
@@ -86,22 +103,21 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	a special window provided by visio for sub-classing).
 -------------------------------------------------------------------------------*/
 
-void CVisioFrameWnd::Create(IVApplicationPtr app)
+void CVisioFrameWnd::Create(IVWindowPtr window)
 {
-	// Get application size, used for default size calculation
+	m_impl->visio_window = window;
 
-	IVWindowPtr window;
-	if (FAILED(app->get_ActiveWindow(&window)))
-		return;
+	HWND hwnd_parent = 
+		::GetParent(GetVisioWindowHandle(window));
 
 	CWnd* parent_window = 
-		CWnd::FromHandle(::GetParent(GetVisioWindowHandle(window)));
+		CWnd::FromHandle(hwnd_parent);
 
 	CRect parent_rect;
 	parent_window->GetClientRect(&parent_rect);
 
 	// Construct Visio window. Make this window size a half of Visio's size
-	m_impl->m_visio_wnd = window->GetWindows()->Add(
+	m_impl->this_window = window->GetWindows()->Add(
 		bstr_t(L"Docking Shape Sheet"), 
 		static_cast<long>(visWSVisible | visWSAnchorRight | visWSAnchorTop), 
 		static_cast<long>(visAnchorBarAddon), 
@@ -111,7 +127,7 @@ void CVisioFrameWnd::Create(IVApplicationPtr app)
 		static_cast<long>(parent_rect.Height() / 2), 
 		vtMissing, vtMissing, vtMissing);
 
-	HWND client = GetVisioWindowHandle(m_impl->m_visio_wnd);
+	HWND client = GetVisioWindowHandle(m_impl->this_window);
 	SubclassWindow(client);
 
 	IVEventListPtr event_list = window->GetEventList();
@@ -121,6 +137,12 @@ void CVisioFrameWnd::Create(IVApplicationPtr app)
 	GetClientRect(rect);
 
 	m_impl->m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
+	m_impl->Reload();
+}
+
+void CVisioFrameWnd::Destroy()
+{
+	GetParent()->SendMessage(WM_CLOSE);
 }
 
 /**-----------------------------------------------------------------------------
@@ -148,6 +170,7 @@ BOOL CVisioFrameWnd::OnEraseBkgnd(CDC* pDC)
 void CVisioFrameWnd::OnDestroy()
 {
 	m_impl->evt_sel_changed.Unadvise();
+	theApp.RegisterWindow(GetVisioWindowHandle(m_impl->visio_window), NULL);
 
 	CWnd::OnDestroy();
 }

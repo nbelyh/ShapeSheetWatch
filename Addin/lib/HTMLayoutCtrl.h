@@ -34,12 +34,13 @@ public:
 
 	CShapeSheetGrid* FindGrid(LPCWSTR name) const;
 	const GridControls& GetGridControls() const;
-	void DeleteAllGrids();
 
 protected:
 	virtual BOOL PreTranslateMessage( MSG* pMsg );
-	DECLARE_DYNAMIC(CHTMLayoutCtrl)
+	virtual LRESULT WindowProc(UINT message,WPARAM wParam,LPARAM lParam );
 
+	DECLARE_MESSAGE_MAP()
+	DECLARE_DYNAMIC(CHTMLayoutCtrl)
 private:
 	struct Impl;
 	Impl* m_impl;

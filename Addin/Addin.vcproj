@@ -443,22 +443,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lib\Language.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\Language.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\PictureConvert.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\PictureConvert.h"
-				>
-			</File>
-			<File
 				RelativePath=".\lib\ShapeSheetCtrl.cpp"
 				>
 			</File>
@@ -467,11 +451,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lib\TextFile.cpp"
+				RelativePath=".\lib\ShapeSheetInfo.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\lib\TextFile.h"
+				RelativePath=".\lib\ShapeSheetInfo.h"
 				>
 			</File>
 			<File
@@ -480,22 +464,6 @@
 			</File>
 			<File
 				RelativePath=".\lib\UI.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\Utils.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\Utils.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\Visio.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\Visio.h"
 				>
 			</File>
 			<File
@@ -551,6 +519,54 @@
 				</File>
 				<File
 					RelativePath=".\lib\GridCtrl\TitleTip.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="TextFile"
+				>
+				<File
+					RelativePath=".\lib\TextFile.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\TextFile.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Utils"
+				>
+				<File
+					RelativePath=".\lib\Language.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\Language.h"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\PictureConvert.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\PictureConvert.h"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\Utils.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\Utils.h"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\Visio.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\lib\Visio.h"
 					>
 				</File>
 			</Filter>

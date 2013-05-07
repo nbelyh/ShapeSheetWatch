@@ -45,3 +45,6 @@ CString	FormatErrorMessage (_com_error& e);
 
 CString LoadTextFromModule (HMODULE hModule, UINT resource_id);
 BOOL LoadResourceFromModule(HMODULE hModule, LPCWSTR name, LPCWSTR type, LPBYTE* content, DWORD* content_length);
+
+bstr_t QuoteString(LPCWSTR src);
+CString UnquoteString(LPCWSTR src);

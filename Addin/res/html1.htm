@@ -2,14 +2,36 @@
 <title></title>
 <head>
     <style type="text/css">
-        body { padding: 0; margin:0; background: threedface; }
-        div { height: 50%; }
+        body
+        {
+            margin: 0;
+            padding: 0;
+            background-color: #777;
+            font-size: 8pt;
+        }
+        div.sheet
+        {
+            margin: 10;
+            border: solid 1px #444;
+            background-color: #CCC;
+            border-radius: 5px;
+        }
+        div.caption 
+        {
+            margin: 10;
+            font-weight: bold;
+            background-color: #CCC;
+        }
     </style>
 </head>
 <body>
-<div id="w">
-    <WIDGET id="1" name="visSectionUser" type="grid" width="100%" height="100%"/>
+<div class=sheet>
+    <div class=caption>User Defined Cells</div>
+    <widget id="1000" name="User_Defined_Cells" type="grid" />
 </div>
-<!-- WIDGET id="1001" name="visSectionProp" type="grid"  /-->
+<div class=sheet>
+    <div class=caption>Custom Properties</div>
+    <widget id="1001" name="Custom_Properties" type="grid" />
+</div>
 </body>
 </html>

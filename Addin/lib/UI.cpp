@@ -165,7 +165,7 @@ Office::CommandBarPopupPtr AddinUi::CreateFrameMenu(Office::CommandBarControlsPt
 		variant_t(static_cast<long>(Office::msoControlPopup)),
 		vtMissing,
 		vtMissing, 
-		variant_t(static_cast<long>(pos - 1)), 
+		variant_t(static_cast<long>(pos - 1)),
 		variant_t(true), 
 		&control);
 

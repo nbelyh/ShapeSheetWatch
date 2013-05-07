@@ -99,3 +99,39 @@ BOOL LoadResourceFromModule(HMODULE hModule, LPCWSTR name, LPCWSTR type, LPBYTE*
 
 	return TRUE;
 }
+
+/**-----------------------------------------------------------------------------
+	Removes quotation from the string. 
+	"first" and "last" are quotation marks.
+------------------------------------------------------------------------------*/
+
+CString UnquoteString(LPCWSTR src)
+{
+	CString result = src;
+
+	if (result.GetLength() >= 2 
+		&& result.GetAt(0) == '"'
+		&& result.GetAt(result.GetLength()-1) == '"') 
+	{
+		result = result.Mid(1, result.GetLength() - 2);
+
+		// replace double-quotes to single-quotes, see MOD-1945
+		result.Replace(L"\"\"", L"\"");
+	}
+
+	return result;
+}
+
+/**-----------------------------------------------------------------------------
+	Adds quotation marks to the string.
+------------------------------------------------------------------------------*/
+
+bstr_t QuoteString(LPCWSTR src)
+{
+	CString result(src);
+
+	// replace quotes to double-quotes, see MOD-1945
+	result.Replace(L"\"", L"\"\"");
+
+	return bstr_t('"' + result + '"');
+}
