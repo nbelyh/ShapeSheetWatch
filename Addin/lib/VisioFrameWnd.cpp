@@ -7,6 +7,7 @@
 
 #include "stdafx.h"
 #include "VisioFrameWnd.h"
+#include "lib/GridCtrl/GridCtrl.h"
 #include "lib/Visio.h"
 #include "lib/Utils.h"
 #include "Addin.h"
@@ -23,8 +24,8 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_WM_ERASEBKGND()
 	ON_WM_SIZE()
 	ON_WM_MOUSEWHEEL()
+	ON_NOTIFY(GVN_ENDLABELEDIT, 1, OnEndLabelEdit)
 END_MESSAGE_MAP()
-
 
 struct CVisioFrameWnd::Impl : public VEventHandler
 {
@@ -47,7 +48,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		switch(nEventCode) 
 		{
 		case (short)(visEvtCodeWinSelChange):
-			Reload();
+			OnSelectionChanged();
 			break;
 		}
 
@@ -56,41 +57,228 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		LEAVE_METHOD()
 	}
 
-	void AutoSizeGrids()
+	IVShapePtr GetSelectedShape()
 	{
-		const GridControls& controls = m_html.GetGridControls();
-		for (int i = 0; i < controls.GetSize(); ++i)
+		IVWindowPtr window;
+		theApp.GetVisioApp()->get_ActiveWindow(&window);
+
+		if (window == NULL)
+			return NULL;
+
+		IVSelectionPtr selection;
+		window->get_Selection(&selection);
+
+		if (selection == NULL)
+			return NULL;
+
+		long count;
+		selection->get_Count(&count);
+
+		if (count > 0)
 		{
-			CShapeSheetGrid* grid = controls[i];
-			grid->AutoSize();
+			IVShapePtr shape;
+			if (SUCCEEDED(selection->get_Item(1, &shape)))
+				return shape;
+		}
+
+		return NULL;
+	}
+
+	typedef std::vector<CString> CellNames;
+	CellNames cell_names;
+
+	void AddCellName(LPCWSTR cell_name)
+	{
+		cell_names.push_back(cell_name);
+	}
+
+	enum Column 
+	{
+		Column_Name,
+		Column_LocalName,
+		Column_Formula,
+		Column_Value,
+
+		Column_Count
+	};
+
+	CString GetColumnName(int i)
+	{
+		switch (i)
+		{
+		case Column_Name:		return L"FullName";
+		case Column_LocalName:	return L"Name";
+		case Column_Formula:	return L"Formula";
+		case Column_Value:		return L"Value";
+
+		default:	return L"";
 		}
 	}
 
-	void Reload()
+	void BuildGrid()
 	{
-		m_html.SetRedraw(FALSE);
+		grid.SetFixedRowCount(1);
 
-		CString html = 
-			LoadTextFromModule(AfxGetResourceHandle(), IDR_HTML);
 
-		m_html.LoadHtml(html);
+		grid.SetColumnCount(Column_Count);
 
-		AutoSizeGrids();
-
-		m_html.SetRedraw(TRUE);
-
-		HELEMENT rt;
-		HTMLayoutGetRootElement(m_html, &rt);
-		HTMLayoutUpdateElementEx(rt, MEASURE_INPLACE);
+		for (int i = 0; i < Column_Count; ++i)
+		{
+			grid.SetItemBkColour(0, i, RGB(153,180,209));
+			grid.SetItemFgColour(0, i, RGB(0x00,0x00,0x00));
+			grid.SetItemText(0, i, GetColumnName(i));
+		}
 	}
 
-	CHTMLayoutCtrl m_html;
+	void Init()
+	{
+		BuildGrid();
+		UpdateGridRows();
+	}
+
+	void OnSelectionChanged()
+	{
+		UpdateGridRows();
+	}
+
+	void UpdateGridRows()
+	{
+		Visio::IVSelectionPtr selection = visio_window->Selection;
+
+		if (selection->Count == 0)
+			return;
+
+		Visio::IVShapePtr shape = selection->Item[1];
+
+		struct CellInfo 
+		{
+			CString group_name;
+			CString cell_name;
+		};
+
+		typedef std::vector<CellInfo> CellInfos;
+		CellInfos cell_infos;
+
+		for (CellNames::const_iterator it = cell_names.begin(); it != cell_names.end(); ++it)
+		{
+			for (short s = 0; s <= 255; ++s)
+			{
+				Visio::IVSectionPtr section;
+				if (SUCCEEDED(shape->get_Section(s, &section)))
+				{
+					for (short r = 0; r < section->Count; ++r)
+					{
+						Visio::IVRowPtr row;
+						if (SUCCEEDED(section->get_Row(r, &row)))
+						{
+							for (long c = 0; c < row->Count; ++c)
+							{
+								Visio::IVCellPtr cell;
+								if (SUCCEEDED(row->get_CellU(variant_t(c), &cell)))
+								{
+									CString cell_name = cell->Name;
+
+									if (StringIsLike(*it, cell_name))
+									{
+										CellInfo cell_info;
+										cell_info.group_name = *it;
+										cell_info.cell_name = cell_name;
+
+										cell_infos.push_back(cell_info);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		grid.SetRowCount(1 + cell_infos.size() + 1);
+
+		size_t group_start = 1;
+		CString last_group_name;
+
+		size_t i = 0; 
+		while (i < cell_infos.size())
+		{
+			CString group_name = cell_infos[i].group_name;
+
+			grid.SetItemText(1 + i, Column_Name, group_name);
+
+			bstr_t cell_name = cell_infos[i].cell_name;
+
+			if (shape->GetCellExistsU(cell_name, VARIANT_FALSE))
+			{
+				Visio::IVCellPtr cell = shape->GetCellsU(cell_name);
+
+				grid.SetItemText(1 + i, Column_LocalName, cell->LocalName);
+				grid.SetItemText(1 + i, Column_Formula, cell->FormulaU);
+				grid.SetItemText(1 + i, Column_Value, cell->ResultStr[0]);
+			}
+
+			if (last_group_name != group_name && !last_group_name.IsEmpty())
+			{
+				if (group_start < 1 + i)
+					grid.MergeCells(group_start, Column_Name, i, Column_Name);
+
+				group_start = i + 1;
+			}
+
+			last_group_name = group_name;
+			++i;
+		}
+
+		if (group_start < 1 + i)
+			grid.MergeCells(group_start, Column_Name, i, Column_Name);
+
+		grid.Refresh();
+	}
+
+	BOOL OnItemEdit( int iRow, int iColumn )
+	{
+		if (iRow == grid.GetRowCount() - 1 && iColumn == Column_Name)
+		{
+			CString text = grid.GetItemText(iRow, iColumn);
+			AddCellName(text);
+			UpdateGridRows();
+			return TRUE;
+		}
+
+		return FALSE;
+	}
 
 	Visio::IVWindowPtr	visio_window;
 	Visio::IVWindowPtr	this_window;
 
+	CGridCtrl	grid;
 	CVisioEvent	evt_sel_changed;
 };
+
+
+void CVisioFrameWnd::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
+{
+	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
+
+	m_impl->OnItemEdit(nmgv->iRow, nmgv->iColumn);
+
+	/*
+ 	IVShapePtr shape = GetSelectedShape();
+ 
+ 	if (shape)
+ 	{
+ 		int idx = GetItemData(nmgv->iRow, nmgv->iColumn);
+ 		
+ 		// IVCellPtr cell = shape->GetCellsSRC(info.section, info.row, info.cell);
+ 		// bstr_t val = GetItemText(nmgv->iRow, nmgv->iColumn);
+ 		// cell->PutFormulaForce(val);
+ 
+ 		ReloadData();
+ 
+ 		*result = TRUE;
+ 	}
+	*/
+}
 
 BOOL CVisioFrameWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
@@ -118,12 +306,12 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 
 	// Construct Visio window. Make this window size a half of Visio's size
 	m_impl->this_window = window->GetWindows()->Add(
-		bstr_t(L"Docking Shape Sheet"), 
+		bstr_t(L"Shape Sheet Watch"), 
 		static_cast<long>(visWSVisible | visWSAnchorRight | visWSAnchorTop), 
 		static_cast<long>(visAnchorBarAddon), 
 		static_cast<long>(parent_rect.Width()), 
 		static_cast<long>(parent_rect.Height()), 
-		static_cast<long>(parent_rect.Width() / 3), 
+		static_cast<long>(parent_rect.Width() / 4), 
 		static_cast<long>(parent_rect.Height() / 2), 
 		vtMissing, vtMissing, vtMissing);
 
@@ -136,8 +324,9 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	CRect rect;
 	GetClientRect(rect);
 
-	m_impl->m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
-	m_impl->Reload();
+	m_impl->grid.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
+
+	m_impl->Init();
 }
 
 void CVisioFrameWnd::Destroy()
@@ -151,7 +340,7 @@ void CVisioFrameWnd::Destroy()
 
 void CVisioFrameWnd::OnSize(UINT nType, int cx, int cy)
 {
-	m_impl->m_html.MoveWindow(0, 0, cx, cy);
+	m_impl->grid.MoveWindow(0, 0, cx, cy);
 }
 
 /**-----------------------------------------------------------------------------

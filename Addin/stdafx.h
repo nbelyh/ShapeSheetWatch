@@ -38,12 +38,4 @@
 #pragma warning( default : 4146 )
 #pragma warning( default : 4278 )
 
-#pragma warning(push)
-#pragma warning(disable:4996)	/// secure deprecation, ISO C++ conforming swprintf
-#include "behaviors/behavior_aux.h"
-#include "behaviors/behavior_collapsible_by_icon.cpp"
-#include "behaviors/behavior_grid.cpp"
-#include "value.h"
-#pragma warning(pop)
-
 using namespace ATL;

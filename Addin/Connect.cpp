@@ -231,7 +231,10 @@ struct CConnect::Impl
 
 	void OnWindowActivated()
 	{
-		theApp.GetRibbon()->Invalidate();
+		Office::IRibbonUIPtr ribbon = theApp.GetRibbon();
+		
+		if (ribbon)
+			ribbon->Invalidate();
 	}
 
 

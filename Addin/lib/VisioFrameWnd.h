@@ -7,7 +7,6 @@
 *******************************************************************************/
 
 #pragma once
-#include "lib/HTMLayoutCtrl.h"
 
 class CVisioFrameWnd 
 	: public CWnd
@@ -27,6 +26,7 @@ protected:
 	void OnDestroy();
 
 	DECLARE_MESSAGE_MAP()
+	void OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result);
 private:
 	struct Impl;
 	Impl* m_impl;

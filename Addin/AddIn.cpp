@@ -160,7 +160,8 @@ void CAddinApp::RegisterWindow(HWND hwnd, CVisioFrameWnd* window)
 	else
 		m_shown_windows.Remove(hwnd);
 
-	m_ribbon->Invalidate();
+	if (m_ribbon)
+		m_ribbon->Invalidate();
 }
 
 CAddinApp theApp;

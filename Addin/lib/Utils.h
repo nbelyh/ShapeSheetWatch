@@ -37,7 +37,7 @@
 #define ASSERT_CONTINUE(e)				ATLASSERT(e); if (!(e)) continue;
 #define ASSERT_RETURN_VALUE(e,val)		ATLASSERT(e); if (!(e)) return (val);
 
-#define DEFAULT_SOURCE	L"DockingShapeSheet Addin"
+#define DEFAULT_SOURCE	L"ShapeSheetWatch Addin"
 
 CString FormatString(LPCWSTR  format, ...);
 void	ThrowComError (HRESULT hr, LPCWSTR error_message, LPCWSTR error_source = DEFAULT_SOURCE);
@@ -48,3 +48,4 @@ BOOL LoadResourceFromModule(HMODULE hModule, LPCWSTR name, LPCWSTR type, LPBYTE*
 
 bstr_t QuoteString(LPCWSTR src);
 CString UnquoteString(LPCWSTR src);
+bool StringIsLike(LPCWSTR mask, LPCWSTR s);

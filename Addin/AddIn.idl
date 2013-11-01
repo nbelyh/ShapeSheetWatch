@@ -10,7 +10,7 @@ import "ocidl.idl";
 [
 	uuid(03AB8311-3616-4692-A9BE-447DD0F3F6DF),
 	version(1.0),
-	helpstring("DockingShapeSheetAddin 1.0 Type Library")
+	helpstring("ShapeSheetWatchAddin 1.0 Type Library")
 ]
 library AddinLib
 {

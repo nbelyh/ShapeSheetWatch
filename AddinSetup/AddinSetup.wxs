@@ -15,7 +15,7 @@
   <?endif ?>
   
   <Product Id="*" 
-           Name="Visio DockingShapeSheet Addin $(var.Version) ($(var.Platform))" 
+           Name="Visio ShapeSheetWatch Addin $(var.Version) ($(var.Platform))" 
            Language="1033" 
            Codepage="1252"
            Version="$(var.Version)" 
@@ -43,10 +43,10 @@
 
             <Component Id="ProductComponent" Win64="$(var.Win64YesNo)">
               <File KeyPath="yes" Source="$(var.Binaries)\Addin.dll" >
-                <TypeLib Id="{03AB8311-3616-4692-A9BE-447DD0F3F6DF}" Description="DockingShapeSheet Addin 1.0 Type Library" HelpDirectory="TARGETDIR" Language="0" MajorVersion="1" MinorVersion="0">
+                <TypeLib Id="{03AB8311-3616-4692-A9BE-447DD0F3F6DF}" Description="ShapeSheetWatch Addin 1.0 Type Library" HelpDirectory="TARGETDIR" Language="0" MajorVersion="1" MinorVersion="0">
                   <Class Id="{46288C2D-7FDA-4f64-91C3-17BD6773640D}" Context="InprocServer32" Description="Connect Class" ThreadingModel="apartment" Programmable="yes">
-                    <ProgId Id="DockingShapeSheetAddin.Connect.1" Description="Connect Class">
-                      <ProgId Id="DockingShapeSheetAddin.Connect" Description="Connect Class" />
+                    <ProgId Id="ShapeSheetWatchAddin.Connect.1" Description="Connect Class">
+                      <ProgId Id="ShapeSheetWatchAddin.Connect" Description="Connect Class" />
                     </ProgId>
                   </Class>
                   <Interface Id="{07B14CAE-D68A-4f09-AE0E-74DE3B9399CF}" Name="ICallbackInterface" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" />
@@ -55,9 +55,9 @@
             </Component>
 
             <Component Id="VisioRegistration" Win64="$(var.Win64YesNo)" >
-              <RegistryKey Root="HKMU" Key="Software\Microsoft\Visio\Addins\DockingShapeSheetAddin.Connect">
+              <RegistryKey Root="HKMU" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.Connect">
                 <RegistryValue Name="CommandLineSafe" Type="integer" Value="0" />
-                <RegistryValue Name="FriendlyName" Type="string" Value="DockingShapeSheetAddin" KeyPath="yes" />
+                <RegistryValue Name="FriendlyName" Type="string" Value="ShapeSheetWatchAddin" KeyPath="yes" />
                 <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
               </RegistryKey>
             </Component>
@@ -67,7 +67,7 @@
       </Directory>
     </Directory>
     
-    <Feature Id="ProductFeature" Title="DockingShapeSheet Addin" Level="1">
+    <Feature Id="ProductFeature" Title="ShapeSheetWatch Addin" Level="1">
       <ComponentRef Id="ProductComponent" />
       <ComponentRef Id="VisioRegistration" />
     </Feature>

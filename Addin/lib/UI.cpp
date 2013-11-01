@@ -8,7 +8,7 @@
 #include "UI.h"
 #include "PictureConvert.h"
 
-#define ADDON_NAME	L"DockingShapeSheet"
+#define ADDON_NAME	L"ShapeSheetWatch"
 
 _ATL_FUNC_INFO ClickEventInfo = { CC_STDCALL, VT_EMPTY, 2, { VT_DISPATCH, VT_BOOL|VT_BYREF } };
 
@@ -169,7 +169,7 @@ Office::CommandBarPopupPtr AddinUi::CreateFrameMenu(Office::CommandBarControlsPt
 		variant_t(true), 
 		&control);
 
-	control->put_Tag(bstr_t("DockingShapeSheet.Menu"));
+	control->put_Tag(bstr_t("ShapeSheetWatch.Menu"));
 
 	Office::CommandBarPopupPtr result = control;
 

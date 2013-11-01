@@ -1,4 +1,4 @@
-DockingShapeSheet
+ShapeSheetWatch
 =================
 
-Visio ShapeSheet with additional features
+Visio ShapeSheet watch window

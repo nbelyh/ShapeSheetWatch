@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Addin"
 	ProjectGUID="{7BF6658F-2268-4B0F-AC4B-E8D413353208}"
 	RootNamespace="Addin"
@@ -414,11 +414,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\res\html1.htm"
-				DeploymentContent="true"
-				>
-			</File>
-			<File
 				RelativePath=".\res\icon32.png"
 				>
 			</File>
@@ -434,30 +429,6 @@
 		<Filter
 			Name="lib"
 			>
-			<File
-				RelativePath=".\lib\HTMLayoutCtrl.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\HTMLayoutCtrl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\ShapeSheetCtrl.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\ShapeSheetCtrl.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\ShapeSheetInfo.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\lib\ShapeSheetInfo.h"
-				>
-			</File>
 			<File
 				RelativePath=".\lib\UI.cpp"
 				>
