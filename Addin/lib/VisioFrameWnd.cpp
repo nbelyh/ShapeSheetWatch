@@ -27,6 +27,9 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_NOTIFY(GVN_DELETEITEM, 1, OnDeleteItem)
 END_MESSAGE_MAP()
 
+#define COLOR_TH_BK	RGB(153,180,209)
+#define COLOR_TH_FG	RGB(0,0,0)
+
 struct CVisioFrameWnd::Impl : public VEventHandler
 {
 	/**-----------------------------------------------------------------------------
@@ -103,12 +106,14 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 	enum Column 
 	{
-		Column_Name,
-		Column_RowName,
-		Column_LocalName,
+		Column_Mask,
+		Column_S,
+		Column_R,
+		Column_C,
 		Column_Formula,
 		Column_Value,
 
+		Column_Name,
 		Column_Count
 	};
 
@@ -116,9 +121,11 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	{
 		switch (i)
 		{
-		case Column_Name:		return L"Mask";
-		case Column_RowName:	return L"Row";
-		case Column_LocalName:	return L"Cell";
+		case Column_Mask:		return L"Mask";
+		case Column_Name:		return L"Name";
+		case Column_S:			return L"S";
+		case Column_R:			return L"R";
+		case Column_C:			return L"C";
 		case Column_Formula:	return L"Formula";
 		case Column_Value:		return L"Value";
 
@@ -134,8 +141,9 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 		for (int i = 0; i < Column_Count; ++i)
 		{
-			grid.SetItemBkColour(0, i, RGB(153,180,209));
-			grid.SetItemFgColour(0, i, RGB(0x00,0x00,0x00));
+			grid.SetItemBkColour(0, i, COLOR_TH_BK);
+			grid.SetItemFgColour(0, i, COLOR_TH_FG);
+
 			grid.SetItemText(0, i, GetColumnName(i));
 		}
 	}
@@ -177,40 +185,39 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		size_t row = 1;
 		for (size_t i = 0; i < cell_name_masks.size(); ++i)
 		{
-			grid.SetItemText(row, Column_Name, cell_name_masks[i]);
+			grid.SetItemText(row, Column_Mask, cell_name_masks[i]);
 
 			size_t start_row = row;
 
 			if (cell_names[i].empty())
 			{
-				grid.SetItemData(row, Column_Name, i);
+				grid.SetItemData(row, Column_Mask, i);
 				++row;
 			}
 			else for (size_t j = 0; j < cell_names[i].size(); ++j)
 			{
 				SRC& src = cell_names[i][j];
 
-				grid.SetItemText(row, Column_LocalName, src.name);
+				grid.SetItemText(row, Column_Name, src.name);
+
+				grid.SetItemText(row, Column_S, src.s_name);
+				grid.SetItemText(row, Column_R, src.r_name);
+				grid.SetItemText(row, Column_C, src.c_name);
 
 				if (shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
 				{
 					IVCellPtr cell = shape->GetCellsSRC(src.s, src.r, src.c);
 
-					grid.SetItemData(row, Column_Name, i);
-
-					CComBSTR row_name;
-					if (SUCCEEDED(cell->get_RowNameU(&row_name)))
-						grid.SetItemText(row, Column_RowName, row_name);
-
+					grid.SetItemData(row, Column_Mask, i);
 					grid.SetItemText(row, Column_Formula, cell->FormulaU);
-					grid.SetItemText(row, Column_Value, cell->ResultStr[0]);
+					grid.SetItemText(row, Column_Value, cell->ResultStr[-1]);
 				}
 
 				++row;
 			}
 
 			if (row > start_row + 1)
-				grid.MergeCells(start_row, Column_Name, row - 1, Column_Name);
+				grid.MergeCells(start_row, Column_Mask, row - 1, Column_Mask);
 		}
 
 		grid.SetRowCount(1 + row_count + 1);
@@ -222,7 +229,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	{
 		switch (iColumn)
 		{
-		case Column_Name:
+		case Column_Mask:
 			if (iRow < grid.GetRowCount() - 1)
 			{
 				LPARAM idx = grid.GetItemData(iRow, iColumn);
@@ -251,7 +258,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	{
 		switch (iColumn)
 		{
-			case Column_Name:
+			case Column_Mask:
 				if (iRow < grid.GetRowCount() - 1)
 				{
 					LPARAM idx = grid.GetItemData(iRow, iColumn);
