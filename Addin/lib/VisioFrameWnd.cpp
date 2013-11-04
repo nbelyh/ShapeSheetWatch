@@ -30,6 +30,9 @@ END_MESSAGE_MAP()
 #define COLOR_TH_BK	RGB(153,180,209)
 #define COLOR_TH_FG	RGB(0,0,0)
 
+#define COLOR_SRC_BK	RGB(0xE3,0xE3,0xE3)
+#define COLOR_SRC_FG	RGB(0xF0,0,0)
+
 struct CVisioFrameWnd::Impl : public VEventHandler
 {
 	/**-----------------------------------------------------------------------------
@@ -159,6 +162,13 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		UpdateGridRows();
 	}
 
+	void SetSRCColumn(short row, short col, const CString& text)
+	{
+		grid.SetItemBkColour(row, col, COLOR_SRC_BK);
+		grid.SetItemFgColour(row, col, COLOR_SRC_FG);
+		grid.SetItemText(row, col, text);
+	}
+
 	void UpdateGridRows()
 	{
 		IVSelectionPtr selection = visio_window->Selection;
@@ -187,37 +197,75 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		{
 			grid.SetItemText(row, Column_Mask, cell_name_masks[i]);
 
-			size_t start_row = row;
+			size_t m_row = row;
 
 			if (cell_names[i].empty())
 			{
 				grid.SetItemData(row, Column_Mask, i);
 				++row;
 			}
-			else for (size_t j = 0; j < cell_names[i].size(); ++j)
+			else 
 			{
-				SRC& src = cell_names[i][j];
+				size_t s_start = row;
+				size_t s_count = 0;
+				CString s_last = L"#";
 
-				grid.SetItemText(row, Column_Name, src.name);
+				size_t r_start = row;
+				size_t r_count = 0;
+				CString r_last = L"#";
 
-				grid.SetItemText(row, Column_S, src.s_name);
-				grid.SetItemText(row, Column_R, src.r_name);
-				grid.SetItemText(row, Column_C, src.c_name);
-
-				if (shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
+				for (size_t j = 0; j < cell_names[i].size(); ++j)
 				{
+					SRC& src = cell_names[i][j];
+
+					grid.SetItemText(row, Column_Name, src.name);
+
+					SetSRCColumn(row, Column_S, src.s_name);
+					SetSRCColumn(row, Column_R, src.r_name);
+					SetSRCColumn(row, Column_C, src.c_name);
+
 					IVCellPtr cell = shape->GetCellsSRC(src.s, src.r, src.c);
 
 					grid.SetItemData(row, Column_Mask, i);
 					grid.SetItemText(row, Column_Formula, cell->FormulaU);
 					grid.SetItemText(row, Column_Value, cell->ResultStr[-1]);
+
+					if (s_last == src.s_name)
+						++s_count;
+					else
+					{
+						if (s_count > 1)
+							grid.MergeCells(s_start, Column_S, row - 1, Column_S);
+
+						s_last = src.s_name;
+						s_start = row;
+						s_count = 1;
+					}
+
+					if (r_last == src.r_name)
+						++r_count;
+					else
+					{
+						if (r_count > 1)
+							grid.MergeCells(r_start, Column_R, row - 1, Column_R);
+
+						r_last = src.r_name;
+						r_start = row;
+						r_count = 1;
+					}
+
+					++row;
 				}
 
-				++row;
+				if (s_count > 1)
+					grid.MergeCells(s_start, Column_S, row - 1, Column_S);
+
+				if (r_count > 1)
+					grid.MergeCells(r_start, Column_R, row - 1, Column_R);
 			}
 
-			if (row > start_row + 1)
-				grid.MergeCells(start_row, Column_Mask, row - 1, Column_Mask);
+			if (row > m_row + 1)
+				grid.MergeCells(m_row, Column_Mask, row - 1, Column_Mask);
 		}
 
 		grid.SetRowCount(1 + row_count + 1);
