@@ -109,6 +109,9 @@ void CAddinApp::OnCommand(UINT id)
 		{
 			IVWindowPtr window = m_app->GetActiveWindow();
 
+			if (window == NULL)
+				return;
+
 			HWND hwnd = GetVisioWindowHandle(window);
 
 			CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);

@@ -46,6 +46,84 @@ void __stdcall ClickEventRedirector::OnClick(IDispatch* pButton, VARIANT_BOOL* p
 	}
 }
 
+struct MenuItemVisitor
+{
+	virtual void Visit(CMenu* menu, UINT idx) = 0;
+};
+
+void IterateMenuItems(CMenu* popup_menu, MenuItemVisitor& v)
+{
+	for (UINT i = 0; i < popup_menu->GetMenuItemCount(); ++i)
+	{
+		v.Visit(popup_menu, i);
+
+		CMenu* sub_menu = popup_menu->GetSubMenu(i);
+
+		if (sub_menu)
+			IterateMenuItems(sub_menu, v);
+	}
+}
+
+CString GetCommandTag(UINT command_id)
+{
+	return FormatString(L"%s_%d", ADDON_NAME, command_id);
+}
+
+void IterateMenu(UINT menu_id, MenuItemVisitor& v)
+{
+	CMenu menu;
+	menu.LoadMenu(menu_id);
+	IterateMenuItems(menu.GetSubMenu(0), v);
+}
+
+void GetTagSet(Strings* result)
+{
+	struct CollectAllTags : MenuItemVisitor
+	{
+		virtual void Visit(CMenu* menu, UINT i)
+		{
+			result->push_back(GetCommandTag(menu->GetMenuItemID(i)));
+		}
+
+		Strings* result;
+	} v;
+
+	v.result = result;
+
+	IterateMenu(IDR_MENU, v);
+}
+
+/**---------------------------------------------------------------------------------
+	
+-----------------------------------------------------------------------------------*/
+
+void UninstallControls(Office::_CommandBarsPtr cbs, LPCWSTR tag)
+{
+	Office::CommandBarControlsPtr old_controls;
+	if (SUCCEEDED(cbs->FindControls(vtMissing, vtMissing, variant_t(tag), vtMissing, &old_controls)))
+	{
+		int count = 0;
+		old_controls->get_Count(&count);
+
+		for (long i = count; i > 0; --i)
+		{
+			Office::CommandBarControlPtr old_control;
+			if (SUCCEEDED(old_controls->get_Item(variant_t(i), &old_control)))
+				old_control->Delete();
+		}
+	}
+}
+
+void UninstallItems(Office::_CommandBarsPtr cbs)
+{
+	Strings tag_set;
+	GetTagSet(&tag_set);
+
+	for (Strings::const_iterator it = tag_set.begin(); it != tag_set.end(); ++it)
+		UninstallControls(cbs, *it);
+}
+
+
 void AddinUi::InitializeItem( Office::CommandBarControlPtr item, UINT command_id)
 {
 	CString caption;
@@ -57,9 +135,7 @@ void AddinUi::InitializeItem( Office::CommandBarControlPtr item, UINT command_id
 	item->put_Parameter(bstr_t(parameter));
 
 	// Set unique tag, so that the command is not lost
-	CString tag;
-	tag.Format(L"%s_%d", ADDON_NAME, command_id);
-	item->put_Tag(bstr_t(tag));
+	item->put_Tag(bstr_t(GetCommandTag(command_id)));
 
 	CBitmap bm_picture;
 	// if we are command button
@@ -114,7 +190,7 @@ void AddinUi::FillMenuItems( long position, Office::CommandBarControlsPtr menu_i
 			vtMissing, 
 			vtMissing, 
 			position < 0 ? vtMissing : variant_t(position), 
-			variant_t(true),
+			variant_t(false),
 			&menu_item_obj);
 
 		if (position > 0)
@@ -154,69 +230,34 @@ void AddinUi::FillMenu( long position, Office::CommandBarControlsPtr cbs, UINT m
 	FillMenuItems(position, cbs, menu.GetSubMenu(0));
 }
 
-Office::CommandBarPopupPtr AddinUi::CreateFrameMenu(Office::CommandBarControlsPtr menus)
-{
-	// create new command bar
-	int pos = 0;
-	menus->get_Count(&pos);
+/**-----------------------------------------------------------------------------
+	Installs toolbar
+------------------------------------------------------------------------------*/
 
-	Office::CommandBarControlPtr control;
-	menus->Add(
-		variant_t(static_cast<long>(Office::msoControlPopup)),
-		vtMissing,
-		vtMissing, 
-		variant_t(static_cast<long>(pos - 1)),
-		variant_t(true), 
-		&control);
-
-	control->put_Tag(bstr_t("ShapeSheetWatch.Menu"));
-
-	Office::CommandBarPopupPtr result = control;
-
-	// load p4b root menu
-	CMenu main_menu;
-	main_menu.LoadMenu(IDR_MENU);
-
-	CString main_menu_caption;
-	main_menu.GetMenuString(0, main_menu_caption, MF_BYPOSITION);
-
-	result->put_Caption	(bstr_t(main_menu_caption));
-	result->put_Tag		(bstr_t(ADDON_NAME));
-
-
-	Office::CommandBarControlsPtr main_menu_items;
-	result->get_Controls(&main_menu_items);
-
-	FillMenuItems(-1, main_menu_items, main_menu.GetSubMenu(0));
-
-	return result;
-}
-
-void AddinUi::CreateCommandBarsMenu(IVApplicationPtr app)
+void AddinUi::CreateCommandBarsUI(IVApplicationPtr app)
 {
 	LanguageLock lock(GetAppLanguage(app));
 
 	Office::_CommandBarsPtr cbs = app->CommandBars;
 
-	Office::CommandBarPtr active_menu_bar;
-	cbs->get_ActiveMenuBar(&active_menu_bar);
+	Office::CommandBarPtr frame_toolbar;
+	if (FAILED(cbs->get_Item(variant_t(ADDON_NAME), &frame_toolbar)))
+	{
+		cbs->Add(variant_t(ADDON_NAME), vtMissing, vtMissing, vtMissing, &frame_toolbar);
 
-	if (!active_menu_bar)
-		return;
+		frame_toolbar->put_Visible(variant_t(true));
+		frame_toolbar->put_Context(bstr_t(L"2*"));
+	}
 
-	VARIANT_BOOL visible = VARIANT_FALSE;
-	active_menu_bar->get_Visible(&visible);
+	UninstallItems(cbs);
 
-	if (!visible)
-		return;
+	Office::CommandBarControlsPtr controls;
+	frame_toolbar->get_Controls(&controls);
 
-	Office::CommandBarControlsPtr menus;
-	active_menu_bar->get_Controls(&menus);
-
-	CreateFrameMenu(menus);
+	FillMenu(-1, controls, IDR_MENU);
 }
 
-void AddinUi::DestroyCommandBarsMenu()
+void AddinUi::DestroyCommandBarsUI()
 {
 	for (size_t i = 0; i < m_buttons.GetCount(); ++i)
 		delete m_buttons[i];

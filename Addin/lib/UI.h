@@ -29,8 +29,8 @@ public:
 
 struct AddinUi
 {
-	void CreateCommandBarsMenu(IVApplicationPtr app);
-	void DestroyCommandBarsMenu();
+	void CreateCommandBarsUI(IVApplicationPtr app);
+	void DestroyCommandBarsUI();
 
 private:
 	void InitializeItem( Office::CommandBarControlPtr item, UINT command_id );

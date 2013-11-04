@@ -68,7 +68,7 @@ struct CVisioConnect::Impl
 		pAddInInst->QueryInterface(__uuidof(IDispatch), (LPVOID*)&m_addin);
 
 		if (GetVisioVersion(app) < 14)
-			m_ui.CreateCommandBarsMenu(app);
+			m_ui.CreateCommandBarsUI(app);
 
 		IVEventListPtr evt_list = 
 			app->EventList;
@@ -86,7 +86,7 @@ struct CVisioConnect::Impl
 
 	void Destroy() 
 	{
-		m_ui.DestroyCommandBarsMenu();
+		m_ui.DestroyCommandBarsUI();
 
 		evt_idle.Unadvise();
 		evt_win_activated.Unadvise();
