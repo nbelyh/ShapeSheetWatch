@@ -461,7 +461,10 @@ void AddNameMatchResult(const CString& mask, CString name,
 
 	for (Strings::const_iterator it = masks.begin(); it != masks.end(); ++it)
 	{
-		if (StringIsLike(*it, name))
+		CString mask = *it;
+		mask.Trim();
+
+		if (StringIsLike(mask, name))
 		{
 			SRC src;
 
