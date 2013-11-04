@@ -39,7 +39,7 @@ LanguageLock::~LanguageLock()
 		pSetThreadUILanguage(old_langid);
 }
 
-int GetAppLanguage(Visio::IVApplicationPtr app)
+int GetAppLanguage(IVApplicationPtr app)
 {
 	long app_language = 0;
 	if (FAILED(app->get_Language(&app_language)))

@@ -51,9 +51,9 @@ library AddinLib
 
 	[
 		uuid(46288C2D-7FDA-4f64-91C3-17BD6773640D),
-		helpstring("Connect Class")
+		helpstring("VisioConnect Class")
 	]
-	coclass Connect
+	coclass VisioConnect
 	{
 		[default] interface ICallbackInterface;
 	};

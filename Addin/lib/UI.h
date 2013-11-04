@@ -29,7 +29,7 @@ public:
 
 struct AddinUi
 {
-	void CreateCommandBarsMenu(Visio::IVApplicationPtr app);
+	void CreateCommandBarsMenu(IVApplicationPtr app);
 	void DestroyCommandBarsMenu();
 
 private:

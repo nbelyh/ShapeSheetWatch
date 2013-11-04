@@ -563,14 +563,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Connect.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Connect.h"
-			>
-		</File>
-		<File
 			RelativePath="Resource.h"
 			>
 		</File>
@@ -612,6 +604,14 @@
 		</File>
 		<File
 			RelativePath="stdafx.h"
+			>
+		</File>
+		<File
+			RelativePath=".\VisioConnect.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\VisioConnect.h"
 			>
 		</File>
 	</Files>

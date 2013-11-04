@@ -1,20 +1,20 @@
 HKCR
 {
-	ShapeSheetWatchAddin.Connect.1 = s 'Connect Class'
+	ShapeSheetWatchAddin.VisioConnect.1 = s 'VisioConnect Class'
 	{
 		CLSID = s '{46288C2D-7FDA-4f64-91C3-17BD6773640D}'
 	}
-	ShapeSheetWatchAddin.Connect = s 'Connect Class'
+	ShapeSheetWatchAddin.VisioConnect = s 'VisioConnect Class'
 	{
 		CLSID = s '{46288C2D-7FDA-4f64-91C3-17BD6773640D}'
-		CurVer = s 'ShapeSheetWatchAddin.Connect.1'
+		CurVer = s 'ShapeSheetWatchAddin.VisioConnect.1'
 	}
 	NoRemove CLSID
 	{
-		ForceRemove '{46288C2D-7FDA-4f64-91C3-17BD6773640D}' = s 'Connect Class'
+		ForceRemove '{46288C2D-7FDA-4f64-91C3-17BD6773640D}' = s 'VisioConnect Class'
 		{
-			ProgID = s 'ShapeSheetWatchAddin.Connect.1'
-			VersionIndependentProgID = s 'ShapeSheetWatchAddin.Connect'
+			ProgID = s 'ShapeSheetWatchAddin.VisioConnect.1'
+			VersionIndependentProgID = s 'ShapeSheetWatchAddin.VisioConnect'
 			ForceRemove 'Programmable'
 			InprocServer32 = s '%MODULE%'
 			{

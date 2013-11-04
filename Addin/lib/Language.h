@@ -3,7 +3,7 @@
 
 #define DEFAULT_LANGUAGE 1031
 
-int GetAppLanguage(Visio::IVApplicationPtr app);
+int GetAppLanguage(IVApplicationPtr app);
 
 struct LanguageLock
 {

@@ -1,26 +1,26 @@
-// Connect.h : Declaration of the CConnect
+// Connect.h : Declaration of the CVisioConnect
 
 #pragma once
 
 using namespace Office;
 using namespace AddInDesignerObjects;
 
-// CConnect
-class ATL_NO_VTABLE CConnect : 
+// CVisioConnect
+class ATL_NO_VTABLE CVisioConnect : 
 	public CComObjectRootEx<CComSingleThreadModel>
-	, public CComCoClass<CConnect, &__uuidof(Connect)>
+	, public CComCoClass<CVisioConnect, &__uuidof(VisioConnect)>
 	, public IDispatchImpl<ICallbackInterface, &__uuidof(ICallbackInterface), &LIBID_AddinLib, 1, 0>
 	, public IDispatchImpl<_IDTExtensibility2, &__uuidof(_IDTExtensibility2), &__uuidof(__AddInDesignerObjects), 1, 0>
 	, public IDispatchImpl<IRibbonExtensibility, &__uuidof(IRibbonExtensibility), &__uuidof(__Office), 12, 0>
 {
 public:
-	CConnect();
-	~CConnect();
+	CVisioConnect();
+	~CVisioConnect();
 
 DECLARE_REGISTRY_RESOURCEID(IDR_ADDIN)
-DECLARE_NOT_AGGREGATABLE(CConnect)
+DECLARE_NOT_AGGREGATABLE(CVisioConnect)
 
-BEGIN_COM_MAP(CConnect)
+BEGIN_COM_MAP(CVisioConnect)
 	COM_INTERFACE_ENTRY2(IDispatch, ICallbackInterface)
 	COM_INTERFACE_ENTRY(_IDTExtensibility2)
 	COM_INTERFACE_ENTRY(IRibbonExtensibility)
@@ -61,4 +61,4 @@ private:
 
 };
 
-OBJECT_ENTRY_AUTO(__uuidof(Connect), CConnect)
+OBJECT_ENTRY_AUTO(__uuidof(VisioConnect), CVisioConnect)

@@ -11,8 +11,8 @@
 
 #pragma once
 
-HWND GetVisioWindowHandle (Visio::IVWindowPtr visio_window);
-HWND GetVisioAppWindowHandle (Visio::IVApplicationPtr app);
+HWND GetVisioWindowHandle (IVWindowPtr visio_window);
+HWND GetVisioAppWindowHandle (IVApplicationPtr app);
 
 /**-----------------------------------------------------------------------------
 	VEventHandler - definition of interface for handling Visio events
@@ -61,10 +61,10 @@ public:
 	CVisioEvent	();
 	~CVisioEvent();
 
-	HRESULT Advise(Visio::IVEventListPtr evt_list, int evt_code, VEventHandler* target);
+	HRESULT Advise(IVEventListPtr evt_list, int evt_code, VEventHandler* target);
 	void Unadvise();
 private:
-	Visio::IVEventPtr m_event;
+	IVEventPtr m_event;
 };
 
 /**---------------------------------------------------------------------------------
@@ -73,14 +73,14 @@ private:
 
 struct VisioScopeLock
 {
-	VisioScopeLock(Visio::IVApplicationPtr app, LPCWSTR description);
+	VisioScopeLock(IVApplicationPtr app, LPCWSTR description);
 	~VisioScopeLock();
 
 	static bool IsInVisioScopeLock();
 	void Commit();
 
 private:
-	Visio::IVApplicationPtr m_app;
+	IVApplicationPtr m_app;
 	long			m_scope_id;
 	VARIANT_BOOL	m_result;
 
@@ -106,4 +106,4 @@ struct VisioIdleTaskProcessor
 	
 -------------------------------------------------------------------------*/
 
-int GetVisioVersion(Visio::IVApplicationPtr app);
+int GetVisioVersion(IVApplicationPtr app);

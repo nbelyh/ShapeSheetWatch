@@ -1,4 +1,4 @@
-// Connect.cpp : Implementation of CConnect
+// Connect.cpp : Implementation of CVisioConnect
 
 #include "stdafx.h"
 
@@ -11,13 +11,13 @@
 #include "lib/UI.h"
 #include "lib/Language.h"
 
-#include "Connect.h"
+#include "VisioConnect.h"
 
 /**------------------------------------------------------------------------
 	
 -------------------------------------------------------------------------*/
 
-struct CConnect::Impl 
+struct CVisioConnect::Impl 
 	: public VisioIdleTaskProcessor
 	, public VEventHandler
 {
@@ -37,15 +37,15 @@ struct CConnect::Impl
 
 		switch(nEventCode) 
 		{
-		case (short)(Visio::visEvtApp|Visio::visEvtNonePending):
+		case (short)(visEvtApp|visEvtNonePending):
 			OnVisioIdle();
 			break;
 
-		case (short)(Visio::visEvtApp|Visio::visEvtWinActivate):
+		case (short)(visEvtApp|visEvtWinActivate):
 			OnWindowActivated();
 			break;
 
-		case (short)(Visio::visEvtCodeWinOnAddonKeyMSG):
+		case (short)(visEvtCodeWinOnAddonKeyMSG):
 			return OnKeystroke(pSubjectObj, pvResult);
 			break;
 
@@ -62,7 +62,7 @@ struct CConnect::Impl
 
 	void Create(IDispatch * pApplication, IDispatch * pAddInInst) 
 	{
-		Visio::IVApplicationPtr app;
+		IVApplicationPtr app;
 		pApplication->QueryInterface(__uuidof(IDispatch), (LPVOID*)&app);
 
 		pAddInInst->QueryInterface(__uuidof(IDispatch), (LPVOID*)&m_addin);
@@ -70,12 +70,12 @@ struct CConnect::Impl
 		if (GetVisioVersion(app) < 14)
 			m_ui.CreateCommandBarsMenu(app);
 
-		Visio::IVEventListPtr evt_list = 
+		IVEventListPtr evt_list = 
 			app->EventList;
 
-		evt_idle.Advise(evt_list, Visio::visEvtApp|Visio::visEvtNonePending, this);
-		evt_win_activated.Advise(evt_list, Visio::visEvtApp|Visio::visEvtWinActivate, this);
-		evt_keystroke.Advise(evt_list, Visio::visEvtCodeWinOnAddonKeyMSG, this);
+		evt_idle.Advise(evt_list, visEvtApp|visEvtNonePending, this);
+		evt_win_activated.Advise(evt_list, visEvtApp|visEvtWinActivate, this);
+		evt_keystroke.Advise(evt_list, visEvtCodeWinOnAddonKeyMSG, this);
 
 		theApp.SetVisioApp(app);
 	}
@@ -141,14 +141,14 @@ struct CConnect::Impl
 
 	VARIANT_BOOL IsRibbonButtonEnabled(IDispatch * pControl)
 	{
-		Visio::IVApplicationPtr app = theApp.GetVisioApp();
+		IVApplicationPtr app = theApp.GetVisioApp();
 
-		Visio::IVDocumentPtr doc;
+		IVDocumentPtr doc;
 		if (FAILED(app->get_ActiveDocument(&doc)) || doc == NULL)
 			return VARIANT_FALSE;
 
-		Visio::VisDocumentTypes doc_type = Visio::visDocTypeInval;
-		if (FAILED(doc->get_Type(&doc_type)) || doc_type == Visio::visDocTypeInval)
+		VisDocumentTypes doc_type = visDocTypeInval;
+		if (FAILED(doc->get_Type(&doc_type)) || doc_type == visDocTypeInval)
 			return VARIANT_FALSE;
 
 		return VARIANT_TRUE;
@@ -160,9 +160,9 @@ struct CConnect::Impl
 
 	VARIANT_BOOL IsRibbonButtonPressed(IDispatch * pControl)
 	{
-		Visio::IVApplicationPtr app = theApp.GetVisioApp();
+		IVApplicationPtr app = theApp.GetVisioApp();
 
-		Visio::IVWindowPtr window;
+		IVWindowPtr window;
 		if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
 			return VARIANT_FALSE;
 
@@ -195,7 +195,7 @@ struct CConnect::Impl
 
 	IDispatchPtr m_addin;
 
-	Visio::IVApplicationPtr application;
+	IVApplicationPtr application;
 	IDispatchPtr addin;
 	IRibbonUIPtr ribbon;
 
@@ -238,7 +238,7 @@ struct CConnect::Impl
 	}
 
 
-	HRESULT OnKeystroke(Visio::IVMSGWrapPtr key_msg, VARIANT* pvResult)
+	HRESULT OnKeystroke(IVMSGWrapPtr key_msg, VARIANT* pvResult)
 	{
 		ASSERT_RETURN_VALUE(key_msg != NULL, E_INVALIDARG);
 		ASSERT_RETURN_VALUE(pvResult != NULL, E_INVALIDARG);
@@ -283,7 +283,7 @@ struct CConnect::Impl
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnConnection(IDispatch *pApplication, ext_ConnectMode, IDispatch *pAddInInst, SAFEARRAY ** custom)
+STDMETHODIMP CVisioConnect::OnConnection(IDispatch *pApplication, ext_ConnectMode, IDispatch *pAddInInst, SAFEARRAY ** custom)
 {
 	ENTER_METHOD()
 
@@ -298,7 +298,7 @@ STDMETHODIMP CConnect::OnConnection(IDispatch *pApplication, ext_ConnectMode, ID
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnDisconnection(ext_DisconnectMode /*RemoveMode*/, SAFEARRAY ** /*custom*/ )
+STDMETHODIMP CVisioConnect::OnDisconnection(ext_DisconnectMode /*RemoveMode*/, SAFEARRAY ** /*custom*/ )
 {
 	ENTER_METHOD()
 
@@ -312,7 +312,7 @@ STDMETHODIMP CConnect::OnDisconnection(ext_DisconnectMode /*RemoveMode*/, SAFEAR
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnAddInsUpdate (SAFEARRAY ** /*custom*/ )
+STDMETHODIMP CVisioConnect::OnAddInsUpdate (SAFEARRAY ** /*custom*/ )
 {
 	ENTER_METHOD();
 
@@ -325,7 +325,7 @@ STDMETHODIMP CConnect::OnAddInsUpdate (SAFEARRAY ** /*custom*/ )
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnStartupComplete (SAFEARRAY ** /*custom*/ )
+STDMETHODIMP CVisioConnect::OnStartupComplete (SAFEARRAY ** /*custom*/ )
 {
 	ENTER_METHOD();
 
@@ -338,7 +338,7 @@ STDMETHODIMP CConnect::OnStartupComplete (SAFEARRAY ** /*custom*/ )
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnBeginShutdown (SAFEARRAY ** /*custom*/ )
+STDMETHODIMP CVisioConnect::OnBeginShutdown (SAFEARRAY ** /*custom*/ )
 {
 	ENTER_METHOD();
 
@@ -351,7 +351,7 @@ STDMETHODIMP CConnect::OnBeginShutdown (SAFEARRAY ** /*custom*/ )
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::GetCustomUI(BSTR RibbonID, BSTR * RibbonXml)
+STDMETHODIMP CVisioConnect::GetCustomUI(BSTR RibbonID, BSTR * RibbonXml)
 {
 	ENTER_METHOD();
 
@@ -364,7 +364,7 @@ STDMETHODIMP CConnect::GetCustomUI(BSTR RibbonID, BSTR * RibbonXml)
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnRibbonCheckboxClicked(IDispatch *pControl, VARIANT_BOOL *pvarfPressed)
+STDMETHODIMP CVisioConnect::OnRibbonCheckboxClicked(IDispatch *pControl, VARIANT_BOOL *pvarfPressed)
 {
 	ENTER_METHOD()
 
@@ -374,7 +374,7 @@ STDMETHODIMP CConnect::OnRibbonCheckboxClicked(IDispatch *pControl, VARIANT_BOOL
 	LEAVE_METHOD()
 }
 
-STDMETHODIMP CConnect::OnRibbonButtonClicked(IDispatch * disp)
+STDMETHODIMP CVisioConnect::OnRibbonButtonClicked(IDispatch * disp)
 { 
 	ENTER_METHOD();
 
@@ -388,7 +388,7 @@ STDMETHODIMP CConnect::OnRibbonButtonClicked(IDispatch * disp)
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnRibbonLoad(IDispatch* disp)
+STDMETHODIMP CVisioConnect::OnRibbonLoad(IDispatch* disp)
 {
 	ENTER_METHOD();
 
@@ -402,7 +402,7 @@ STDMETHODIMP CConnect::OnRibbonLoad(IDispatch* disp)
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::OnRibbonLoadImage(BSTR bstrID, IPictureDisp ** ppdispImage)
+STDMETHODIMP CVisioConnect::OnRibbonLoadImage(BSTR bstrID, IPictureDisp ** ppdispImage)
 {
 	ENTER_METHOD();
 
@@ -415,7 +415,7 @@ STDMETHODIMP CConnect::OnRibbonLoadImage(BSTR bstrID, IPictureDisp ** ppdispImag
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::IsRibbonButtonPressed(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
+STDMETHODIMP CVisioConnect::IsRibbonButtonPressed(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
 {
 	ENTER_METHOD();
 
@@ -429,7 +429,7 @@ STDMETHODIMP CConnect::IsRibbonButtonPressed(IDispatch * RibbonControl, VARIANT_
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::IsRibbonButtonEnabled(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
+STDMETHODIMP CVisioConnect::IsRibbonButtonEnabled(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
 {
 	ENTER_METHOD();
 
@@ -443,7 +443,7 @@ STDMETHODIMP CConnect::IsRibbonButtonEnabled(IDispatch * RibbonControl, VARIANT_
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::GetRibbonLabel(IDispatch *pControl, BSTR *pbstrLabel)
+STDMETHODIMP CVisioConnect::GetRibbonLabel(IDispatch *pControl, BSTR *pbstrLabel)
 {
 	ENTER_METHOD();
 
@@ -457,7 +457,7 @@ STDMETHODIMP CConnect::GetRibbonLabel(IDispatch *pControl, BSTR *pbstrLabel)
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::GetRibbonImage(IDispatch *pControl, IPictureDisp ** ppdispImage)
+STDMETHODIMP CVisioConnect::GetRibbonImage(IDispatch *pControl, IPictureDisp ** ppdispImage)
 {
 	return S_OK;
 }
@@ -466,7 +466,7 @@ STDMETHODIMP CConnect::GetRibbonImage(IDispatch *pControl, IPictureDisp ** ppdis
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CConnect::IsRibbonButtonVisible(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
+STDMETHODIMP CVisioConnect::IsRibbonButtonVisible(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
 {
 	ENTER_METHOD();
 
@@ -480,7 +480,7 @@ STDMETHODIMP CConnect::IsRibbonButtonVisible(IDispatch * RibbonControl, VARIANT_
 	
 -------------------------------------------------------------------------*/
 
-HRESULT CConnect::FinalConstruct ()
+HRESULT CVisioConnect::FinalConstruct ()
 {
 	return S_OK;
 }
@@ -489,7 +489,7 @@ HRESULT CConnect::FinalConstruct ()
 	
 -------------------------------------------------------------------------*/
 
-void CConnect::FinalRelease ()
+void CVisioConnect::FinalRelease ()
 {
 
 }
@@ -498,7 +498,7 @@ void CConnect::FinalRelease ()
 	
 -------------------------------------------------------------------------*/
 
-CConnect::CConnect ()
+CVisioConnect::CVisioConnect ()
 	: m_impl(new Impl())
 {
 
@@ -508,7 +508,7 @@ CConnect::CConnect ()
 	
 -------------------------------------------------------------------------*/
 
-CConnect::~CConnect ()
+CVisioConnect::~CVisioConnect ()
 {
 	delete m_impl;
 }

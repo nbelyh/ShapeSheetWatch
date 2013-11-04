@@ -103,7 +103,7 @@ void CAddinApp::OnCommand(UINT id)
 	{
 	case ID_ShowSheetWindow:
 		{
-			Visio::IVWindowPtr window = m_app->GetActiveWindow();
+			IVWindowPtr window = m_app->GetActiveWindow();
 
 			HWND hwnd = GetVisioWindowHandle(window);
 
@@ -123,12 +123,12 @@ void CAddinApp::OnCommand(UINT id)
 	}
 }
 
-Visio::IVApplicationPtr CAddinApp::GetVisioApp()
+IVApplicationPtr CAddinApp::GetVisioApp()
 {
 	return m_app;
 }
 
-void CAddinApp::SetVisioApp( Visio::IVApplicationPtr app )
+void CAddinApp::SetVisioApp( IVApplicationPtr app )
 {
 	m_app = app;
 }

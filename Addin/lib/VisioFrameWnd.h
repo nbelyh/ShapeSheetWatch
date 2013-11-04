@@ -16,7 +16,7 @@ public:
 	~CVisioFrameWnd();
 
 	/// Constructs new Visio frame window.
-	void Create(Visio::IVWindowPtr app);
+	void Create(IVWindowPtr app);
 	void Destroy();
 
 protected:

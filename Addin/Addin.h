@@ -8,8 +8,8 @@ class CAddinApp : public CWinApp
 public:
 	void OnCommand(UINT id);
 
-	Visio::IVApplicationPtr GetVisioApp();
-	void SetVisioApp(Visio::IVApplicationPtr app);
+	IVApplicationPtr GetVisioApp();
+	void SetVisioApp(IVApplicationPtr app);
 
 	Office::IRibbonUIPtr GetRibbon();
 	void SetRibbon(Office::IRibbonUIPtr ribbon);
@@ -22,7 +22,7 @@ public:
 
 private:
 	CSimpleMap<HWND, CVisioFrameWnd*> m_shown_windows;
-	Visio::IVApplicationPtr m_app;
+	IVApplicationPtr m_app;
 	Office::IRibbonUIPtr m_ribbon;
 };
 

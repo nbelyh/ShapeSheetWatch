@@ -192,7 +192,7 @@ Office::CommandBarPopupPtr AddinUi::CreateFrameMenu(Office::CommandBarControlsPt
 	return result;
 }
 
-void AddinUi::CreateCommandBarsMenu(Visio::IVApplicationPtr app)
+void AddinUi::CreateCommandBarsMenu(IVApplicationPtr app)
 {
 	LanguageLock lock(GetAppLanguage(app));
 

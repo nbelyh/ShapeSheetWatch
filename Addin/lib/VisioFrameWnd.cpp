@@ -13,8 +13,6 @@
 #include "ShapeSheet.h"
 #include "Addin.h"
 
-using namespace Visio;
-
 /**-----------------------------------------------------------------------------
 	Message map
 ------------------------------------------------------------------------------*/
@@ -155,9 +153,9 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 	void UpdateGridRows()
 	{
-		Visio::IVSelectionPtr selection = visio_window->Selection;
+		IVSelectionPtr selection = visio_window->Selection;
 
-		Visio::IVShapePtr shape = NULL;
+		IVShapePtr shape = NULL;
 		
 		if (selection->Count > 0)
 			shape = selection->Item[1];
@@ -196,7 +194,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 				if (shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
 				{
-					Visio::IVCellPtr cell = shape->GetCellsSRC(src.s, src.r, src.c);
+					IVCellPtr cell = shape->GetCellsSRC(src.s, src.r, src.c);
 
 					grid.SetItemData(row, Column_Name, i);
 
@@ -267,8 +265,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	}
 
 
-	Visio::IVWindowPtr	visio_window;
-	Visio::IVWindowPtr	this_window;
+	IVWindowPtr	visio_window;
+	IVWindowPtr	this_window;
 
 	CGridCtrl	grid;
 	CVisioEvent	evt_sel_changed;

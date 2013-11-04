@@ -10,4 +10,4 @@ struct SRC
 	short c;
 };
 
-void GetCellNames(Visio::IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result);
+void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result);

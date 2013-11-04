@@ -44,9 +44,9 @@
             <Component Id="ProductComponent" Win64="$(var.Win64YesNo)">
               <File KeyPath="yes" Source="$(var.Binaries)\Addin.dll" >
                 <TypeLib Id="{03AB8311-3616-4692-A9BE-447DD0F3F6DF}" Description="ShapeSheetWatch Addin 1.0 Type Library" HelpDirectory="TARGETDIR" Language="0" MajorVersion="1" MinorVersion="0">
-                  <Class Id="{46288C2D-7FDA-4f64-91C3-17BD6773640D}" Context="InprocServer32" Description="Connect Class" ThreadingModel="apartment" Programmable="yes">
-                    <ProgId Id="ShapeSheetWatchAddin.Connect.1" Description="Connect Class">
-                      <ProgId Id="ShapeSheetWatchAddin.Connect" Description="Connect Class" />
+                  <Class Id="{46288C2D-7FDA-4f64-91C3-17BD6773640D}" Context="InprocServer32" Description="VisioConnect Class" ThreadingModel="apartment" Programmable="yes">
+                    <ProgId Id="ShapeSheetWatchAddin.VisioConnect.1" Description="VisioConnect Class">
+                      <ProgId Id="ShapeSheetWatchAddin.VisioConnect" Description="VisioConnect Class" />
                     </ProgId>
                   </Class>
                   <Interface Id="{07B14CAE-D68A-4f09-AE0E-74DE3B9399CF}" Name="ICallbackInterface" ProxyStubClassId32="{00020424-0000-0000-C000-000000000046}" />
@@ -55,7 +55,7 @@
             </Component>
 
             <Component Id="VisioRegistration" Win64="$(var.Win64YesNo)" >
-              <RegistryKey Root="HKMU" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.Connect">
+              <RegistryKey Root="HKMU" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.VisioConnect">
                 <RegistryValue Name="CommandLineSafe" Type="integer" Value="0" />
                 <RegistryValue Name="FriendlyName" Type="string" Value="ShapeSheetWatchAddin" KeyPath="yes" />
                 <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />

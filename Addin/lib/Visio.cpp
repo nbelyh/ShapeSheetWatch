@@ -43,7 +43,7 @@ Use this class when signing up for Visio events using the AddAdvise
 method.
 ------------------------------------------------------------------------------*/
 
-class CVisioAddonSink : public Visio::IVisEventProc
+class CVisioAddonSink : public IVisEventProc
 {
 public:
 	//	IUnknown methods
@@ -166,7 +166,7 @@ void CVisioAddonSink::CommonConstruct(LPVISEVENTPROC pCallback /*=NULL*/,
 
 		ITypeLib* ipLib = NULL;
 
-		hr = LoadRegTypeLib(__uuidof(Visio::__Visio), 4, 7, LOCALE_NEUTRAL, &ipLib);
+		hr = LoadRegTypeLib(__uuidof(__Visio), 4, 7, LOCALE_NEUTRAL, &ipLib);
 		if (SUCCEEDED(hr))
 		{
 			hr = ipLib->GetTypeInfoOfGuid(__uuidof(IVisEventProc), &m_pInfo);
@@ -540,7 +540,7 @@ CVisioEvent::~CVisioEvent()
 	The event object generated is stored for detaching later.
 ------------------------------------------------------------------------------*/
 
-HRESULT CVisioEvent::Advise(Visio::IVEventListPtr evt_list,
+HRESULT CVisioEvent::Advise(IVEventListPtr evt_list,
 						 int evt_code,
 						 VEventHandler* target)
 {
@@ -575,12 +575,12 @@ void CVisioEvent::Unadvise()
 	Given visio window, returns HWND (window handle) for it.
 ------------------------------------------------------------------------------*/
 
-HWND GetVisioWindowHandle (Visio::IVWindowPtr visio_window)
+HWND GetVisioWindowHandle (IVWindowPtr visio_window)
 {
 	return reinterpret_cast<HWND>(visio_window->GetWindowHandle32());
 }
 
-HWND GetVisioAppWindowHandle (Visio::IVApplicationPtr app)
+HWND GetVisioAppWindowHandle (IVApplicationPtr app)
 {
 	return reinterpret_cast<HWND>(app->GetWindowHandle32());
 }
@@ -592,7 +592,7 @@ HWND GetVisioAppWindowHandle (Visio::IVApplicationPtr app)
 
 int VisioScopeLock::g_level = 0;
 
-VisioScopeLock::VisioScopeLock(Visio::IVApplicationPtr app, LPCWSTR description)
+VisioScopeLock::VisioScopeLock(IVApplicationPtr app, LPCWSTR description)
 	: m_result(VARIANT_FALSE)
 	, m_scope_id(0)
 	, m_app(app)
@@ -621,7 +621,7 @@ bool VisioScopeLock::IsInVisioScopeLock ()
 	return g_level > 0;
 }
 
-int GetVisioVersion(Visio::IVApplicationPtr app)
+int GetVisioVersion(IVApplicationPtr app)
 {
 	static int result = -1;
 
