@@ -954,6 +954,7 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 #ifndef GRIDCONTROL_NO_CLIPBOARD
 		CutSelectedText();
 #endif
+		SendMessageToParent(next.row, next.col, GVN_DELETEITEM);
 	}
 	else if (nChar == VK_DOWN)
 	{

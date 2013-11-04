@@ -10,6 +10,7 @@
 #include "lib/GridCtrl/GridCtrl.h"
 #include "lib/Visio.h"
 #include "lib/Utils.h"
+#include "ShapeSheet.h"
 #include "Addin.h"
 
 using namespace Visio;
@@ -25,6 +26,7 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_WM_SIZE()
 	ON_WM_MOUSEWHEEL()
 	ON_NOTIFY(GVN_ENDLABELEDIT, 1, OnEndLabelEdit)
+	ON_NOTIFY(GVN_DELETEITEM, 1, OnDeleteItem)
 END_MESSAGE_MAP()
 
 struct CVisioFrameWnd::Impl : public VEventHandler
@@ -84,17 +86,27 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		return NULL;
 	}
 
-	typedef std::vector<CString> CellNames;
-	CellNames cell_names;
+	Strings cell_name_masks;
 
-	void AddCellName(LPCWSTR cell_name)
+	void AddCellMask(LPCWSTR name)
 	{
-		cell_names.push_back(cell_name);
+		cell_name_masks.push_back(name);
+	}
+
+	void UpdateCellGroup(size_t idx, LPCWSTR text)
+	{
+		cell_name_masks[idx] = text;
+	}
+
+	void RemoveCellGroup(size_t idx)
+	{
+		cell_name_masks.erase(cell_name_masks.begin() + idx);
 	}
 
 	enum Column 
 	{
 		Column_Name,
+		Column_RowName,
 		Column_LocalName,
 		Column_Formula,
 		Column_Value,
@@ -106,8 +118,9 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	{
 		switch (i)
 		{
-		case Column_Name:		return L"FullName";
-		case Column_LocalName:	return L"Name";
+		case Column_Name:		return L"Mask";
+		case Column_RowName:	return L"Row";
+		case Column_LocalName:	return L"Cell";
 		case Column_Formula:	return L"Formula";
 		case Column_Value:		return L"Value";
 
@@ -118,7 +131,6 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	void BuildGrid()
 	{
 		grid.SetFixedRowCount(1);
-
 
 		grid.SetColumnCount(Column_Count);
 
@@ -145,108 +157,115 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	{
 		Visio::IVSelectionPtr selection = visio_window->Selection;
 
-		if (selection->Count == 0)
-			return;
+		Visio::IVShapePtr shape = NULL;
+		
+		if (selection->Count > 0)
+			shape = selection->Item[1];
 
-		Visio::IVShapePtr shape = selection->Item[1];
+		typedef std::vector<Strings> GroupCellInfos;
+		GroupCellInfos cell_names(cell_name_masks.size());
 
-		struct CellInfo 
+		for (size_t i = 0; i < cell_name_masks.size(); ++i)
+			GetCellNames(shape, cell_name_masks[i], cell_names[i]);
+
+		grid.SetRowCount(1);
+
+		size_t row_count = 0;
+		for (size_t i = 0; i < cell_names.size(); ++i)
+			row_count += cell_names[i].size() > 0 ? cell_names[i].size() : 1;
+
+		grid.SetRowCount(1 + row_count);
+
+		size_t row = 1;
+		for (size_t i = 0; i < cell_name_masks.size(); ++i)
 		{
-			CString group_name;
-			CString cell_name;
-		};
+			grid.SetItemText(row, Column_Name, cell_name_masks[i]);
 
-		typedef std::vector<CellInfo> CellInfos;
-		CellInfos cell_infos;
+			size_t start_row = row;
 
-		for (CellNames::const_iterator it = cell_names.begin(); it != cell_names.end(); ++it)
-		{
-			for (short s = 0; s <= 255; ++s)
+			if (cell_names[i].empty())
 			{
-				Visio::IVSectionPtr section;
-				if (SUCCEEDED(shape->get_Section(s, &section)))
+				grid.SetItemData(row, Column_Name, i);
+				++row;
+			}
+			else for (size_t j = 0; j < cell_names[i].size(); ++j)
+			{
+				bstr_t cell_name = cell_names[i][j];
+
+				grid.SetItemText(row, Column_LocalName, cell_name);
+
+				if (shape->GetCellExistsU(cell_name, VARIANT_FALSE))
 				{
-					for (short r = 0; r < section->Count; ++r)
-					{
-						Visio::IVRowPtr row;
-						if (SUCCEEDED(section->get_Row(r, &row)))
-						{
-							for (long c = 0; c < row->Count; ++c)
-							{
-								Visio::IVCellPtr cell;
-								if (SUCCEEDED(row->get_CellU(variant_t(c), &cell)))
-								{
-									CString cell_name = cell->Name;
+					Visio::IVCellPtr cell = shape->GetCellsU(cell_name);
 
-									if (StringIsLike(*it, cell_name))
-									{
-										CellInfo cell_info;
-										cell_info.group_name = *it;
-										cell_info.cell_name = cell_name;
+					grid.SetItemData(row, Column_Name, i);
 
-										cell_infos.push_back(cell_info);
-									}
-								}
-							}
-						}
-					}
+					CComBSTR row_name;
+					if (SUCCEEDED(cell->get_RowNameU(&row_name)))
+						grid.SetItemText(row, Column_RowName, row_name);
+
+					grid.SetItemText(row, Column_Formula, cell->FormulaU);
+					grid.SetItemText(row, Column_Value, cell->ResultStr[0]);
 				}
+
+				++row;
 			}
+
+			if (row > start_row + 1)
+				grid.MergeCells(start_row, Column_Name, row - 1, Column_Name);
 		}
 
-		grid.SetRowCount(1 + cell_infos.size() + 1);
-
-		size_t group_start = 1;
-		CString last_group_name;
-
-		size_t i = 0; 
-		while (i < cell_infos.size())
-		{
-			CString group_name = cell_infos[i].group_name;
-
-			grid.SetItemText(1 + i, Column_Name, group_name);
-
-			bstr_t cell_name = cell_infos[i].cell_name;
-
-			if (shape->GetCellExistsU(cell_name, VARIANT_FALSE))
-			{
-				Visio::IVCellPtr cell = shape->GetCellsU(cell_name);
-
-				grid.SetItemText(1 + i, Column_LocalName, cell->LocalName);
-				grid.SetItemText(1 + i, Column_Formula, cell->FormulaU);
-				grid.SetItemText(1 + i, Column_Value, cell->ResultStr[0]);
-			}
-
-			if (last_group_name != group_name && !last_group_name.IsEmpty())
-			{
-				if (group_start < 1 + i)
-					grid.MergeCells(group_start, Column_Name, i, Column_Name);
-
-				group_start = i + 1;
-			}
-
-			last_group_name = group_name;
-			++i;
-		}
-
-		if (group_start < 1 + i)
-			grid.MergeCells(group_start, Column_Name, i, Column_Name);
+		grid.SetRowCount(1 + row_count + 1);
 
 		grid.Refresh();
 	}
 
 	BOOL OnItemEdit( int iRow, int iColumn )
 	{
-		if (iRow == grid.GetRowCount() - 1 && iColumn == Column_Name)
+		switch (iColumn)
 		{
-			CString text = grid.GetItemText(iRow, iColumn);
-			AddCellName(text);
-			UpdateGridRows();
+		case Column_Name:
+			if (iRow < grid.GetRowCount() - 1)
+			{
+				LPARAM idx = grid.GetItemData(iRow, iColumn);
+				CString text = grid.GetItemText(iRow, iColumn);
+				UpdateCellGroup(idx, text);
+				UpdateGridRows();
+			}
+			else
+			{
+				CString text = grid.GetItemText(iRow, iColumn);
+				AddCellMask(text);
+				UpdateGridRows();
+			}
 			return TRUE;
+
+		case Column_Formula:
+			{
+
+			}
 		}
 
 		return FALSE;
 	}
+
+	BOOL OnItemDelete( int iRow, int iColumn )
+	{
+		switch (iColumn)
+		{
+			case Column_Name:
+				if (iRow < grid.GetRowCount() - 1)
+				{
+					LPARAM idx = grid.GetItemData(iRow, iColumn);
+					RemoveCellGroup(idx);
+					UpdateGridRows();
+				}
+				return TRUE;
+		}
+
+		return FALSE;
+	}
+
 
 	Visio::IVWindowPtr	visio_window;
 	Visio::IVWindowPtr	this_window;
@@ -259,7 +278,6 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 void CVisioFrameWnd::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
 {
 	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
-
 	m_impl->OnItemEdit(nmgv->iRow, nmgv->iColumn);
 
 	/*
@@ -280,9 +298,15 @@ void CVisioFrameWnd::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
 	*/
 }
 
+void CVisioFrameWnd::OnDeleteItem(NMHDR*nmhdr, LRESULT* result)
+{
+	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
+	m_impl->OnItemDelete(nmgv->iRow, nmgv->iColumn);
+}
+
 BOOL CVisioFrameWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-	return FALSE;
+	return TRUE;
 }
 
 /**------------------------------------------------------------------------------
@@ -324,7 +348,7 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	CRect rect;
 	GetClientRect(rect);
 
-	m_impl->grid.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
+	m_impl->grid.Create(rect, this, 1, WS_CHILD|WS_VISIBLE|WS_BORDER);
 
 	m_impl->Init();
 }
@@ -359,6 +383,7 @@ BOOL CVisioFrameWnd::OnEraseBkgnd(CDC* pDC)
 void CVisioFrameWnd::OnDestroy()
 {
 	m_impl->evt_sel_changed.Unadvise();
+	m_impl->grid.DeleteAllItems();
 	theApp.RegisterWindow(GetVisioWindowHandle(m_impl->visio_window), NULL);
 
 	CWnd::OnDestroy();

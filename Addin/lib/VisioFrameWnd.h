@@ -27,6 +27,7 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 	void OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result);
+	void OnDeleteItem(NMHDR*nmhdr, LRESULT* result);
 private:
 	struct Impl;
 	Impl* m_impl;

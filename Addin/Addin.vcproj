@@ -430,6 +430,14 @@
 			Name="lib"
 			>
 			<File
+				RelativePath=".\ShapeSheet.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ShapeSheet.h"
+				>
+			</File>
+			<File
 				RelativePath=".\lib\UI.cpp"
 				>
 			</File>

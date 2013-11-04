@@ -34,7 +34,7 @@ IDR_RESOURCE_H          TEXT                    "resource.h"
 // PNG
 //
 
-ID_ShowSheetWindow      PNG                     "res\\Settings.png"
+ID_ShowSheetWindow      PNG                     "res\\icon16.png"
 ID_ShowSheetWindow32    PNG                     "res\\icon32.png"
 #endif    // Russian resources
 /////////////////////////////////////////////////////////////////////////////

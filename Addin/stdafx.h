@@ -28,6 +28,9 @@
 #include <atlbase.h>
 #include <atlcom.h>
 
+#include <vector>
+#include <algorithm>
+
 #pragma warning( disable : 4278 )
 #pragma warning( disable : 4146 )
 
@@ -37,5 +40,7 @@
 
 #pragma warning( default : 4146 )
 #pragma warning( default : 4278 )
+
+typedef std::vector<CString> Strings;
 
 using namespace ATL;

@@ -32,8 +32,6 @@
 #include "CellRange.h"
 #include "GridCell.h"
 #include <afxtempl.h>
-#include <vector>
-
 
 ///////////////////////////////////////////////////////////////////////////////////
 // Defines - these determine the features (and the final size) of the final code
