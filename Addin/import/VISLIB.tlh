@@ -1,16 +1,14 @@
-﻿// Created by Microsoft (R) C/C++ Compiler Version 15.00.30729.01 (454d3b61).
+﻿// Created by Microsoft (R) C/C++ Compiler Version 15.00.30729.01 (f16fa587).
 //
-// d:\projects\p4b\mod-6.0.0\check\src\modeler\obj\debug\VISLIB.tlh
+// c:\projects\p4b\mod-6.1.0\check\src\modeler\obj\debug\VISLIB.tlh
 //
 // C++ source equivalent of Win32 type library {00021A98-0000-0000-C000-000000000046}
-// compiler-generated file created 04/17/13 at 02:10:10 - DO NOT EDIT!
+// compiler-generated file created 09/24/13 at 13:08:23 - DO NOT EDIT!
 
 #pragma once
 #pragma pack(push, 8)
 
 #include <comdef.h>
-
-namespace Visio {
 
 //
 // Forward references and typedefs
@@ -22958,7 +22956,5 @@ IVBUndoUnit : IDispatch
       virtual HRESULT __stdcall get_UnitSize (
         /*[out,retval]*/ long * pnSize ) = 0;
 };
-
-} // namespace Office
 
 #pragma pack(pop)

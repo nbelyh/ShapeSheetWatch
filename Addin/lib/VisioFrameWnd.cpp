@@ -162,7 +162,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		if (selection->Count > 0)
 			shape = selection->Item[1];
 
-		typedef std::vector<Strings> GroupCellInfos;
+		typedef std::vector< std::vector<SRC> > GroupCellInfos;
 		GroupCellInfos cell_names(cell_name_masks.size());
 
 		for (size_t i = 0; i < cell_name_masks.size(); ++i)
@@ -190,13 +190,13 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			}
 			else for (size_t j = 0; j < cell_names[i].size(); ++j)
 			{
-				bstr_t cell_name = cell_names[i][j];
+				SRC& src = cell_names[i][j];
 
-				grid.SetItemText(row, Column_LocalName, cell_name);
+				grid.SetItemText(row, Column_LocalName, src.name);
 
-				if (shape->GetCellExistsU(cell_name, VARIANT_FALSE))
+				if (shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
 				{
-					Visio::IVCellPtr cell = shape->GetCellsU(cell_name);
+					Visio::IVCellPtr cell = shape->GetCellsSRC(src.s, src.r, src.c);
 
 					grid.SetItemData(row, Column_Name, i);
 

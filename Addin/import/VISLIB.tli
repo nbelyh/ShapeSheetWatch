@@ -1,13 +1,11 @@
-﻿// Created by Microsoft (R) C/C++ Compiler Version 15.00.30729.01 (37e1ad16).
+﻿// Created by Microsoft (R) C/C++ Compiler Version 15.00.30729.01 (2872f31d).
 //
-// d:\projects\p4b\mod-6.0.0\check\src\modeler\obj\debug\VISLIB.tli
+// c:\projects\p4b\mod-6.1.0\check\src\modeler\obj\debug\VISLIB.tli
 //
 // Wrapper implementations for Win32 type library {00021A98-0000-0000-C000-000000000046}
-// compiler-generated file created 04/17/13 at 02:13:08 - DO NOT EDIT!
+// compiler-generated file created 09/24/13 at 13:09:07 - DO NOT EDIT!
 
 #pragma once
-
-namespace Visio {
 
 //
 // dispinterface EDocument wrapper method implementations
@@ -20892,6 +20890,3 @@ long IVBUndoUnit::GetUnitSize ( ) {
     if (FAILED(_hr)) _com_issue_errorex(_hr, this, __uuidof(this));
     return _result;
 }
-
-} // namespace Office
-
