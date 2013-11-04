@@ -127,15 +127,15 @@ END_MESSAGE_MAP()
 //  b) m_bExitOnArrows == TRUE
 void CInPlaceEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
-    if ((nChar == VK_PRIOR || nChar == VK_NEXT ||
-        nChar == VK_DOWN  || nChar == VK_UP   ||
-        nChar == VK_RIGHT || nChar == VK_LEFT) &&
-        (m_bExitOnArrows || GetKeyState(VK_CONTROL) < 0))
-    {
-        m_nLastChar = nChar;
-        GetParent()->SetFocus();
-        return;
-    }
+//     if ((nChar == VK_PRIOR || nChar == VK_NEXT ||
+//         nChar == VK_DOWN  || nChar == VK_UP   ||
+//         nChar == VK_RIGHT || nChar == VK_LEFT) &&
+//         (m_bExitOnArrows || GetKeyState(VK_CONTROL) < 0))
+//     {
+//         m_nLastChar = nChar;
+//         GetParent()->SetFocus();
+//         return;
+//     }
     
     CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
 }
