@@ -543,6 +543,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\res\icon16.png"
+			>
+		</File>
+		<File
 			RelativePath="Resource.h"
 			>
 		</File>
