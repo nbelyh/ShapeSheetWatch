@@ -149,3 +149,22 @@ bool StringIsLike(LPCWSTR mask, LPCWSTR s)
 	}
 }
 
+CString GetListSep(bool add_space)
+{
+	TCHAR szBuffer[10] = {0};
+	GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_SLIST, szBuffer, _countof(szBuffer));
+
+	CString strSeparator = szBuffer;
+
+	// If none found, the the ';'
+	if (strSeparator.GetLength() == 0)
+		strSeparator = ';';
+
+	// Trim extra spaces
+	strSeparator.TrimRight();
+
+	if (add_space)
+		strSeparator += ' ';
+
+	return strSeparator;
+}

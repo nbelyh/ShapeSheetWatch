@@ -90,33 +90,6 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		return NULL;
 	}
 
-	Strings cell_name_masks;
-
-	void AddCellMask(LPCWSTR name)
-	{
-		cell_name_masks.push_back(name);
-	}
-
-	void UpdateCellGroup(size_t idx, LPCWSTR text)
-	{
-		cell_name_masks[idx] = text;
-	}
-
-	void RemoveCellGroup(size_t idx)
-	{
-		cell_name_masks.erase(cell_name_masks.begin() + idx);
-	}
-
-	void SaveCellMasks()
-	{
-
-	}
-
-	void ReadCellMasks()
-	{
-
-	}
-
 	enum Column 
 	{
 		Column_Mask,
@@ -163,6 +136,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 	void Init()
 	{
+		m_view_settings = theApp.GetViewSettings();
+
 		BuildGrid();
 		UpdateGridRows();
 	}
@@ -179,6 +154,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		grid.SetItemText(row, col, text);
 	}
 
+	ViewSettings* m_view_settings;
+
 	void UpdateGridRows()
 	{
 		IVSelectionPtr selection = visio_window->Selection;
@@ -187,6 +164,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		
 		if (selection->Count > 0)
 			shape = selection->Item[1];
+
+		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
 		typedef std::vector< std::vector<SRC> > GroupCellInfos;
 		GroupCellInfos cell_names(cell_name_masks.size());
@@ -297,13 +276,15 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			{
 				LPARAM idx = grid.GetItemData(iRow, iColumn);
 				CString text = grid.GetItemText(iRow, iColumn);
-				UpdateCellGroup(idx, text);
+
+				m_view_settings->UpdateCellMask(idx, text);
 				UpdateGridRows();
 			}
 			else
 			{
 				CString text = grid.GetItemText(iRow, iColumn);
-				AddCellMask(text);
+
+				m_view_settings->AddCellMask(text);
 				UpdateGridRows();
 			}
 			return TRUE;
@@ -325,7 +306,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 				if (iRow < grid.GetRowCount() - 1)
 				{
 					LPARAM idx = grid.GetItemData(iRow, iColumn);
-					RemoveCellGroup(idx);
+
+					m_view_settings->RemoveCellMask(idx);
 					UpdateGridRows();
 				}
 				return TRUE;

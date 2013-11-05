@@ -595,7 +595,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\lib\TextUtils.h"
+			RelativePath=".\ViewSettings.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ViewSettings.h"
 			>
 		</File>
 		<File

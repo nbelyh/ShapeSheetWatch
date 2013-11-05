@@ -85,12 +85,16 @@ BOOL CAddinApp::InitInstance()
 	if (FAILED(_Module.Init(ObjectMap, AfxGetInstanceHandle(), &LIBID_AddinLib)))
 		return FALSE;
 
+	m_view_settings.Load();
+
 	return TRUE;
 }
 
 int CAddinApp::ExitInstance() 
 {
 	AFX_MANAGE_STATE(AfxGetStaticModuleState());
+
+	m_view_settings.Save();
 
 	_Module.Term();
 
@@ -162,6 +166,11 @@ void CAddinApp::RegisterWindow(HWND hwnd, CVisioFrameWnd* window)
 
 	if (m_ribbon)
 		m_ribbon->Invalidate();
+}
+
+ViewSettings* CAddinApp::GetViewSettings() const
+{
+	return &m_view_settings;
 }
 
 CAddinApp theApp;

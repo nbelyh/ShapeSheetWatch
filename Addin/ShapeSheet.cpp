@@ -2,7 +2,6 @@
 #include "stdafx.h"
 #include "import/VISLIB.tlh"
 #include "lib/Utils.h"
-#include "lib/TextUtils.h"
 #include "ShapeSheet.h"
 
 //TODO: tab support {i}{j}
@@ -19,8 +18,6 @@ struct SSInfo
 	LPCWSTR type;
 	LPCWSTR values;
 };
-
-#define countof(a)	(sizeof(a)/sizeof(a[0]))
 
 SSInfo ss_info[] = {
 
@@ -491,7 +488,7 @@ void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, cons
 
 	for (short r = 0; r < section->Count; ++r)
 	{
-		for (size_t i = 0; i < countof(ss_info); ++i)
+		for (size_t i = 0; i < _countof(ss_info); ++i)
 		{
 			if (section_no != ss_info[i].s)
 				continue;
@@ -521,7 +518,7 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 		IVRowPtr row = section->GetRow(r);
 		CString row_name = row->NameU;
 
-		for (size_t i = 0; i < countof(ss_info); ++i)
+		for (size_t i = 0; i < _countof(ss_info); ++i)
 		{
 			if (section_no != ss_info[i].s)
 				continue;
@@ -549,7 +546,7 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 		{
 			CString r_name = FormatString(L"%d", 1 + r);
 
-			for (size_t i = 0; i < countof(ss_info); ++i)
+			for (size_t i = 0; i < _countof(ss_info); ++i)
 			{
 				if (ss_info[i].s != visSectionFirstComponent)
 					continue;
@@ -584,7 +581,7 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vector<SRC>& result)
 {
-	for (size_t i = 0; i < countof(ss_info); ++i)
+	for (size_t i = 0; i < _countof(ss_info); ++i)
 	{
 		if (ss_info[i].s != visSectionObject)
 			continue;
