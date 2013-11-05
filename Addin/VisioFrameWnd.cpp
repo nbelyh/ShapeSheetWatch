@@ -107,6 +107,16 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		cell_name_masks.erase(cell_name_masks.begin() + idx);
 	}
 
+	void SaveCellMasks()
+	{
+
+	}
+
+	void ReadCellMasks()
+	{
+
+	}
+
 	enum Column 
 	{
 		Column_Mask,
@@ -202,6 +212,11 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			if (cell_names[i].empty())
 			{
 				grid.SetItemData(row, Column_Mask, i);
+
+				SetSRCColumn(row, Column_S, L"");
+				SetSRCColumn(row, Column_R, L"");
+				SetSRCColumn(row, Column_C, L"");
+
 				++row;
 			}
 			else 

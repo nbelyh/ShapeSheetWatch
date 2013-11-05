@@ -7,8 +7,8 @@
 #include "AddIn_i.h"
 #include "AddIn_i.c"
 
-#include "lib/VisioFrameWnd.h"
 #include "lib/Visio.h"
+#include "VisioFrameWnd.h"
 
 CComModule _Module;
 

@@ -446,11 +446,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lib\VisioFrameWnd.cpp"
+				RelativePath=".\VisioFrameWnd.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\lib\VisioFrameWnd.h"
+				RelativePath=".\VisioFrameWnd.h"
 				>
 			</File>
 			<Filter
@@ -559,6 +559,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Addin.h"
+			>
+		</File>
+		<File
 			RelativePath="Addin.idl"
 			>
 		</File>
@@ -604,6 +608,10 @@
 		</File>
 		<File
 			RelativePath="stdafx.h"
+			>
+		</File>
+		<File
+			RelativePath=".\lib\TextUtils.h"
 			>
 		</File>
 		<File
