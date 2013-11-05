@@ -445,14 +445,6 @@
 				RelativePath=".\lib\UI.h"
 				>
 			</File>
-			<File
-				RelativePath=".\VisioFrameWnd.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\VisioFrameWnd.h"
-				>
-			</File>
 			<Filter
 				Name="GridCtrl"
 				>
@@ -620,6 +612,14 @@
 		</File>
 		<File
 			RelativePath=".\VisioConnect.h"
+			>
+		</File>
+		<File
+			RelativePath=".\VisioFrameWnd.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\VisioFrameWnd.h"
 			>
 		</File>
 	</Files>
