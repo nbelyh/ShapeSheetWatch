@@ -44,14 +44,13 @@ public:
 	STDMETHOD(GetCustomUI)(BSTR RibbonID, BSTR * RibbonXml);
 
 	STDMETHOD(OnRibbonButtonClicked)(IDispatch * RibbonControl);
-	STDMETHOD(OnRibbonCheckboxClicked)(IDispatch *pControl, VARIANT_BOOL *pvarfPressed);
 
 	STDMETHOD(OnRibbonLoad)(IDispatch* disp);
 	STDMETHOD(OnRibbonLoadImage)(BSTR pbstrImageId, IPictureDisp ** ppdispImage);
 
 	STDMETHOD(IsRibbonButtonEnabled)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
 	STDMETHOD(IsRibbonButtonVisible)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
-	STDMETHOD(IsRibbonButtonPressed)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
+
 	STDMETHOD(GetRibbonLabel)(IDispatch *pControl, BSTR *pbstrLabel);
 	STDMETHOD(GetRibbonImage)(IDispatch *pControl, IPictureDisp ** ppdispImage);
 

@@ -1803,9 +1803,9 @@ void CGridCtrl::OnDraw(CDC* pDC)
 		SendCacheHintToParent(CCellRange(-1,-1,-1,-1));
 
 #ifdef _DEBUG
-	LARGE_INTEGER iEndCount;
-	QueryPerformanceCounter(&iEndCount);
-	TRACE1("Draw counter ticks: %d\n", iEndCount.LowPart-iStartCount.LowPart);
+// 	LARGE_INTEGER iEndCount;
+// 	QueryPerformanceCounter(&iEndCount);
+// 	TRACE1("Draw counter ticks: %d\n", iEndCount.LowPart-iStartCount.LowPart);
 #endif
 
 }

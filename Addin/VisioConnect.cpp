@@ -93,8 +93,7 @@ struct CVisioConnect::Impl
 		evt_keystroke.Unadvise();
 
 		theApp.SetVisioApp(NULL);
-
-		ribbon  = NULL;
+		m_ribbon = NULL;
 		m_addin = NULL;
 	}
 
@@ -158,21 +157,6 @@ struct CVisioConnect::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	VARIANT_BOOL IsRibbonButtonPressed(IDispatch * pControl)
-	{
-		IVApplicationPtr app = theApp.GetVisioApp();
-
-		IVWindowPtr window;
-		if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
-			return VARIANT_FALSE;
-
-		return theApp.GetWindowShapeSheet(GetVisioWindowHandle(window)) != NULL ? VARIANT_TRUE : VARIANT_FALSE;
-	}
-
-	/**------------------------------------------------------------------------
-		
-	-------------------------------------------------------------------------*/
-
 	CString GetRibbonLabel(IDispatch* pControl) 
 	{
 		UINT cmd_id = GetControlCommand(pControl);
@@ -189,15 +173,8 @@ struct CVisioConnect::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	void SetRibbon(IDispatchPtr disp) 
-	{
-	}
-
 	IDispatchPtr m_addin;
-
-	IVApplicationPtr application;
-	IDispatchPtr addin;
-	IRibbonUIPtr ribbon;
+	IRibbonUIPtr m_ribbon;
 
 	CVisioEvent	 evt_idle;
 	CVisioEvent	 evt_win_activated;
@@ -231,12 +208,9 @@ struct CVisioConnect::Impl
 
 	void OnWindowActivated()
 	{
-		Office::IRibbonUIPtr ribbon = theApp.GetRibbon();
-		
-		if (ribbon)
-			ribbon->Invalidate();
+		if (m_ribbon)
+			m_ribbon->Invalidate();
 	}
-
 
 	HRESULT OnKeystroke(IVMSGWrapPtr key_msg, VARIANT* pvResult)
 	{
@@ -270,12 +244,9 @@ struct CVisioConnect::Impl
 		return S_OK;
 	}
 
-	void OnRibbonCheckboxClicked(IDispatch * pControl, VARIANT_BOOL * pvarfPressed)
+	void SetRibbon(IDispatch* disp)
 	{
-		UINT cmd_id = GetControlCommand(pControl);
-
-		if (cmd_id > 0)
-			theApp.OnCommand(cmd_id);
+		m_ribbon = disp;
 	}
 };
 
@@ -364,16 +335,6 @@ STDMETHODIMP CVisioConnect::GetCustomUI(BSTR RibbonID, BSTR * RibbonXml)
 	
 -------------------------------------------------------------------------*/
 
-STDMETHODIMP CVisioConnect::OnRibbonCheckboxClicked(IDispatch *pControl, VARIANT_BOOL *pvarfPressed)
-{
-	ENTER_METHOD()
-
-	m_impl->OnRibbonCheckboxClicked(pControl, pvarfPressed);
-	return S_OK;
-
-	LEAVE_METHOD()
-}
-
 STDMETHODIMP CVisioConnect::OnRibbonButtonClicked(IDispatch * disp)
 { 
 	ENTER_METHOD();
@@ -392,7 +353,7 @@ STDMETHODIMP CVisioConnect::OnRibbonLoad(IDispatch* disp)
 {
 	ENTER_METHOD();
 
-	theApp.SetRibbon(disp);
+	m_impl->SetRibbon(disp);
 	return S_OK;
 
 	LEAVE_METHOD();
@@ -407,20 +368,6 @@ STDMETHODIMP CVisioConnect::OnRibbonLoadImage(BSTR bstrID, IPictureDisp ** ppdis
 	ENTER_METHOD();
 
 	return CustomUiGetPng(MAKEINTRESOURCE(StrToInt(bstrID)), ppdispImage, NULL);
-
-	LEAVE_METHOD();
-}
-
-/**------------------------------------------------------------------------
-	
--------------------------------------------------------------------------*/
-
-STDMETHODIMP CVisioConnect::IsRibbonButtonPressed(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
-{
-	ENTER_METHOD();
-
-	*pResult = m_impl->IsRibbonButtonPressed(RibbonControl);
-	return S_OK;
 
 	LEAVE_METHOD();
 }

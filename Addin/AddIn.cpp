@@ -114,18 +114,8 @@ void CAddinApp::OnCommand(UINT id)
 
 			HWND hwnd = GetVisioWindowHandle(window);
 
-			CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);
-			if (wnd)
-			{
-				wnd->Destroy();
-				RegisterWindow(hwnd, NULL);
-			}
-			else
-			{
-				wnd = new CVisioFrameWnd();
-				wnd->Create(window);
-				RegisterWindow(hwnd, wnd);
-			}
+			CVisioFrameWnd* wnd = new CVisioFrameWnd();
+			wnd->Create(window);
 		}
 	}
 }
@@ -138,37 +128,6 @@ IVApplicationPtr CAddinApp::GetVisioApp()
 void CAddinApp::SetVisioApp( IVApplicationPtr app )
 {
 	m_app = app;
-}
-
-Office::IRibbonUIPtr CAddinApp::GetRibbon()
-{
-	return m_ribbon;
-}
-
-void CAddinApp::SetRibbon(Office::IRibbonUIPtr ribbon)
-{
-	m_ribbon = ribbon;
-}
-
-CVisioFrameWnd* CAddinApp::GetWindowShapeSheet(HWND hwnd) const
-{
-	int idx = m_shown_windows.FindKey(hwnd);
-
-	if (idx < 0)
-		return NULL;
-	return
-		m_shown_windows.GetValueAt(idx);
-}
-
-void CAddinApp::RegisterWindow(HWND hwnd, CVisioFrameWnd* window)
-{
-	if (window)
-		m_shown_windows.Add(hwnd, window);
-	else
-		m_shown_windows.Remove(hwnd);
-
-	if (m_ribbon)
-		m_ribbon->Invalidate();
 }
 
 ViewSettings* CAddinApp::GetViewSettings() const

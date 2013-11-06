@@ -1,4 +1,17 @@
 
+enum Column 
+{
+	Column_Mask,
+	Column_S,
+	Column_R,
+	Column_C,
+	Column_Formula,
+	Column_Value,
+
+	Column_Name,
+	Column_Count
+};
+
 struct ViewSettings
 {
 public:

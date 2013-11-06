@@ -41,12 +41,6 @@ library AddinLib
 
 		[id(6)]
 		HRESULT GetRibbonLabel([in] IDispatch *pControl, [out, retval] BSTR *pbstrLabel);
-
-		[id(7)]
-		HRESULT OnRibbonCheckboxClicked([in] IDispatch *pControl, [in] VARIANT_BOOL *pvarfPressed);
-
-		[id(8)]
-		HRESULT IsRibbonButtonPressed([in] IDispatch * RibbonControl, [out, retval] VARIANT_BOOL* pResult);
 	};
 
 	[

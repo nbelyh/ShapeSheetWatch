@@ -90,19 +90,6 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		return NULL;
 	}
 
-	enum Column 
-	{
-		Column_Mask,
-		Column_S,
-		Column_R,
-		Column_C,
-		Column_Formula,
-		Column_Value,
-
-		Column_Name,
-		Column_Count
-	};
-
 	CString GetColumnName(int i)
 	{
 		switch (i)
@@ -434,9 +421,13 @@ void CVisioFrameWnd::OnDestroy()
 {
 	m_impl->evt_sel_changed.Unadvise();
 	m_impl->grid.DeleteAllItems();
-	theApp.RegisterWindow(GetVisioWindowHandle(m_impl->visio_window), NULL);
 
 	CWnd::OnDestroy();
+}
+
+void CVisioFrameWnd::PostNcDestroy()
+{
+	delete this;
 }
 
 CVisioFrameWnd::CVisioFrameWnd()
