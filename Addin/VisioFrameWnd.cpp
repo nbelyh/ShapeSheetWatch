@@ -54,40 +54,17 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		switch(nEventCode) 
 		{
 		case (short)(visEvtCodeWinSelChange):
-			OnSelectionChanged();
+			OnSelectionChanged(pSubjectObj);
+			break;
+
+		case (short)(visEvtMod|visEvtCell):
+			OnCellChanged(pSubjectObj);
 			break;
 		}
 
 		return S_OK;
 
 		LEAVE_METHOD()
-	}
-
-	IVShapePtr GetSelectedShape()
-	{
-		IVWindowPtr window;
-		theApp.GetVisioApp()->get_ActiveWindow(&window);
-
-		if (window == NULL)
-			return NULL;
-
-		IVSelectionPtr selection;
-		window->get_Selection(&selection);
-
-		if (selection == NULL)
-			return NULL;
-
-		long count;
-		selection->get_Count(&count);
-
-		if (count > 0)
-		{
-			IVShapePtr shape;
-			if (SUCCEEDED(selection->get_Item(1, &shape)))
-				return shape;
-		}
-
-		return NULL;
 	}
 
 	CString GetColumnName(int i)
@@ -129,8 +106,42 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		UpdateGridRows();
 	}
 
-	void OnSelectionChanged()
+	CVisioEvent m_evt_cell_changed;
+
+	void OnCellChanged(IVCellPtr cell)
 	{
+		UpdateGridRows();
+	}
+
+	IVShapePtr m_shape;
+
+	void SetShape(IVShapePtr shape)
+	{
+		m_evt_cell_changed.Unadvise();
+
+		if (shape)
+		{
+			IVEventListPtr event_list = shape->GetEventList();
+			m_evt_cell_changed.Advise(event_list, (visEvtMod|visEvtCell), this);
+		}
+
+		m_shape = shape;
+	}
+
+	void OnSelectionChanged(IVWindowPtr window)
+	{
+		IVSelectionPtr selection = window->Selection;
+
+		long count;
+		selection->get_Count(&count);
+
+		IVShapePtr shape = NULL;
+
+		if (count == 1)
+			selection->get_Item(1, &shape);
+				
+		SetShape(shape);
+
 		UpdateGridRows();
 	}
 
@@ -145,20 +156,16 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 	void UpdateGridRows()
 	{
-		IVSelectionPtr selection = visio_window->Selection;
-
-		IVShapePtr shape = NULL;
-		
-		if (selection->Count > 0)
-			shape = selection->Item[1];
-
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
 		typedef std::vector< std::vector<SRC> > GroupCellInfos;
 		GroupCellInfos cell_names(cell_name_masks.size());
 
-		for (size_t i = 0; i < cell_name_masks.size(); ++i)
-			GetCellNames(shape, cell_name_masks[i], cell_names[i]);
+		if (m_shape != NULL)
+		{
+			for (size_t i = 0; i < cell_name_masks.size(); ++i)
+				GetCellNames(m_shape, cell_name_masks[i], cell_names[i]);
+		}
 
 		grid.SetRowCount(1);
 
@@ -205,7 +212,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 					SetSRCColumn(row, Column_R, src.r_name);
 					SetSRCColumn(row, Column_C, src.c_name);
 
-					IVCellPtr cell = shape->GetCellsSRC(src.s, src.r, src.c);
+					IVCellPtr cell = m_shape->GetCellsSRC(src.s, src.r, src.c);
 
 					grid.SetItemData(row, Column_Mask, i);
 					grid.SetItemText(row, Column_Formula, cell->FormulaU);
@@ -388,6 +395,8 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	m_impl->grid.Create(rect, this, 1, WS_CHILD|WS_VISIBLE|WS_BORDER);
 
 	m_impl->Init();
+
+	m_impl->OnSelectionChanged(window);
 }
 
 void CVisioFrameWnd::Destroy()

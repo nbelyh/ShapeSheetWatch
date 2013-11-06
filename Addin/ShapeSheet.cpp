@@ -597,9 +597,6 @@ void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vecto
 
 void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result)
 {
-	if (!shape)
-		return;
-
 	GetVariableNamedSectionCellNames(shape, visSectionAction, cell_name_mask, result);
 	GetVariableNamedSectionCellNames(shape, visSectionSmartTag, cell_name_mask, result);
 	GetVariableNamedSectionCellNames(shape, visSectionControls, cell_name_mask, result);
