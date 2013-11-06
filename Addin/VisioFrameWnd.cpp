@@ -60,6 +60,10 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		case (short)(visEvtMod|visEvtCell):
 			OnCellChanged(pSubjectObj);
 			break;
+
+		case (short)(visEvtDel|visEvtShape):
+			OnShapeDelete(pSubjectObj);
+			break;
 		}
 
 		return S_OK;
@@ -106,7 +110,13 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		UpdateGridRows();
 	}
 
+	CVisioEvent m_evt_shape_deleted;
 	CVisioEvent m_evt_cell_changed;
+
+	void OnShapeDelete(IVShapePtr shape)
+	{
+		SetShape(NULL);
+	}
 
 	void OnCellChanged(IVCellPtr cell)
 	{
@@ -118,11 +128,13 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	void SetShape(IVShapePtr shape)
 	{
 		m_evt_cell_changed.Unadvise();
+		m_evt_shape_deleted.Unadvise();
 
 		if (shape)
 		{
 			IVEventListPtr event_list = shape->GetEventList();
 			m_evt_cell_changed.Advise(event_list, (visEvtMod|visEvtCell), this);
+			m_evt_shape_deleted.Advise(event_list, (visEvtDel|visEvtShape), this);
 		}
 
 		m_shape = shape;
