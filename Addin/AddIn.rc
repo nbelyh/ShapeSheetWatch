@@ -147,19 +147,6 @@ END
 
 IDR_ADDIN               REGISTRY                "AddIn.rgs"
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// Dialog
-//
-
-IDD_DIALOG1 DIALOGEX 0, 0, 198, 249
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,7,28,184,214
-    COMBOBOX        IDC_COMBO1,7,7,184,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-END
-
 
 /////////////////////////////////////////////////////////////////////////////
 //

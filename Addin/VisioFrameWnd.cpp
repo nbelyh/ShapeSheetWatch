@@ -25,6 +25,10 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_WM_MOUSEWHEEL()
 	ON_NOTIFY(GVN_ENDLABELEDIT, 1, OnEndLabelEdit)
 	ON_NOTIFY(GVN_DELETEITEM, 1, OnDeleteItem)
+	ON_WM_CONTEXTMENU()
+
+	ON_COMMAND_RANGE(ID_ShowColumn, ID_ShowColumn+Column_Count, OnShowColumn)
+	ON_UPDATE_COMMAND_UI_RANGE(ID_ShowColumn, ID_ShowColumn+Column_Count, OnUpdateShowColumn)
 END_MESSAGE_MAP()
 
 #define COLOR_TH_BK	RGB(153,180,209)
@@ -339,6 +343,22 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		return FALSE;
 	}
 
+	bool BuildMenu(CMenu& context_menu, CPoint pt)
+	{
+		grid.ScreenToClient(&pt);
+		CCellID cell = grid.GetCellFromPt(pt);
+
+		if (cell.row == 0)
+		{
+			context_menu.CreatePopupMenu();
+
+			for (int i = 0; i < Column_Count; ++i)
+				context_menu.AppendMenu(0, ID_ShowColumn + i, GetColumnName(i));
+		}
+
+		return true;
+	}
+
 	IVWindowPtr	visio_window;
 	IVWindowPtr	this_window;
 
@@ -470,4 +490,22 @@ CVisioFrameWnd::CVisioFrameWnd()
 CVisioFrameWnd::~CVisioFrameWnd()
 {
 	delete m_impl;
+}
+
+void CVisioFrameWnd::OnContextMenu(CWnd* pWnd, CPoint point)
+{
+	CMenu context_menu;
+
+	if (m_impl->BuildMenu(context_menu, point))
+		context_menu.TrackPopupMenu(0, point.x, point.y, this);
+}
+
+
+void CVisioFrameWnd::OnShowColumn(UINT cmd_id)
+{
+	AfxMessageBox(L"X", MB_OK);
+}
+
+void CVisioFrameWnd::OnUpdateShowColumn(CCmdUI* pCmdUI)
+{
 }

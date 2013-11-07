@@ -29,6 +29,10 @@ protected:
 	DECLARE_MESSAGE_MAP()
 	void OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result);
 	void OnDeleteItem(NMHDR*nmhdr, LRESULT* result);
+	void OnContextMenu(CWnd* pWnd, CPoint point);
+
+	void OnShowColumn(UINT cmd_id);
+	void OnUpdateShowColumn(CCmdUI* pCmdUI);
 
 private:
 	struct Impl;

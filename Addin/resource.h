@@ -7,12 +7,8 @@
 #define IDR_RESOURCE_H                  200
 #define IDR_RIBBON                      201
 #define IDR_MENU                        208
-#define ID_                             209
-#define IDB_PNG1                        210
 #define ID_ShowSheetWindow32            210
-#define IDD_DIALOG1                     211
-#define IDC_BUTTON1                     226
-#define IDC_COMBO1                      227
+#define ID_ShowColumn					500
 
 // Next default values for new objects
 // 
