@@ -61,8 +61,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			OnCellChanged(pSubjectObj);
 			break;
 
-		case (short)(visEvtDel|visEvtShape):
-			OnShapeDelete(pSubjectObj);
+		case (short)(visEvtCodeBefSelDel):
+			OnSelectionDelete(pSubjectObj);
 			break;
 		}
 
@@ -102,20 +102,44 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		}
 	}
 
-	void Init()
+	CVisioEvent m_evt_shape_deleted;
+	CVisioEvent m_evt_cell_changed;
+	CVisioEvent	m_evt_sel_changed;
+
+	void Create(IVWindowPtr window)
 	{
+		IVEventListPtr event_list = window->GetEventList();
+		m_evt_sel_changed.Advise(event_list, visEvtCodeWinSelChange, this);
+
+		IVEventListPtr doc_event_list = window->GetDocument()->GetEventList();
+		m_evt_shape_deleted.Advise(doc_event_list, visEvtCodeBefSelDel, this);
+
 		m_view_settings = theApp.GetViewSettings();
 
 		BuildGrid();
 		UpdateGridRows();
 	}
 
-	CVisioEvent m_evt_shape_deleted;
-	CVisioEvent m_evt_cell_changed;
-
-	void OnShapeDelete(IVShapePtr shape)
+	void Destroy()
 	{
-		SetShape(NULL);
+		m_evt_sel_changed.Unadvise();
+		m_evt_shape_deleted.Unadvise();
+
+		grid.DeleteAllItems();
+	}
+
+	void OnSelectionDelete(IVSelectionPtr selection)
+	{
+		if (m_shape && selection)
+		{
+			for (long i = 1; i <= selection->Count; ++i)
+			{
+				IVShapePtr shape = selection->Item[i];
+
+				if (shape->ID == m_shape->ID)
+					SetShape(NULL);
+			}
+		}
 	}
 
 	void OnCellChanged(IVCellPtr cell)
@@ -128,13 +152,11 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	void SetShape(IVShapePtr shape)
 	{
 		m_evt_cell_changed.Unadvise();
-		m_evt_shape_deleted.Unadvise();
 
 		if (shape)
 		{
 			IVEventListPtr event_list = shape->GetEventList();
 			m_evt_cell_changed.Advise(event_list, (visEvtMod|visEvtCell), this);
-			m_evt_shape_deleted.Advise(event_list, (visEvtDel|visEvtShape), this);
 		}
 
 		m_shape = shape;
@@ -144,13 +166,8 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 	{
 		IVSelectionPtr selection = window->Selection;
 
-		long count;
-		selection->get_Count(&count);
-
-		IVShapePtr shape = NULL;
-
-		if (count == 1)
-			selection->get_Item(1, &shape);
+		IVShapePtr shape = (selection->Count == 1)
+			? selection->Item[1] : NULL;
 				
 		SetShape(shape);
 
@@ -322,12 +339,10 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		return FALSE;
 	}
 
-
 	IVWindowPtr	visio_window;
 	IVWindowPtr	this_window;
 
 	CGridCtrl	grid;
-	CVisioEvent	evt_sel_changed;
 };
 
 
@@ -398,15 +413,12 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	HWND client = GetVisioWindowHandle(m_impl->this_window);
 	SubclassWindow(client);
 
-	IVEventListPtr event_list = window->GetEventList();
-	m_impl->evt_sel_changed.Advise(event_list, visEvtCodeWinSelChange, m_impl);
-
 	CRect rect;
 	GetClientRect(rect);
 
 	m_impl->grid.Create(rect, this, 1, WS_CHILD|WS_VISIBLE|WS_BORDER);
 
-	m_impl->Init();
+	m_impl->Create(window);
 
 	m_impl->OnSelectionChanged(window);
 }
@@ -440,8 +452,7 @@ BOOL CVisioFrameWnd::OnEraseBkgnd(CDC* pDC)
 
 void CVisioFrameWnd::OnDestroy()
 {
-	m_impl->evt_sel_changed.Unadvise();
-	m_impl->grid.DeleteAllItems();
+	m_impl->Destroy();
 
 	CWnd::OnDestroy();
 }
