@@ -33,6 +33,7 @@ protected:
 
 	void OnShowColumn(UINT cmd_id);
 	void OnUpdateShowColumn(CCmdUI* pCmdUI);
+	void OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu);
 
 private:
 	struct Impl;

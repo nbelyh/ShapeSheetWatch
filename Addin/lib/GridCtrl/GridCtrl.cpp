@@ -250,7 +250,7 @@ CGridCtrl::CGridCtrl(int nRows, int nCols, int nFixedRows, int nFixedCols)
 
 	m_bWysiwygPrinting    = FALSE;      // use size-to-width printing
 
-	m_bHiddenColUnhide    = TRUE;       // 0-width columns can be expanded via mouse
+	m_bHiddenColUnhide    = FALSE;       // 0-width columns can be expanded via mouse
 	m_bHiddenRowUnhide    = TRUE;       // 0-Height rows can be expanded via mouse
 
 	m_bAllowColHide       = TRUE;       // Columns can be contracted to 0-width via mouse

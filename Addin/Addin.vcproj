@@ -414,6 +414,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\icon16.png"
+				>
+			</File>
+			<File
 				RelativePath=".\res\icon32.png"
 				>
 			</File>
@@ -540,10 +544,6 @@
 		</File>
 		<File
 			RelativePath="Addin.idl"
-			>
-		</File>
-		<File
-			RelativePath=".\res\icon16.png"
 			>
 		</File>
 		<File

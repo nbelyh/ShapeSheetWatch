@@ -4,11 +4,12 @@
 //
 #define IDR_ADDIN                       100
 #define ID_ShowSheetWindow              101
+#define IDS_TEST                        102
 #define IDR_RESOURCE_H                  200
 #define IDR_RIBBON                      201
 #define IDR_MENU                        208
 #define ID_ShowSheetWindow32            210
-#define ID_ShowColumn					500
+#define ID_ShowColumn                   500
 
 // Next default values for new objects
 // 

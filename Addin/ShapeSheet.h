@@ -9,7 +9,8 @@ struct SRC
 	CString s_name;
 
 	short r;
-	CString r_name;
+	CString r_name_l;
+	CString r_name_u;
 
 	short c;
 	CString c_name;

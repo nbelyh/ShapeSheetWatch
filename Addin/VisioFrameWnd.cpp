@@ -26,6 +26,7 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_NOTIFY(GVN_ENDLABELEDIT, 1, OnEndLabelEdit)
 	ON_NOTIFY(GVN_DELETEITEM, 1, OnDeleteItem)
 	ON_WM_CONTEXTMENU()
+	ON_WM_INITMENUPOPUP()
 
 	ON_COMMAND_RANGE(ID_ShowColumn, ID_ShowColumn+Column_Count, OnShowColumn)
 	ON_UPDATE_COMMAND_UI_RANGE(ID_ShowColumn, ID_ShowColumn+Column_Count, OnUpdateShowColumn)
@@ -39,10 +40,6 @@ END_MESSAGE_MAP()
 
 struct CVisioFrameWnd::Impl : public VEventHandler
 {
-	/**-----------------------------------------------------------------------------
-	Visio event handler callback
-	------------------------------------------------------------------------------*/
-
 	virtual HRESULT HandleVisioEvent(
 		IN      IUnknown*       ipSink,
 		IN      short           nEventCode,
@@ -81,17 +78,20 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		{
 		case Column_Mask:		return L"Mask";
 		case Column_Name:		return L"Name";
-		case Column_S:			return L"S";
-		case Column_R:			return L"R";
-		case Column_C:			return L"C";
+		case Column_S:			return L"Section";
+		case Column_R:			return L"Row";
+		case Column_RU:			return L"Row (U)";
+		case Column_C:			return L"Column";
 		case Column_Formula:	return L"Formula";
-		case Column_Value:		return L"Value";
+		case Column_FormulaU:	return L"Formula (U)";
+		case Column_Value:		return L"Result";
+		case Column_ValueU:		return L"Result (U)";
 
 		default:	return L"";
 		}
 	}
 
-	void BuildGrid()
+	void UpdateGridColumns()
 	{
 		grid.SetFixedRowCount(1);
 
@@ -103,6 +103,9 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			grid.SetItemFgColour(0, i, COLOR_TH_FG);
 
 			grid.SetItemText(0, i, GetColumnName(i));
+
+			if (m_view_settings->IsColumnHidden(i))
+				grid.SetColumnWidth(i, 0);
 		}
 	}
 
@@ -120,7 +123,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 
 		m_view_settings = theApp.GetViewSettings();
 
-		BuildGrid();
+		UpdateGridColumns();
 		UpdateGridRows();
 	}
 
@@ -178,7 +181,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		UpdateGridRows();
 	}
 
-	void SetSRCColumn(short row, short col, const CString& text)
+	void SetHeadColumn(short row, short col, const CString& text)
 	{
 		grid.SetItemBkColour(row, col, COLOR_SRC_BK);
 		grid.SetItemFgColour(row, col, COLOR_SRC_FG);
@@ -211,7 +214,7 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		size_t row = 1;
 		for (size_t i = 0; i < cell_name_masks.size(); ++i)
 		{
-			grid.SetItemText(row, Column_Mask, cell_name_masks[i]);
+			SetHeadColumn(row, Column_Mask, cell_name_masks[i]);
 
 			size_t m_row = row;
 
@@ -219,9 +222,9 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			{
 				grid.SetItemData(row, Column_Mask, i);
 
-				SetSRCColumn(row, Column_S, L"");
-				SetSRCColumn(row, Column_R, L"");
-				SetSRCColumn(row, Column_C, L"");
+				SetHeadColumn(row, Column_S, L"");
+				SetHeadColumn(row, Column_R, L"");
+				SetHeadColumn(row, Column_C, L"");
 
 				++row;
 			}
@@ -229,48 +232,53 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 			{
 				size_t s_start = row;
 				size_t s_count = 0;
-				CString s_last = L"#";
+				short s_last = -1;
 
 				size_t r_start = row;
 				size_t r_count = 0;
-				CString r_last = L"#";
+				short r_last = -1;
 
 				for (size_t j = 0; j < cell_names[i].size(); ++j)
 				{
 					SRC& src = cell_names[i][j];
 
-					grid.SetItemText(row, Column_Name, src.name);
+					SetHeadColumn(row, Column_Name, src.name);
 
-					SetSRCColumn(row, Column_S, src.s_name);
-					SetSRCColumn(row, Column_R, src.r_name);
-					SetSRCColumn(row, Column_C, src.c_name);
+					SetHeadColumn(row, Column_S, src.s_name);
+					SetHeadColumn(row, Column_R, src.r_name_l);
+					SetHeadColumn(row, Column_RU, src.r_name_u);
+					SetHeadColumn(row, Column_C, src.c_name);
 
 					IVCellPtr cell = m_shape->GetCellsSRC(src.s, src.r, src.c);
 
 					grid.SetItemData(row, Column_Mask, i);
-					grid.SetItemText(row, Column_Formula, cell->FormulaU);
-					grid.SetItemText(row, Column_Value, cell->ResultStr[-1]);
 
-					if (s_last == src.s_name)
+					grid.SetItemText(row, Column_Formula, cell->Formula);
+					grid.SetItemText(row, Column_FormulaU, cell->Formula);
+
+					grid.SetItemText(row, Column_Value, cell->ResultStr[-1]);
+					grid.SetItemText(row, Column_ValueU, cell->ResultStrU[-1]);
+
+					if (s_last == src.s)
 						++s_count;
 					else
 					{
 						if (s_count > 1)
 							grid.MergeCells(s_start, Column_S, row - 1, Column_S);
 
-						s_last = src.s_name;
+						s_last = src.s;
 						s_start = row;
 						s_count = 1;
 					}
 
-					if (r_last == src.r_name)
+					if (r_last == src.r)
 						++r_count;
 					else
 					{
 						if (r_count > 1)
 							grid.MergeCells(r_start, Column_R, row - 1, Column_R);
 
-						r_last = src.r_name;
+						r_last = src.r;
 						r_start = row;
 						r_count = 1;
 					}
@@ -359,6 +367,30 @@ struct CVisioFrameWnd::Impl : public VEventHandler
 		return true;
 	}
 
+	bool IsColumnVisible(int column)
+	{
+		return !m_view_settings->IsColumnHidden(column);
+	}
+
+	void ToggleColumn(int column)
+	{
+		bool hidden = m_view_settings->IsColumnHidden(column);
+
+		if (hidden)
+		{
+			m_view_settings->SetColumnHidden(column, false);
+			grid.SetColumnWidth(column, m_view_settings->GetColumnWidth(column));
+		}
+		else
+		{
+			m_view_settings->SetColumnHidden(column, true);
+			m_view_settings->SetColumnWidth(column, grid.GetColumnWidth(column));
+			grid.SetColumnWidth(column, 0);
+		}
+
+		grid.Refresh();
+	}
+
 	IVWindowPtr	visio_window;
 	IVWindowPtr	this_window;
 
@@ -370,23 +402,6 @@ void CVisioFrameWnd::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
 {
 	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
 	m_impl->OnItemEdit(nmgv->iRow, nmgv->iColumn);
-
-	/*
- 	IVShapePtr shape = GetSelectedShape();
- 
- 	if (shape)
- 	{
- 		int idx = GetItemData(nmgv->iRow, nmgv->iColumn);
- 		
- 		// IVCellPtr cell = shape->GetCellsSRC(info.section, info.row, info.cell);
- 		// bstr_t val = GetItemText(nmgv->iRow, nmgv->iColumn);
- 		// cell->PutFormulaForce(val);
- 
- 		ReloadData();
- 
- 		*result = TRUE;
- 	}
-	*/
 }
 
 void CVisioFrameWnd::OnDeleteItem(NMHDR*nmhdr, LRESULT* result)
@@ -503,9 +518,28 @@ void CVisioFrameWnd::OnContextMenu(CWnd* pWnd, CPoint point)
 
 void CVisioFrameWnd::OnShowColumn(UINT cmd_id)
 {
-	AfxMessageBox(L"X", MB_OK);
+	m_impl->ToggleColumn(cmd_id - ID_ShowColumn);
 }
 
 void CVisioFrameWnd::OnUpdateShowColumn(CCmdUI* pCmdUI)
 {
+	pCmdUI->SetCheck(m_impl->IsColumnVisible(pCmdUI->m_nID - ID_ShowColumn));
 }
+
+void CVisioFrameWnd::OnInitMenuPopup(CMenu* pPopupMenu, UINT nIndex, BOOL bSysMenu) 
+{ 
+	if (!bSysMenu) 
+	{
+		CCmdUI state; 
+
+		state.m_pMenu = pPopupMenu; 
+		state.m_nIndexMax = pPopupMenu->GetMenuItemCount(); 
+
+		for (state.m_nIndex = 0; state.m_nIndex < state.m_nIndexMax; state.m_nIndex++) 
+		{ 
+			state.m_nID = pPopupMenu->GetMenuItemID(state.m_nIndex); 
+			state.m_pSubMenu = NULL; 
+			state.DoUpdate(this, state.m_nID < 0xF000); 
+		}
+	} 
+} 

@@ -147,26 +147,6 @@ END
 
 IDR_ADDIN               REGISTRY                "AddIn.rgs"
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// DESIGNINFO
-//
-
-#ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
-BEGIN
-    IDD_DIALOG1, DIALOG
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 191
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 242
-    END
-END
-#endif    // APSTUDIO_INVOKED
-
-
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
@@ -175,6 +155,7 @@ END
 STRINGTABLE 
 BEGIN
     ID_ShowSheetWindow      "ShapeSheet Watch"
+    IDS_TEST                "Test"
 END
 
 #endif    // English (U.S.) resources

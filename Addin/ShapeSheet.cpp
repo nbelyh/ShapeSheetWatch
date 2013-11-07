@@ -450,7 +450,7 @@ SSInfo ss_info[] = {
 
 void AddNameMatchResult(const CString& mask, CString name, 
 						short s, short r, short c, 
-						const CString& s_name, const CString& r_name, const CString& c_name,
+						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name,
 						std::vector<SRC> &result)
 {
 	Strings masks;
@@ -469,7 +469,8 @@ void AddNameMatchResult(const CString& mask, CString name,
 			src.s = s;
 			src.s_name = s_name;
 			src.r = r;
-			src.r_name = r_name;
+			src.r_name_l = r_name_l;
+			src.r_name_u = r_name_l;
 			src.c = c;
 			src.c_name = c_name;
 
@@ -500,7 +501,7 @@ void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, cons
 
 			AddNameMatchResult(mask, name, 
 				section_no, r, ss_info[i].c, 
-				ss_info[i].s_name, r_name, ss_info[i].c_name,
+				ss_info[i].s_name, r_name, r_name, ss_info[i].c_name,
 				result);
 		}
 	}
@@ -516,7 +517,8 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 	for (short r = 0; r < section->Count; ++r)
  	{
 		IVRowPtr row = section->GetRow(r);
-		CString row_name = row->NameU;
+		CString row_name = row->Name;
+		CString row_name_u = row->NameU;
 
 		for (size_t i = 0; i < _countof(ss_info); ++i)
 		{
@@ -528,7 +530,7 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 
 			AddNameMatchResult(mask, name, 
 				section_no, r, ss_info[i].c, 
-				ss_info[i].s_name, row_name, ss_info[i].c_name,
+				ss_info[i].s_name, row_name, row_name_u, ss_info[i].c_name,
 				result);
 		}
 	}
@@ -560,7 +562,7 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 						AddNameMatchResult(mask, name, 
 							visSectionFirstComponent + s, r, ss_info[i].c, 
-							s_name, L"", ss_info[i].c_name,
+							s_name, L"", L"", ss_info[i].c_name,
 							result);
 					}
 					continue;
@@ -572,7 +574,7 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 				AddNameMatchResult(mask, name, 
 					visSectionFirstComponent + s, r, ss_info[i].c, 
-					s_name, r_name, ss_info[i].c_name,
+					s_name, r_name, r_name, ss_info[i].c_name,
 					result);
 			}
 		}
@@ -590,7 +592,7 @@ void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vecto
 
 		AddNameMatchResult(mask, name, 
 			ss_info[i].s, ss_info[i].r, ss_info[i].c, 
-			ss_info[i].s_name, L"", ss_info[i].c_name,
+			ss_info[i].s_name, L"", L"", ss_info[i].c_name,
 			result);
 	}
 }
