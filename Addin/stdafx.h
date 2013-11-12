@@ -38,6 +38,9 @@
 #include "import\MSO.tlh"
 #include "import\VISLIB.tlh"
 
+#define PLAIN_API_ONLY
+#include "htmlayout.h"
+
 #pragma warning( default : 4146 )
 #pragma warning( default : 4278 )
 

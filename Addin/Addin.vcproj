@@ -547,6 +547,18 @@
 			>
 		</File>
 		<File
+			RelativePath=".\lib\HTMLayoutCtrl\HTMLayoutCtrl.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\lib\HTMLayoutCtrl\HTMLayoutCtrl.h"
+			>
+		</File>
+		<File
+			RelativePath=".\lib\GridCtrl\MemDC.h"
+			>
+		</File>
+		<File
 			RelativePath="Resource.h"
 			>
 		</File>
@@ -556,6 +568,14 @@
 		</File>
 		<File
 			RelativePath=".\ShapeSheet.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ShapeSheetGridCtrl.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\ShapeSheetGridCtrl.h"
 			>
 		</File>
 		<File
