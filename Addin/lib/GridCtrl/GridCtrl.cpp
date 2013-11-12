@@ -961,7 +961,13 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		// don't let user go to a hidden row
 		bFoundVisible = FALSE;
 		iOrig = next.row;
-		next.row++;
+
+		CGridCellBase* pNextCell = GetCell(next);
+		if (pNextCell->IsMerged())
+			next.row += pNextCell->GetMergeRange().GetRowSpan();
+		else
+			next.row++;
+
 		while( next.row < GetRowCount())
 		{
 			if( GetRowHeight( next.row) > 0)
@@ -969,7 +975,12 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 				bFoundVisible = TRUE;
 				break;
 			}
-			next.row++;
+
+			CGridCellBase* pNextCell = GetCell(next);
+			if (pNextCell->IsMerged())
+				next.row += pNextCell->GetMergeRange().GetRowSpan();
+			else
+				next.row++;
 		}
 		if( !bFoundVisible)
 			next.row = iOrig;
@@ -1194,6 +1205,10 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
 		return;
 	}
+
+	CGridCellBase* pCell = GetCell(next.row, next.col);
+	if (pCell->IsMerged())
+		next = pCell->GetMergeRange().GetTopLeft();
 
 	if (next != m_idCurrentCell)
 	{
@@ -1622,15 +1637,19 @@ void CGridCtrl::MergeAwareDraw (const CRect& rect, int row, int col, CDC* pDC)
 	if (!pCell)
 		return;
 
-	if(!pCell->IsMerged())
+	if (!pCell->IsMerged())
 	{
 		MergeAwareDrawCell(pCell, rect, row, col, pDC);
 	}
 	else
 	{
 		CRect mergerect=rect;
-		if(GetCellRangeRect(pCell->m_MergeRange, &mergerect))
-			MergeAwareDrawCell(pCell, mergerect, row, col, pDC);
+
+		CCellID idTopLeft = pCell->GetMergeRange().GetTopLeft();
+		CGridCellBase* pMergeCell = GetCell(idTopLeft);
+
+		if (GetCellRangeRect(pMergeCell->m_MergeRange, &mergerect))
+			MergeAwareDrawCell(pMergeCell, mergerect, idTopLeft.row, idTopLeft.col, pDC);
 	}
 }
 
@@ -1661,6 +1680,7 @@ void CGridCtrl::OnDraw(CDC* pDC)
 	int nFixedColWidth  = GetFixedColumnWidth();
 
 	CCellID idTopLeft = GetTopleftNonFixedCell();
+
 	int minVisibleRow = idTopLeft.row,
 		minVisibleCol = idTopLeft.col;
 
@@ -1676,7 +1696,6 @@ void CGridCtrl::OnDraw(CDC* pDC)
 	CPen pen;
 	pen.CreatePen(PS_SOLID, 0, m_crGridLineColour);
 	pDC->SelectObject(&pen);
-
 
 
 
@@ -5083,8 +5102,7 @@ BOOL CGridCtrl::AutoSizeColumn(int nCol, UINT nAutoSizeStyle /*=GVS_DEFAULT*/,
 	for (int nRow = nStartRow; nRow <= nEndRow; nRow++)
 	{
 		CGridCellBase* pCell = GetCell(nRow, nCol);
-		// AJT Avoid merged cells in calculations 2006.07.27 merged by hamo
-		if (pCell && !pCell->IsMerged())
+		if (pCell)
 			size = pCell->GetCellExtent(pDC);
 		if (size.cx > nWidth)
 			nWidth = size.cx;
