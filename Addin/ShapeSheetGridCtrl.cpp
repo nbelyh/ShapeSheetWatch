@@ -171,7 +171,7 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 		UpdateGridRows();
 	}
 
-	void SetHeadColumn(short row, short col, const CString& text)
+	void SetHeadColumn(int row, int col, const CString& text)
 	{
 		m_this->SetItemBkColour(row, col, COLOR_SRC_BK);
 		m_this->SetItemFgColour(row, col, COLOR_SRC_FG);
@@ -195,18 +195,23 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 
 		m_this->SetRowCount(1);
 
-		size_t row_count = 0;
-		for (size_t i = 0; i < cell_names.size(); ++i)
-			row_count += cell_names[i].size() > 0 ? cell_names[i].size() : 1;
+		int row_count = 0;
+		for (int i = 0; i < int(cell_names.size()); ++i)
+		{
+			int cell_names_count = 
+				int(cell_names[i].size());
+
+			row_count += cell_names_count > 0 ? cell_names_count : 1;
+		}
 
 		m_this->SetRowCount(1 + row_count);
 
-		size_t row = 1;
-		for (size_t i = 0; i < cell_name_masks.size(); ++i)
+		int row = 1;
+		for (int i = 0; i < int(cell_name_masks.size()); ++i)
 		{
 			SetHeadColumn(row, Column_Mask, cell_name_masks[i]);
 
-			size_t m_row = row;
+			int m_row = row;
 
 			if (cell_names[i].empty())
 			{
@@ -220,15 +225,15 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 			}
 			else 
 			{
-				size_t s_start = row;
-				size_t s_count = 0;
+				int s_start = row;
+				int s_count = 0;
 				short s_last = -1;
 
-				size_t r_start = row;
-				size_t r_count = 0;
+				int r_start = row;
+				int r_count = 0;
 				short r_last = -1;
 
-				for (size_t j = 0; j < cell_names[i].size(); ++j)
+				for (int j = 0; j < int(cell_names[i].size()); ++j)
 				{
 					SRC& src = cell_names[i][j];
 

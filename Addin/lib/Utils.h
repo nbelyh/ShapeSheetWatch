@@ -101,7 +101,7 @@ void SplitList(CString src, LPCWSTR sep, Fn fn, T& result)
 
 		result.insert(result.end(), fn(tok));
 
-		fragment_begin = fragment_end + wcslen(sep);
+		fragment_begin = fragment_end + int(wcslen(sep));
 	}
 }
 
