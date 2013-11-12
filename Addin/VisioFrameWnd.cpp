@@ -41,12 +41,12 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	// Construct Visio window. Make this window size a half of Visio's size
 	IVWindowPtr this_window = window->GetWindows()->Add(
 		bstr_t(L"Shape Sheet Watch"), 
-		static_cast<long>(visWSVisible | visWSAnchorRight | visWSAnchorTop), 
+		static_cast<long>(visWSVisible | visWSDockedRight), 
 		static_cast<long>(visAnchorBarAddon), 
 		static_cast<long>(parent_rect.Width()), 
 		static_cast<long>(parent_rect.Height()), 
 		static_cast<long>(parent_rect.Width() / 4), 
-		static_cast<long>(parent_rect.Height() / 2), 
+		static_cast<long>(parent_rect.Height() / 2),
 		vtMissing, vtMissing, vtMissing);
 
 	HWND client = GetVisioWindowHandle(this_window);
@@ -57,7 +57,14 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE, window);
 
 	m_html.LoadHtml(
-		L"<widget style='width:100%;height:100%' type='shapesheet'></widget>"
+		L"<head><style>"
+		L"* { margin: 0; padding: 0 }"
+		L"widget { border: 1px solid #CCC }"
+		L"</style></head>"
+		L"<body>"
+		L"<h3 id='caption'>SHAPE</h3>"
+		L"<widget style='width:100%%;height:100%%' type='shapesheet'></widget>"
+		L"</body>"
 		);
 }
 
