@@ -67,6 +67,7 @@ struct CHTMLayoutCtrl::Impl
 			if (frame != NULL)
 				frame->SendMessage(MSG_HTMLAYOUT_BUTTON, reinterpret_cast<LPARAM>(id), NULL);
 		}
+
 		if (params->cmd == HYPERLINK_CLICK)
 		{
 			LPCWSTR href = L"";
@@ -141,7 +142,7 @@ struct CHTMLayoutCtrl::Impl
 		CShapeSheetGridCtrl* pShapeSheetCtrl = 
 			static_cast<CShapeSheetGridCtrl*>(CWnd::FromHandle(lpDC->inoutControlHwnd));
 
-		pShapeSheetCtrl->Detach();
+		pShapeSheetCtrl->Destroy();
 		delete pShapeSheetCtrl;
 
 		lpDC->inoutControlHwnd = NULL;

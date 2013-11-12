@@ -57,7 +57,9 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE, window);
 
 	m_html.LoadHtml(
-		L"<widget style='width:100%;height:100%' type='shapesheet'></widget>");
+		L"<h2>HELLO</h2>"
+		L"<widget style='width:100%;height:100%' type='shapesheet'></widget>"
+		);
 }
 
 void CVisioFrameWnd::Destroy()
