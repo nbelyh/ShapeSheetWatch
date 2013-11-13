@@ -32,12 +32,11 @@ public:
 	void SetElementText(const char* id, LPCWSTR text);
 	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
 	void SetElementEnabled (const char* id, bool set);
+	CString GetElementAttribute (const char* id, const char* attribute);
 
 protected:
 	virtual BOOL PreTranslateMessage( MSG* pMsg );
 	DECLARE_DYNAMIC(CHTMLayoutCtrl)
-
-	HELEMENT GetElementById(const char* id) const;
 
 private:
 	struct Impl;

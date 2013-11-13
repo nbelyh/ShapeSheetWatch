@@ -10,7 +10,7 @@
 #include "lib/HTMLayoutCtrl/HTMLayoutCtrl.h"
 
 class CVisioFrameWnd 
-	: public CHTMLayoutCtrl
+	: public CWnd
 {
 public:
 	void Create(IVWindowPtr app);

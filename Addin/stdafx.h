@@ -41,14 +41,6 @@
 #pragma warning( default : 4146 )
 #pragma warning( default : 4278 )
 
-#pragma warning( disable : 4996 )
-#pragma warning( disable : 4267 )
-
-#include "htmlayout.h"
-
-#pragma warning( default : 4267 )
-#pragma warning( default : 4996 )
-
 typedef std::vector<CString> Strings;
 
 using namespace ATL;

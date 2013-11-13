@@ -1,0 +1,115 @@
+<head>
+<style>
+ body {
+	padding: 0;
+	margin: 0;
+	border: 0;
+ }
+
+ #settings { 
+    behavior:dropdown; 
+	position: absolute;
+	bottom: 2;
+	right: 2;
+  }
+
+  #settings div.button {
+	width: 48px;
+	height: 32px;
+	background-image: url(settings.png);
+	background-position: center;
+	background-repeat: no-repeat;
+	border: 1px solid ThreeDShadow;
+	border-radius: 3px;
+  }
+
+  #settings:hover {
+	background-color: ThreeDLightShadow;
+  }
+
+  #settings:owns-popup div.button {
+	background-color: ThreeDShadow;
+  }
+
+  #settings popup
+  {
+	background-color:ThreeDFace;
+	padding: 4px;
+  }
+
+  popup table {
+	width: 100%;
+	padding: 4px;
+  }
+
+  popup td {
+    padding-bottom: 4px;
+  }
+
+  popup td:nth-child(1) {
+	vertical-align: top;
+  }
+
+  popup td:nth-child(2) {
+	width: 200px;
+	font-size: 80%;
+	color: ThreeDDarkShadow;
+  }
+
+  popup #caption {
+	font-size: 120%;
+	margin: 8px;
+  }
+
+  widget {
+	position:absolute;
+	top:0;
+	left:0;
+	right:0;
+	bottom:40;
+	border: 1px solid ThreeDShadow;
+  }
+
+</style>
+</head>
+
+<body>
+  <widget type='sheet' />
+  <div id="settings"><div class="button" />
+     <popup>
+		<div id="caption">Column settings</div>
+
+		<table>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Mask</label></td><td>Cell name or mask (editable), like "Prop.*.Value" or "PinX"</td></tr>
+		<tr><td><label><input type="checkbox" name="cb2" value="1"/>Name</label></td><td>Full cell name (read-only), like "Prop.Row_X.Value"</td></tr>
+		</table>
+
+		<table>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Section</label></td><td>ShapeSheet Section name, like "Geometry1"</td></tr>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Row</label></td><td>ShapeSheet Row name or number, like "Row_1"</td></tr>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Row (U)</label></td><td>ShapeSheet Row name or number (universal)</td></tr>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Column</label></td><td>ShapeSheet Column name, like "Label" or "X"</td></tr>
+		</table>
+
+		<table>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Formula</label></td><td>Current ShapeSheet cell formula</td></tr>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Formula (U)</label></td><td>Current ShapeSheet cell formula (universal)</td></tr>
+		</table>
+
+		<table>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Value</label></td><td>Current ShapeSheet cell Value</td></tr>
+		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Value (U)</label></td><td>Current ShapeSheet cell Value (Universal)</td></tr>
+
+			<tr><td/>
+			<td>Value units: <select label="XXX">
+				<option value="0">Inch</option>
+				<option value="1">mm</option>
+				<option value="2">Default</option>
+			</select>
+			</td>
+			</tr>
+		</table>
+
+	</popup>
+  </div>
+</body>

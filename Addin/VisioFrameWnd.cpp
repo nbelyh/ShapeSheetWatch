@@ -56,16 +56,18 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
  	GetClientRect(rect);
 	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE, window);
 
-	m_html.LoadHtml(
-		L"<head><style>"
-		L"* { margin: 0; padding: 0 }"
-		L"widget { border: 1px solid #CCC }"
-		L"</style></head>"
-		L"<body>"
-		L"<h3 id='caption'>SHAPE</h3>"
-		L"<widget style='width:100%%;height:100%%' type='shapesheet'></widget>"
-		L"</body>"
-		);
+	m_html.LoadHtmlFile(L"C:\\Users\\Nikolay\\Documents\\GitHub\\ShapeSheetWatch\\Addin\\html\\test.htm");
+
+	//m_html.LoadHtml(
+	//	L"<head><style>"
+	//	L"* { margin: 0; padding: 0 }"
+	//	L"widget { border: 1px solid #CCC }"
+	//	L"</style></head>"
+	//	L"<body>"
+	//	L"<h3 id='caption'>SHAPE</h3>"
+	//	L"<widget style='width:100%%;height:100%%' type='sheet'></widget>"
+	//	L"</body>"
+	//	);
 }
 
 void CVisioFrameWnd::Destroy()

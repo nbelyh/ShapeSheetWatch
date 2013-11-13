@@ -8,6 +8,15 @@
 #include "ShapeSheetGridCtrl.h"
 #include "HTMLayoutCtrl.h"
 
+#pragma warning( disable : 4996 )
+#pragma warning( disable : 4267 )
+
+#include <htmlayout.h>
+#include <behaviors/behavior_popup.cpp>
+
+#pragma warning( default : 4267 )
+#pragma warning( default : 4996 )
+
 /**-----------------------------------------------------------------------------
 	Message to send to parent frame on hyperlink clicks
 ------------------------------------------------------------------------------*/
@@ -126,27 +135,48 @@ struct CHTMLayoutCtrl::Impl
 
 	HWND OnCreateControl(LPNMHL_CREATE_CONTROL lpCC)
 	{
-		CShapeSheetGridCtrl* pShapeSheetCtrl = 
-			new CShapeSheetGridCtrl();
+		if (GetElemAttribute(lpCC->helement, "type") == L"sheet")
+		{
+			CShapeSheetGridCtrl* pShapeSheetCtrl = 
+				new CShapeSheetGridCtrl();
 
-		if (!pShapeSheetCtrl->Create(CWnd::FromHandle(m_hwnd), 1, m_window))
-			return HWND_DISCARD_CREATION;
+			if (!pShapeSheetCtrl->Create(CWnd::FromHandle(m_hwnd), 1, m_window))
+				return HWND_DISCARD_CREATION;
 
-		lpCC->outControlHwnd = pShapeSheetCtrl->GetSafeHwnd();
+			lpCC->outControlHwnd = pShapeSheetCtrl->GetSafeHwnd();
 
-		return lpCC->outControlHwnd;
+			return lpCC->outControlHwnd;
+		}
+
+		return HWND_TRY_DEFAULT;
 	}
 
 	LRESULT OnDestroyControl(LPNMHL_DESTROY_CONTROL lpDC)
 	{
-		CShapeSheetGridCtrl* pShapeSheetCtrl = 
-			static_cast<CShapeSheetGridCtrl*>(CWnd::FromHandle(lpDC->inoutControlHwnd));
+		if (GetElemAttribute(lpDC->helement, "type") == L"sheet")
+		{
+			CShapeSheetGridCtrl* pShapeSheetCtrl = 
+				static_cast<CShapeSheetGridCtrl*>(CWnd::FromHandle(lpDC->inoutControlHwnd));
 
-		pShapeSheetCtrl->Destroy();
-		delete pShapeSheetCtrl;
+			pShapeSheetCtrl->Destroy();
+			delete pShapeSheetCtrl;
 
-		lpDC->inoutControlHwnd = NULL;
+			lpDC->inoutControlHwnd = NULL;
+			return 0;
+		}
 
+		return 0;
+	}
+
+	LRESULT OnAttachBehavior(LPNMHL_ATTACH_BEHAVIOR lpab)
+	{
+		htmlayout::event_handler *pb = htmlayout::behavior::find(lpab->behaviorName, lpab->element);
+		if (pb)
+		{
+			lpab->elementTag  = pb;
+			lpab->elementProc = htmlayout::behavior::element_proc;
+			lpab->elementEvents = pb->subscribed_to;
+		}
 		return 0;
 	}
 
@@ -163,10 +193,57 @@ struct CHTMLayoutCtrl::Impl
 		case HLN_LOAD_DATA:         return 0;
 		case HLN_DATA_LOADED:       return 0;
 		case HLN_DOCUMENT_COMPLETE: return 0;
-		case HLN_ATTACH_BEHAVIOR:   return 0;
+		case HLN_ATTACH_BEHAVIOR:   return OnAttachBehavior((LPNMHL_ATTACH_BEHAVIOR)lParam);
 		}
 
 		return OnHtmlGenericNotifications(uMsg,wParam,lParam);
+	}
+
+	static BOOL CALLBACK FindElementCallback(HELEMENT he, LPVOID param)
+	{
+		*reinterpret_cast<HELEMENT*>(param) = he;
+		return TRUE;
+	}
+
+	CString GetElemType(HELEMENT elem)
+	{
+		LPCSTR val = NULL;
+		HTMLayoutGetElementType(elem, &val);
+		return val ? CString(val) : L"";
+	}
+
+	CString GetElemAttribute(HELEMENT elem, const char* attribute)
+	{
+		LPCWSTR val = NULL;
+		HTMLayoutGetAttributeByName(elem, attribute, &val);
+		return val ? CString(val) : L"";
+	}
+
+	void SetElemAttribute(HELEMENT elem, const char* attribute, LPCWSTR val)
+	{
+		HTMLayoutSetAttributeByName(elem, attribute, val);
+	}
+
+	HELEMENT GetElemById(const char* id) const
+	{
+		HELEMENT h_root = 0;
+		HTMLayoutGetRootElement(m_hwnd, &h_root);
+
+		char selector[256] = "";
+		sprintf_s(selector, 256, "#%s", id);
+
+		HELEMENT h_found = 0;
+		HTMLayoutSelectElements(h_root, selector, &FindElementCallback, &h_found);
+
+		return h_found;
+	}
+
+	void SetElemEnabled(HELEMENT elem, const char* id, bool enabled)
+	{
+		if (enabled)
+			HTMLayoutSetElementState(elem, 0, STATE_DISABLED, TRUE);
+		else
+			HTMLayoutSetElementState(elem, STATE_DISABLED, 0, TRUE);
 	}
 
 	IVWindowPtr m_window;
@@ -272,49 +349,28 @@ UINT CHTMLayoutCtrl::GetMinWidth () const
 	return ::HTMLayoutGetMinWidth(m_hWnd);
 }
 
-namespace {
-
-	BOOL CALLBACK FindElementCallback(HELEMENT he, LPVOID param)
-	{
-		*reinterpret_cast<HELEMENT*>(param) = he;
-		return TRUE;
-	}
-
-}
-HELEMENT CHTMLayoutCtrl::GetElementById(const char* id) const
-{
-	HELEMENT h_root = 0;
-	HTMLayoutGetRootElement(m_hWnd, &h_root);
-
-	char selector[256] = "";
-	sprintf_s(selector, 256, "#%s", id);
-
-	HELEMENT h_found = 0;
-	HTMLayoutSelectElements(h_root, selector, &FindElementCallback, &h_found);
-
-	return h_found;
-}
-
 void CHTMLayoutCtrl::SetElementText(const char* id, LPCWSTR text)
 {
-	HELEMENT h_found = GetElementById(id);
+	HELEMENT h_found = m_impl->GetElemById(id);
 	HTMLayoutSetElementInnerText16(h_found, text, (UINT)lstrlenW(text));
+}
+
+CString CHTMLayoutCtrl::GetElementAttribute (const char* id, const char* attribute)
+{
+	HELEMENT h_found = m_impl->GetElemById(id);
+	return m_impl->GetElemAttribute(h_found, attribute);
 }
 
 void CHTMLayoutCtrl::SetElementAttribute (const char* id, const char* attribute, LPCWSTR text)
 {
-	HELEMENT h_found = GetElementById(id);
-	HTMLayoutSetAttributeByName(h_found, attribute, text);
+	HELEMENT h_found = m_impl->GetElemById(id);
+	m_impl->SetElemAttribute(h_found, attribute, text);
 }
 
 void CHTMLayoutCtrl::SetElementEnabled(const char* id, bool enabled)
 {
-	HELEMENT h_found = GetElementById(id);
-
-	if (enabled)
-		HTMLayoutSetElementState(h_found, 0, STATE_DISABLED, TRUE);
-	else
-		HTMLayoutSetElementState(h_found, STATE_DISABLED, 0, TRUE);
+	HELEMENT h_found = m_impl->GetElemById(id);
+	m_impl->SetElemEnabled(h_found, id, enabled);
 }
 
 IMPLEMENT_DYNAMIC(CHTMLayoutCtrl, CWnd)
