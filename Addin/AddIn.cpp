@@ -135,4 +135,20 @@ ViewSettings* CAddinApp::GetViewSettings() const
 	return &m_view_settings;
 }
 
+void CAddinApp::AddView( IView* view )
+{
+	m_views.insert(view);
+}
+
+void CAddinApp::DelView( IView* view )
+{
+	m_views.erase(view);
+}
+
+void CAddinApp::UpdateViews(int hint)
+{
+	for (Views::const_iterator it = m_views.begin(); it != m_views.end(); ++it)
+		(*it)->Update(hint);
+}
+
 CAddinApp theApp;

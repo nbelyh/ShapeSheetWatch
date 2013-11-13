@@ -3,7 +3,17 @@
 
 #include "ViewSettings.h"
 
-class CVisioFrameWnd;
+enum UpdateHint
+{
+	UpdateHint_Columns,
+
+	UpdateHint_Count
+};
+
+struct IView
+{
+	virtual void Update(int hint) = 0;
+};
 
 class CAddinApp : public CWinApp
 {
@@ -18,8 +28,14 @@ public:
 
 	ViewSettings* GetViewSettings() const;
 
+	void AddView(IView* view);
+	void DelView(IView* view);
+
+	void UpdateViews(int hint = 0);
+
 private:
-	CSimpleMap<HWND, CVisioFrameWnd*> m_shown_windows;
+	typedef std::set<IView*> Views;
+	Views m_views;
 
 	mutable ViewSettings m_view_settings;
 

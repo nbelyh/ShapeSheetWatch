@@ -29,6 +29,7 @@
 #include <atlcom.h>
 
 #include <vector>
+#include <set>
 #include <algorithm>
 
 #pragma warning( disable : 4278 )

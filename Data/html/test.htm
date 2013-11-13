@@ -1,5 +1,9 @@
 <head>
 <style>
+ html {
+  font: system;
+ }
+
  body {
 	padding: 0;
 	margin: 0;
@@ -34,33 +38,26 @@
   #settings popup
   {
 	background-color:ThreeDFace;
-	padding: 4px;
+	padding: 0.1em;
   }
 
-  popup table {
+  popup ul {
 	width: 100%;
-	padding: 4px;
-  }
-
-  popup td {
-    padding-bottom: 4px;
-  }
-
-  popup td:nth-child(1) {
-	vertical-align: top;
-  }
-
-  popup td:nth-child(2) {
-	width: 200px;
-	font-size: 80%;
-	color: ThreeDDarkShadow;
+	padding-left: 1em 1em 0.5em 1em;
+	list-style-type: none;
   }
 
   popup #caption {
-	font-size: 120%;
-	margin: 8px;
+    	font-size: 150%;
+	margin: 0.5em;
   }
-
+  
+  div.help {
+    padding-left: 24px;
+    padding-bottom: 0.5em;
+    color: ThreeDDarkShadow;
+  }
+  
   widget {
 	position:absolute;
 	top:0;
@@ -68,6 +65,10 @@
 	right:0;
 	bottom:40;
 	border: 1px solid ThreeDShadow;
+  }
+  
+  label {
+    padding: 2px;
   }
 
   input[type=checkbox]:checked + label {
@@ -81,38 +82,32 @@
   <widget type='sheet' />
   <div id="settings"><div class="button" />
      <popup>
-		<div id="caption">Column settings</div>
+		<div id="caption">Columns</div>
 
-		<table>
-		<tr><td><input type="checkbox" id="col_Mask"/><label for="col_Mask">Mask</label></td><td>Cell name or mask (editable), like "Prop.*.Value" or "PinX"</td></tr>
-		<tr><td><input type="checkbox" id="col_Name"/><label for="col_Name">Name</label></td><td>Full cell name (read-only), like "Prop.Row_X.Value"</td></tr>
-		</table>
+         <ul>
+		    <li><input type="checkbox" id="col_Mask"/><label for="col_Mask">Mask</label><div class="help">Cell name or mask (editable), like "Prop.*.Value" or "PinX"</div></li>
+		    <li><input type="checkbox" id="col_Name"/><label for="col_Name">Name</label><div class="help">Full cell name (read-only), like "Prop.Row_X.Value"</div></li>
 
-		<table>
-		<tr><td><input type="checkbox" id="col_Section"/><label for="col_Section">Section</label></td><td>ShapeSheet Section name, like "Geometry1"</td></tr>
-		<tr><td><input type="checkbox" id="col_Row"/><label for="col_Row">Row</label></td><td>ShapeSheet Row name or number, like "Row_1"</td></tr>
-		<tr><td><input type="checkbox" id="col_RowU"/><label for="col_RowU">Row (U)</label></td><td>ShapeSheet Row name or number (universal)</td></tr>
-		<tr><td><input type="checkbox" id="col_Column"/><label for="col_Column">Column</label></td><td>ShapeSheet Column name, like "Label" or "X"</td></tr>
-		</table>
+		    <li><input type="checkbox" id="col_Section"/><label for="col_Section">Section</label><div class="help">ShapeSheet Section name, like "Geometry1"</div></li>
+		    <li><input type="checkbox" id="col_RowU"/><label for="col_RowU">Row (U)</label><div class="help">ShapeSheet Row name or number (universal)</div></li>
+		    <li><input type="checkbox" id="col_Row"/><label for="col_Row">Row</label><div class="help">ShapeSheet Row name or number, like "Row_1"</div></li>
+		    <li><input type="checkbox" id="col_Column"/><label for="col_Column">Column</label><div class="help">ShapeSheet Column name, like "Label" or "X"</div></li>
 
-		<table>
-		<tr><td><input type="checkbox" id="col_Formula"/><label for="col_Formula">Formula</label></td><td>Current ShapeSheet cell formula</td></tr>
-		<tr><td><input type="checkbox" id="col_FormulaU"/><label for="col_FormulaU">Formula (U)</label></td><td>Current ShapeSheet cell formula (universal)</td></tr>
-		</table>
+		    <li><input type="checkbox" id="col_FormulaU"/><label for="col_FormulaU">Formula (U)</label><div class="help">Current ShapeSheet cell formula (universal)</div></li>
+		    <li><input type="checkbox" id="col_Formula"/><label for="col_Formula">Formula</label><div class="help">Current ShapeSheet cell formula</div></li>
 
-		<table>
-		<tr><td><input type="checkbox" id="col_Result"/><label for="col_Result">Result</label></td><td>Current ShapeSheet cell Value</td></tr>
-		<tr><td><input type="checkbox" id="col_ResultU"/><label for="col_ResultU">Result (U)</label></td><td>Current ShapeSheet cell Value (Universal)</td></tr>
-
-			<tr><td/>
-			<td>Value units: <select label="XXX">
-				<option value="0">Inch</option>
-				<option>mm</option>
-				<option value="2">Default</option>
-			</select>
-			</td>
-			</tr>
-		</table>
+		    <li><input type="checkbox" id="col_ResultU"/><label for="col_ResultU">Result (U)</label><div class="help">Current ShapeSheet cell Value (Universal)</div></li>
+		    <li><input type="checkbox" id="col_Result"/><label for="col_Result">Result</label><div class="help">Current ShapeSheet cell Value</div></li>
+			<hr/>
+			<li>
+			    <label for="units">Value units:</label>
+			    <select id="units">
+				    <option value="0">Inch</option>
+				    <option>mm</option>
+				    <option value="2">Default</option>
+			    </select>
+			</li>
+         </ul>
 
 	</popup>
   </div>

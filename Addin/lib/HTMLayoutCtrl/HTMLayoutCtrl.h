@@ -38,7 +38,7 @@ public:
 	
 	void SetElementText(const char* id, LPCWSTR text);
 
-	void SetElementEnabled (const char* id, bool set);
+	void SetElementChecked (const char* id, bool set);
 
 	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
 	CString GetElementAttribute (const char* id, const char* attribute);

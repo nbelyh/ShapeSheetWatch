@@ -6195,6 +6195,7 @@ void CGridCtrl::OnLButtonDblClk(UINT nFlags, CPoint point)
 			return;
 
 		AutoSizeColumn(cell.col, GetAutoSizeStyle());
+		SendMessageToParent(0, cell.col, GVN_ENDCOLUMWIDTHEDIT);
 		Invalidate();
 	}
 #ifdef _WIN32_WCE
@@ -6702,6 +6703,8 @@ void CGridCtrl::OnLButtonUp(UINT nFlags, CPoint point)
 			//by Huang Wei
 			int mergewidth=GetMergeCellWidth(m_LeftClickDownCell)-GetColumnWidth(m_LeftClickDownCell.col);
 			SetColumnWidth(m_LeftClickDownCell.col, nColumnWidth-mergewidth);
+
+			SendMessageToParent(0, m_LeftClickDownCell.col, GVN_ENDCOLUMWIDTHEDIT);
 
 			ResetScrollBars();
 			Invalidate();

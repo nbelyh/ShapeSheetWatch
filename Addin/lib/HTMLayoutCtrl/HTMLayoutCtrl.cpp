@@ -54,14 +54,10 @@ struct CHTMLayoutCtrl::Impl
 			return FALSE;
 
 		if (params->cmd == BUTTON_CLICK)
-		{
-			CString type = GetElemAttribute(he, "type");
+			return m_control_manager->OnButton(GetElemAttribute(he, "id"));
 
-			if (type == "checkbox")
-				return m_control_manager->OnCheckButton(GetElemAttribute(he, "id"), GetElemState(he, STATE_CHECKED));
-			else
-				return m_control_manager->OnButton(GetElemAttribute(he, "id"));
-		}
+		if (params->cmd == BUTTON_STATE_CHANGED)
+			return m_control_manager->OnCheckButton(GetElemAttribute(he, "id"), GetElemState(he, STATE_CHECKED));
 
 		if (params->cmd == HYPERLINK_CLICK)
 			return m_control_manager->OnHyperlink(GetElemAttribute(he, "id"), GetElemAttribute(he, "href"));
@@ -353,10 +349,10 @@ void CHTMLayoutCtrl::SetElementAttribute (const char* id, const char* attribute,
 	m_impl->SetElemAttribute(h_found, attribute, text);
 }
 
-void CHTMLayoutCtrl::SetElementEnabled(const char* id, bool enabled)
+void CHTMLayoutCtrl::SetElementChecked(const char* id, bool enabled)
 {
 	HELEMENT h_found = m_impl->GetElemById(id);
-	m_impl->SetElemState(h_found, STATE_DISABLED, !enabled);
+	m_impl->SetElemState(h_found, STATE_CHECKED, !enabled);
 }
 
 IMPLEMENT_DYNAMIC(CHTMLayoutCtrl, CWnd)

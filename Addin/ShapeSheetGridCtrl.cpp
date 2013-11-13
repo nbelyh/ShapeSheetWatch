@@ -22,7 +22,9 @@
 #define COLOR_SRC_BK	RGB(0xE3,0xE3,0xE3)
 #define COLOR_SRC_FG	RGB(0xF0,0,0)
 
-struct CShapeSheetGridCtrl::Impl : public VEventHandler
+struct CShapeSheetGridCtrl::Impl 
+	: public VEventHandler
+	, public IView
 {
 	Impl(CShapeSheetGridCtrl* p_this)
 		: m_this(p_this)
@@ -74,7 +76,9 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 
 			m_this->SetItemText(0, i, GetColumnName(i));
 
-			if (m_view_settings->IsColumnHidden(i))
+			if (m_view_settings->IsColumnVisible(i))
+				m_this->SetColumnWidth(i, m_view_settings->GetColumnWidth(i));
+			else
 				m_this->SetColumnWidth(i, 0);
 		}
 	}
@@ -96,6 +100,8 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 		UpdateGridColumns();
 
 		OnSelectionChanged(window);
+
+		theApp.AddView(this);
 	}
 
 	void Detach()
@@ -104,6 +110,19 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 		m_evt_shape_deleted.Unadvise();
 
 		m_this->DeleteAllItems();
+
+		theApp.DelView(this);
+	}
+
+	void Update(int hint)
+	{
+		switch (hint)
+		{
+		case UpdateHint_Columns:
+			UpdateGridColumns();
+			UpdateGridRows();
+			break;
+		}
 	}
 
 	void OnSelectionDelete(IVSelectionPtr selection)
@@ -327,23 +346,9 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 		return FALSE;
 	}
 
-	void ToggleColumn(int column)
+	void OnEndColumnWidthEdit( int iColumn )
 	{
-		bool hidden = m_view_settings->IsColumnHidden(column);
-
-		if (hidden)
-		{
-			m_view_settings->SetColumnHidden(column, false);
-			m_this->SetColumnWidth(column, m_view_settings->GetColumnWidth(column));
-		}
-		else
-		{
-			m_view_settings->SetColumnHidden(column, true);
-			m_view_settings->SetColumnWidth(column, m_this->GetColumnWidth(column));
-			m_this->SetColumnWidth(column, 0);
-		}
-
-		m_this->Refresh();
+		m_view_settings->SetColumnWidth(iColumn, m_this->GetColumnWidth(iColumn));
 	}
 
 	IVWindowPtr	visio_window;
@@ -355,12 +360,19 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 BEGIN_MESSAGE_MAP(CShapeSheetGridCtrl, CGridCtrl)
 	ON_NOTIFY_REFLECT(GVN_ENDLABELEDIT, OnEndLabelEdit)
 	ON_NOTIFY_REFLECT(GVN_DELETEITEM, OnDeleteItem)
+	ON_NOTIFY_REFLECT(GVN_ENDCOLUMWIDTHEDIT, OnEndColumnWidthEdit)
 END_MESSAGE_MAP()
 
 void CShapeSheetGridCtrl::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
 {
 	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
 	m_impl->OnItemEdit(nmgv->iRow, nmgv->iColumn);
+}
+
+void CShapeSheetGridCtrl::OnEndColumnWidthEdit(NMHDR*nmhdr, LRESULT* result)
+{
+	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
+	m_impl->OnEndColumnWidthEdit(nmgv->iColumn);
 }
 
 void CShapeSheetGridCtrl::OnDeleteItem(NMHDR*nmhdr, LRESULT* result)

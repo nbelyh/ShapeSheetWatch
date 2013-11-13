@@ -164,6 +164,7 @@ typedef BOOL (CALLBACK* GRIDCALLBACK)(GV_DISPINFO *, LPARAM);
 #define GVHT_BELOW              0x0100
 
 // Messages sent to the grid's parent (More will be added in future)
+#define GVN_ENDCOLUMWIDTHEDIT	(LVN_FIRST-10)
 #define GVN_BEGINDRAG           LVN_BEGINDRAG        // LVN_FIRST-9
 #define GVN_BEGINLABELEDIT      LVN_BEGINLABELEDIT   // LVN_FIRST-5
 #define GVN_BEGINRDRAG          LVN_BEGINRDRAG

@@ -19,7 +19,22 @@ struct SSInfo
 	LPCWSTR values;
 };
 
-SSInfo ss_info[] = {
+SSInfo ss_geom[] = {
+	{L"Geometry",L"{i}",L"NoFill",visSectionFirstComponent,visRowComponent,visCompNoFill,L"Geometry{i}.NoFill",L"BOOL",L"TRUE;FALSE"},
+	{L"Geometry",L"{i}",L"NoLine",visSectionFirstComponent,visRowComponent,visCompNoLine,L"Geometry{i}.NoLine",L"BOOL",L"TRUE;FALSE"},
+	{L"Geometry",L"{i}",L"NoQuickDrag",visSectionFirstComponent,visRowComponent,visCompNoQuickDrag,L"Geometry{i}.NoQuickDrag",L"BOOL",L"TRUE;FALSE"},
+	{L"Geometry",L"{i}",L"NoShow",visSectionFirstComponent,visRowComponent,visCompNoShow,L"Geometry{i}.NoShow",L"BOOL",L"TRUE;FALSE"},
+	{L"Geometry",L"{i}",L"NoSnap",visSectionFirstComponent,visRowComponent,visCompNoSnap,L"Geometry{i}.NoSnap",L"BOOL",L"TRUE;FALSE"},
+	{L"Geometry",L"{i}",L"X",visSectionFirstComponent,visRowVertex ,visX,L"Geometry{i}.X{j}",L"",L""},
+	{L"Geometry",L"{i}",L"Y",visSectionFirstComponent,visRowVertex ,visY,L"Geometry{i}.Y{j}",L"",L""},
+	{L"Geometry",L"{i}",L"A",visSectionFirstComponent,visRowVertex ,2,L"Geometry{i}.A{j}",L"",L""},
+	{L"Geometry",L"{i}",L"B",visSectionFirstComponent,visRowVertex ,3,L"Geometry{i}.B{j}",L"",L""},
+	{L"Geometry",L"{i}",L"C",visSectionFirstComponent,visRowVertex ,4,L"Geometry{i}.C{j}",L"",L""},
+	{L"Geometry",L"{i}",L"D",visSectionFirstComponent,visRowVertex ,5,L"Geometry{i}.D{j}",L"",L""},
+	{L"Geometry",L"{i}",L"E",visSectionFirstComponent,visRowVertex ,6,L"Geometry{i}.E{j}",L"",L""},
+};
+
+SSInfo ss_global[] = {
 
 	{L"1-D Endpoints",L"",L"BeginX",visSectionObject,visRowXForm1D,vis1DBeginX,L"BeginX",L"",L""},
 	{L"1-D Endpoints",L"",L"BeginY",visSectionObject,visRowXForm1D,vis1DBeginY,L"BeginY",L"",L""},
@@ -160,18 +175,6 @@ SSInfo ss_info[] = {
 	{L"Foreign Image Info",L"",L"ImgOffsetX",visSectionObject,visRowForeign,visFrgnImgOffsetX,L"ImgOffsetX",L"",L""},
 	{L"Foreign Image Info",L"",L"ImgOffsetY",visSectionObject,visRowForeign,visFrgnImgOffsetY,L"ImgOffsetY",L"",L""},
 	{L"Foreign Image Info",L"",L"ImgWidth",visSectionObject,visRowForeign,visFrgnImgWidth,L"ImgWidth",L"",L""},
-	{L"Geometry",L"{i}",L"NoFill",visSectionFirstComponent,visRowComponent,visCompNoFill,L"Geometry{i}.NoFill",L"BOOL",L"TRUE;FALSE"},
-	{L"Geometry",L"{i}",L"NoLine",visSectionFirstComponent,visRowComponent,visCompNoLine,L"Geometry{i}.NoLine",L"BOOL",L"TRUE;FALSE"},
-	{L"Geometry",L"{i}",L"NoQuickDrag",visSectionFirstComponent,visRowComponent,visCompNoQuickDrag,L"Geometry{i}.NoQuickDrag",L"BOOL",L"TRUE;FALSE"},
-	{L"Geometry",L"{i}",L"NoShow",visSectionFirstComponent,visRowComponent,visCompNoShow,L"Geometry{i}.NoShow",L"BOOL",L"TRUE;FALSE"},
-	{L"Geometry",L"{i}",L"NoSnap",visSectionFirstComponent,visRowComponent,visCompNoSnap,L"Geometry{i}.NoSnap",L"BOOL",L"TRUE;FALSE"},
-	{L"Geometry",L"{i}",L"X",visSectionFirstComponent,visRowVertex ,visX,L"Geometry{i}.X{j}",L"",L""},
-	{L"Geometry",L"{i}",L"Y",visSectionFirstComponent,visRowVertex ,visY,L"Geometry{i}.Y{j}",L"",L""},
-	{L"Geometry",L"{i}",L"A",visSectionFirstComponent,visRowVertex ,2,L"Geometry{i}.A{j}",L"",L""},
-	{L"Geometry",L"{i}",L"B",visSectionFirstComponent,visRowVertex ,3,L"Geometry{i}.B{j}",L"",L""},
-	{L"Geometry",L"{i}",L"C",visSectionFirstComponent,visRowVertex ,4,L"Geometry{i}.C{j}",L"",L""},
-	{L"Geometry",L"{i}",L"D",visSectionFirstComponent,visRowVertex ,5,L"Geometry{i}.D{j}",L"",L""},
-	{L"Geometry",L"{i}",L"E",visSectionFirstComponent,visRowVertex ,6,L"Geometry{i}.E{j}",L"",L""},
 	{L"Glue Info",L"",L"BegTrigger",visSectionObject,visRowGroup,visBegTrigger,L"BegTrigger",L"",L""},
 	{L"Glue Info",L"",L"EndTrigger",visSectionObject,visRowMisc,visEndTrigger,L"EndTrigger",L"",L""},
 	{L"Glue Info",L"",L"GlueType",visSectionObject,visRowMisc,visGlueType,L"GlueType",L"ENUM",L"0=visGlueTypeDefault;2=visGlueTypeWalking;4=visGlueTypeNoWalking;8=visGlueTypeNoWalkingTo"},
@@ -448,6 +451,28 @@ SSInfo ss_info[] = {
 
 };
 
+typedef std::vector<SSInfo> SSInfos;
+
+const SSInfos& GetSectionInfo(short section)
+{
+	static SSInfos index[255];
+
+	struct Index
+	{
+		Index()
+		{
+			for (size_t i = 0; i < _countof(ss_global); ++i)
+			{
+				index[ss_global[i].s].push_back(ss_global[i]);
+			}
+		}
+	};
+
+	static Index index_init;
+
+	return index[section];
+}
+
 void AddNameMatchResult(const CString& mask, CString name, 
 						short s, short r, short c, 
 						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name,
@@ -487,13 +512,12 @@ void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, cons
 
 	IVSectionPtr section = shape->GetSection(section_no);
 
+	const SSInfos& ss_info = GetSectionInfo(section_no);
+
 	for (short r = 0; r < section->Count; ++r)
 	{
-		for (size_t i = 0; i < _countof(ss_info); ++i)
+		for (size_t i = 0; i < ss_info.size(); ++i)
 		{
-			if (section_no != ss_info[i].s)
-				continue;
-
 			CString name = ss_info[i].name;
 
 			CString r_name = FormatString(L"%d", 1 + r);
@@ -514,17 +538,16 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 
 	IVSectionPtr section = shape->GetSection(section_no);
 
+	const SSInfos& ss_info = GetSectionInfo(section_no);
+
 	for (short r = 0; r < section->Count; ++r)
  	{
 		IVRowPtr row = section->GetRow(r);
 		CString row_name = row->Name;
 		CString row_name_u = row->NameU;
 
-		for (size_t i = 0; i < _countof(ss_info); ++i)
+		for (size_t i = 0; i < ss_info.size(); ++i)
 		{
-			if (section_no != ss_info[i].s)
-				continue;
-
 			CString name = ss_info[i].name;
 			name.Replace(L"{r}", row_name);
 
@@ -533,6 +556,32 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 				ss_info[i].s_name, row_name, row_name_u, ss_info[i].c_name,
 				result);
 		}
+	}
+}
+
+size_t GetGeometryRowCellCount(short row_type)
+{
+	switch (row_type)
+	{
+	case visTagComponent:			return 6;
+	case visTagMoveTo:				return 2;
+	case visTagLineTo:				return 2;
+	case visTagArcTo:				return 3;
+	case visTagInfiniteLine:		return 4;
+	case visTagEllipse:				return 6;
+	case visTagEllipticalArcTo: 	return 6;
+	case visTagSplineBeg:			return 6;
+	case visTagSplineSpan:			return 3;
+	case visTagPolylineTo:			return 3;
+	case visTagNURBSTo:				return 7;
+	case visTagRelMoveTo:			return 2;
+	case visTagRelLineTo:			return 2;
+	case visTagRelEllipticalArcTo:	return 6;
+	case visTagRelCubBezTo:			return 6;
+	case visTagRelQuadBezTo:		return 4;
+
+	default:
+		return (6);
 	}
 }
 
@@ -546,36 +595,39 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 		for (short r = 0; r < section->Count; ++r)
 		{
-			CString r_name = FormatString(L"%d", 1 + r);
+			short c_count = GetGeometryRowCellCount(shape->GetRowType(visSectionFirstComponent, r));
 
-			for (size_t i = 0; i < _countof(ss_info); ++i)
+			CString r_name = FormatString(L"%d", r);
+
+			for (size_t i = 0; i < _countof(ss_geom); ++i)
 			{
-				if (ss_info[i].s != visSectionFirstComponent)
+				if (ss_geom[i].c >= c_count)
 					continue;
 
-				if (ss_info[i].r == visRowComponent)
+				if (ss_geom[i].r == visRowComponent && r == 0)
 				{
-					if (r == 0)
-					{
-						CString name = ss_info[i].name;
-						name.Replace(L"{i}", s_name);
+					CString name = ss_geom[i].name;
+					name.Replace(L"{i}", s_name);
 
-						AddNameMatchResult(mask, name, 
-							visSectionFirstComponent + s, r, ss_info[i].c, 
-							s_name, L"", L"", ss_info[i].c_name,
-							result);
-					}
+					AddNameMatchResult(mask, name, 
+						visSectionFirstComponent + s, r, ss_geom[i].c, 
+						s_name, L"", L"", ss_geom[i].c_name,
+						result);
+
 					continue;
 				}
 
-				CString name = ss_info[i].name;
-				name.Replace(L"{i}", s_name);
-				name.Replace(L"{j}", r_name);
+				if (ss_geom[i].r == visRowVertex && r >= 1)
+				{
+					CString name = ss_geom[i].name;
+					name.Replace(L"{i}", s_name);
+					name.Replace(L"{j}", r_name);
 
-				AddNameMatchResult(mask, name, 
-					visSectionFirstComponent + s, r, ss_info[i].c, 
-					s_name, r_name, r_name, ss_info[i].c_name,
-					result);
+					AddNameMatchResult(mask, name, 
+						visSectionFirstComponent + s, r, ss_geom[i].c, 
+						s_name, r_name, r_name, ss_geom[i].c_name,
+						result);
+				}
 			}
 		}
 	}
@@ -583,11 +635,9 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vector<SRC>& result)
 {
-	for (size_t i = 0; i < _countof(ss_info); ++i)
+	const SSInfos& ss_info = GetSectionInfo(visSectionObject);
+	for (size_t i = 0; i < ss_info.size(); ++i)
 	{
-		if (ss_info[i].s != visSectionObject)
-			continue;
-
 		CString name = ss_info[i].name;
 
 		AddNameMatchResult(mask, name, 

@@ -56,18 +56,12 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	CWnd* parent_window = 
 		CWnd::FromHandle(hwnd_parent);
 
-	CRect parent_rect;
-	parent_window->GetClientRect(&parent_rect);
-
 	// Construct Visio window. Make this window size a half of Visio's size
 	IVWindowPtr this_window = window->GetWindows()->Add(
 		bstr_t(L"Shape Sheet Watch"), 
-		static_cast<long>(visWSVisible | visWSDockedRight), 
+		static_cast<long>(visWSVisible | visWSAnchorTop | visWSAnchorRight), 
 		static_cast<long>(visAnchorBarAddon), 
-		static_cast<long>(parent_rect.Width()), 
-		static_cast<long>(parent_rect.Height()), 
-		static_cast<long>(parent_rect.Width() / 4), 
-		static_cast<long>(parent_rect.Height() / 2),
+		0L, 0L, 400L, 300L,
 		vtMissing, vtMissing, vtMissing);
 
 	HWND client = GetVisioWindowHandle(this_window);
@@ -79,6 +73,8 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 
 	CString index_html = GetHtmlFilePath(L"test.htm");
 	m_html.LoadHtmlFile(index_html);
+
+	SetChecks();
 }
 
 void CVisioFrameWnd::Destroy()
@@ -153,13 +149,23 @@ bool CVisioFrameWnd::DestroyControl(const CString& type, CWnd* wnd)
 	return true;
 }
 
+void CVisioFrameWnd::SetChecks()
+{
+	for (int i = 0; i < Column_Count; ++i)
+	{
+		bool visible = theApp.GetViewSettings()->IsColumnVisible(i);
+		m_html.SetElementChecked(GetColumnDbName(i), visible);
+	}
+}
+
 bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 {
-	Column col = GetColumnFromId(id);
+	int col = GetColumnFromDbName(id);
 
-	if (col < Column_Count)
+	if (col >= 0)
 	{
-		theApp.GetViewSettings()->SetColumnHidden(col, !visible);
+		theApp.GetViewSettings()->SetColumnVisible(col, visible);
+		theApp.UpdateViews(UpdateHint_Columns);
 	}
 
 	return true;

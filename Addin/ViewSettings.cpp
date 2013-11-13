@@ -34,14 +34,14 @@ void ViewSettings::Save()
 		for (int i = 0; i < Column_Count; ++i)
 		{
 			column_widths[i] = FormatString(L"%d", m_column_widths[i]);
-			column_hidden[i] = FormatString(L"%d", m_column_hidden[i] != 0);
+			column_hidden[i] = FormatString(L"%d", m_column_visible[i] != 0);
 		}
 
 		CString val_widths = JoinList(column_widths, L"|");
 		key.SetStringValue(L"ColumnWidth", val_widths, REG_SZ);
 
 		CString val_hidden = JoinList(column_hidden, L"|");
-		key.SetStringValue(L"ColumnHidden", val_hidden, REG_SZ);
+		key.SetStringValue(L"ColumnVisible", val_hidden, REG_SZ);
 	}
 }
 
@@ -60,12 +60,16 @@ void ViewSettings::Load()
 		len = _countof(val);
 		Strings column_widths;
 		if (0 == key.QueryStringValue(L"ColumnWidth", val, &len))
-			SplitList(val, L"|", column_widths);
+			lstrcpy(val, L"100|100|50|50|50|50|50|100|50|100");
+
+		SplitList(val, L"|", column_widths);
 
 		len = _countof(val);
 		Strings column_hidden;
-		if (0 == key.QueryStringValue(L"ColumnHidden", val, &len))
-			SplitList(val, L"|", column_hidden);
+		if (0 == key.QueryStringValue(L"ColumnVisible", val, &len))
+			lstrcpy(val, L"1|1|0|0|0|0|0|1|0|1");
+
+		SplitList(val, L"|", column_hidden);
 
 		for (size_t i = 0; i < Column_Count; ++i)
 		{
@@ -73,7 +77,7 @@ void ViewSettings::Load()
 				m_column_widths[i] = StrToInt(column_widths[i]);
 
 			if (i < column_hidden.size())
-				m_column_hidden[i] = StrToInt(column_hidden[i]) != 0;
+				m_column_visible[i] = StrToInt(column_hidden[i]) != 0;
 		}
 	}
 }
@@ -93,19 +97,19 @@ int ViewSettings::GetColumnWidth(int column) const
 	return m_column_widths[column];
 }
 
-void ViewSettings::SetColumnHidden(int column, bool set)
+void ViewSettings::SetColumnVisible(int column, bool set)
 {
-	m_column_hidden[column] = set;
+	m_column_visible[column] = set;
 }
 
-bool ViewSettings::IsColumnHidden(int column) const
+bool ViewSettings::IsColumnVisible(int column) const
 {
-	return m_column_hidden[column];
+	return m_column_visible[column];
 }
 
 ViewSettings::ViewSettings()
-	: m_column_widths(Column_Count)
-	, m_column_hidden(Column_Count)
+	: m_column_widths(Column_Count, 50)
+	, m_column_visible(Column_Count, true)
 {
 }
 
@@ -132,18 +136,32 @@ CString GetColumnName(int i)
 	}
 }
 
-Column GetColumnFromId(const CString& id)
+LPCSTR GetColumnDbName(int i)
 {
-	if (id == L"col_Mask")		return Column_Mask;
-	if (id == L"col_Name")		return Column_Name;
-	if (id == L"col_Section")	return Column_S;
-	if (id == L"col_Row")		return Column_R;
-	if (id == L"col_RowU")		return Column_RU;
-	if (id == L"col_Column")	return Column_C;
-	if (id == L"col_Formula")	return Column_Formula;
-	if (id == L"col_FormulaU")	return Column_FormulaU;
-	if (id == L"col_Result")	return Column_Value;
-	if (id == L"col_ResultU")	return Column_ValueU;
+	switch (i)
+	{
+	case Column_Mask:		return "col_Mask";
+	case Column_Name:		return "col_Name";
+	case Column_S:			return "col_Section";
+	case Column_R:			return "col_Row";
+	case Column_RU:			return "col_RowU";
+	case Column_C:			return "col_Column";
+	case Column_Formula:	return "col_Formula";
+	case Column_FormulaU:	return "col_FormulaU";
+	case Column_Value:		return "col_Result";
+	case Column_ValueU:		return "col_ResultU";
 
-	return Column_Count;
+	default:	return "";
+	}
+}
+
+int GetColumnFromDbName(const CString& id)
+{
+	for (int i = 0; i < Column_Count; ++i)
+	{
+		if (GetColumnDbName(i) == id)
+			return i;
+	}
+
+	return -1;
 }
