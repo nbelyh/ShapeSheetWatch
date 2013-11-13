@@ -182,6 +182,8 @@ struct CShapeSheetGridCtrl::Impl
 
 	void UpdateGridRows()
 	{
+		int visio_version = GetVisioVersion(theApp.GetVisioApp());
+
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
 		typedef std::vector< std::vector<SRC> > GroupCellInfos;
@@ -244,15 +246,20 @@ struct CShapeSheetGridCtrl::Impl
 					SetHeadColumn(row, Column_RU, src.r_name_u);
 					SetHeadColumn(row, Column_C, src.c_name);
 
-					IVCellPtr cell = m_shape->GetCellsSRC(src.s, src.r, src.c);
+					if (m_shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
+					{
+						IVCellPtr cell = m_shape->GetCellsSRC(src.s, src.r, src.c);
 
-					m_this->SetItemData(row, Column_Mask, i);
+						m_this->SetItemData(row, Column_Mask, i);
 
-					m_this->SetItemText(row, Column_Formula, cell->Formula);
-					m_this->SetItemText(row, Column_FormulaU, cell->Formula);
+						m_this->SetItemText(row, Column_Formula, cell->Formula);
+						m_this->SetItemText(row, Column_FormulaU, cell->Formula);
 
-					m_this->SetItemText(row, Column_Value, cell->ResultStr[-1]);
-					m_this->SetItemText(row, Column_ValueU, cell->ResultStrU[-1]);
+						m_this->SetItemText(row, Column_Value, cell->ResultStr[-1L]);
+
+						if (visio_version > 11)
+							m_this->SetItemText(row, Column_ValueU, cell->ResultStrU[-1L]);
+					}
 
 					if (s_last == src.s)
 						++s_count;
