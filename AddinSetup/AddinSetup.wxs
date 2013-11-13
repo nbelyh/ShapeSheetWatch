@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
   <?define Binaries="$(var.SolutionDir)$(var.Platform)\$(var.Configuration)" ?>
-  <?define Version="1.0.2.0"?>
+  <?define Version="1.0.3.0"?>
   
   <?if $(var.Platform)=x64 ?>
   <?define Win64YesNo="yes" ?>
@@ -39,7 +39,7 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <Directory Id="$(var.cf)">
         <Directory Id="COMPANYDIR" Name="UnmanagedVisio" >
-          <Directory Id="PRODUCTDIR" Name="MacroButtons">
+          <Directory Id="PRODUCTDIR" Name="ShapeSheetWatch">
 
             <Component Id="HTMLayoutDLL" Win64="$(var.Win64YesNo)">
               <File KeyPath="yes" Source="lib\$(var.Platform)\htmlayout.dll" />
@@ -58,12 +58,22 @@
             </Component>
 
             <Component Id="VisioRegistration" Win64="$(var.Win64YesNo)" >
-              <RegistryKey Root="HKMU" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.VisioConnect">
+              <RegistryKey Root="HKLM" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.VisioConnect" >
                 <RegistryValue Name="CommandLineSafe" Type="integer" Value="0" />
                 <RegistryValue Name="FriendlyName" Type="string" Value="ShapeSheetWatchAddin" KeyPath="yes" />
                 <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
+                <RegistryValue Name="InstallPath" Type="string" Value="[PRODUCTDIR]" />
               </RegistryKey>
             </Component>
+
+            <Directory Id="HTML" Name="html" FileSource="..\Data\html">
+              <Component Id="test.htm">
+                <File Name="test.htm" />
+              </Component>
+              <Component Id="settings.png">
+                <File Name="settings.png" />
+              </Component>
+            </Directory>
 
           </Directory>
         </Directory>
@@ -74,6 +84,9 @@
       <ComponentRef Id="ProductComponent" />
       <ComponentRef Id="HTMLayoutDLL" />
       <ComponentRef Id="VisioRegistration" />
+
+      <ComponentRef Id="test.htm"/>
+      <ComponentRef Id="settings.png"/>
     </Feature>
 
     <UIRef Id="WixUI_ErrorProgressText" />

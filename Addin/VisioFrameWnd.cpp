@@ -29,6 +29,23 @@ END_MESSAGE_MAP()
 	a special window provided by visio for sub-classing).
 -------------------------------------------------------------------------------*/
 
+CString GetHtmlFilePath(LPCWSTR file_name)
+{
+	WCHAR path[MAX_PATH] = L"";
+	DWORD path_len = MAX_PATH;
+
+	if (0 == SHRegGetUSValue(L"Software\\Microsoft\\Visio\\Addins\\ShapeSheetWatchAddin.VisioConnect", L"InstallPath", 
+		NULL, path, &path_len, FALSE, NULL, 0))
+	{
+		PathAddBackslash(path);
+		PathAppend(path, L"html");
+		PathAddBackslash(path);
+		PathAppend(path, file_name);
+	}
+
+	return path;
+}
+
 void CVisioFrameWnd::Create(IVWindowPtr window)
 {
 	m_window = window;
@@ -60,7 +77,8 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
  	GetClientRect(rect);
 	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
 
-	m_html.LoadHtmlFile(L"C:\\Users\\Nikolay\\Documents\\GitHub\\ShapeSheetWatch\\Addin\\html\\test.htm");
+	CString index_html = GetHtmlFilePath(L"test.htm");
+	m_html.LoadHtmlFile(index_html);
 }
 
 void CVisioFrameWnd::Destroy()
