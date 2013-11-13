@@ -8,6 +8,7 @@
 #include "stdafx.h"
 #include "VisioFrameWnd.h"
 #include "lib/Visio.h"
+#include "lib/Utils.h"
 #include "ShapeSheetGridCtrl.h"
 #include "Addin.h"
 
@@ -60,17 +61,6 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
 
 	m_html.LoadHtmlFile(L"C:\\Users\\Nikolay\\Documents\\GitHub\\ShapeSheetWatch\\Addin\\html\\test.htm");
-
-	//m_html.LoadHtml(
-	//	L"<head><style>"
-	//	L"* { margin: 0; padding: 0 }"
-	//	L"widget { border: 1px solid #CCC }"
-	//	L"</style></head>"
-	//	L"<body>"
-	//	L"<h3 id='caption'>SHAPE</h3>"
-	//	L"<widget style='width:100%%;height:100%%' type='sheet'></widget>"
-	//	L"</body>"
-	//	);
 }
 
 void CVisioFrameWnd::Destroy()
@@ -141,6 +131,18 @@ bool CVisioFrameWnd::DestroyControl(const CString& type, CWnd* wnd)
 
 	pShapeSheetCtrl->Destroy();
 	delete pShapeSheetCtrl;
+
+	return true;
+}
+
+bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
+{
+	Column col = GetColumnFromId(id);
+
+	if (col < Column_Count)
+	{
+		theApp.GetViewSettings()->SetColumnHidden(col, !visible);
+	}
 
 	return true;
 }

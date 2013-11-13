@@ -30,6 +30,8 @@ protected:
 	virtual CWnd* CreateControl(const CString& type);
 	virtual bool DestroyControl(const CString& type, CWnd* wnd);
 
+	virtual bool OnCheckButton(const CString& id, bool set);
+
 	IVWindowPtr m_window;
 	CHTMLayoutCtrl m_html;
 };

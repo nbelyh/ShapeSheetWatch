@@ -15,6 +15,9 @@ enum Column
 	Column_Count
 };
 
+Column GetColumnFromId(const CString& id);
+CString GetColumnName(int i);
+
 struct ViewSettings
 {
 	ViewSettings();

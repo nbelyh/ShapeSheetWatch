@@ -5,6 +5,10 @@ struct IHTMLayoutControlManager
 {
 	virtual CWnd*	CreateControl(const CString& type) = 0;
 	virtual bool	DestroyControl(const CString& type, CWnd* wnd) = 0;
+
+	virtual	bool	OnButton(const CString& id) { return false; }
+	virtual bool	OnCheckButton(const CString& id, bool set) { return false; }
+	virtual bool	OnHyperlink(const CString& id, const CString& href) { return false; }
 };
 
 class CHTMLayoutCtrl : public CWnd

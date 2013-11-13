@@ -70,6 +70,10 @@
 	border: 1px solid ThreeDShadow;
   }
 
+  input[type=checkbox]:checked + label {
+	font-weight: bold;
+  }
+
 </style>
 </head>
 
@@ -80,30 +84,30 @@
 		<div id="caption">Column settings</div>
 
 		<table>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Mask</label></td><td>Cell name or mask (editable), like "Prop.*.Value" or "PinX"</td></tr>
-		<tr><td><label><input type="checkbox" name="cb2" value="1"/>Name</label></td><td>Full cell name (read-only), like "Prop.Row_X.Value"</td></tr>
+		<tr><td><input type="checkbox" id="col_Mask"/><label for="col_Mask">Mask</label></td><td>Cell name or mask (editable), like "Prop.*.Value" or "PinX"</td></tr>
+		<tr><td><input type="checkbox" id="col_Name"/><label for="col_Name">Name</label></td><td>Full cell name (read-only), like "Prop.Row_X.Value"</td></tr>
 		</table>
 
 		<table>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Section</label></td><td>ShapeSheet Section name, like "Geometry1"</td></tr>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Row</label></td><td>ShapeSheet Row name or number, like "Row_1"</td></tr>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Row (U)</label></td><td>ShapeSheet Row name or number (universal)</td></tr>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Column</label></td><td>ShapeSheet Column name, like "Label" or "X"</td></tr>
+		<tr><td><input type="checkbox" id="col_Section"/><label for="col_Section">Section</label></td><td>ShapeSheet Section name, like "Geometry1"</td></tr>
+		<tr><td><input type="checkbox" id="col_Row"/><label for="col_Row">Row</label></td><td>ShapeSheet Row name or number, like "Row_1"</td></tr>
+		<tr><td><input type="checkbox" id="col_RowU"/><label for="col_RowU">Row (U)</label></td><td>ShapeSheet Row name or number (universal)</td></tr>
+		<tr><td><input type="checkbox" id="col_Column"/><label for="col_Column">Column</label></td><td>ShapeSheet Column name, like "Label" or "X"</td></tr>
 		</table>
 
 		<table>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Formula</label></td><td>Current ShapeSheet cell formula</td></tr>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Formula (U)</label></td><td>Current ShapeSheet cell formula (universal)</td></tr>
+		<tr><td><input type="checkbox" id="col_Formula"/><label for="col_Formula">Formula</label></td><td>Current ShapeSheet cell formula</td></tr>
+		<tr><td><input type="checkbox" id="col_FormulaU"/><label for="col_FormulaU">Formula (U)</label></td><td>Current ShapeSheet cell formula (universal)</td></tr>
 		</table>
 
 		<table>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Value</label></td><td>Current ShapeSheet cell Value</td></tr>
-		<tr><td><label><input type="checkbox" name="cb1" value="1"/>Value (U)</label></td><td>Current ShapeSheet cell Value (Universal)</td></tr>
+		<tr><td><input type="checkbox" id="col_Result"/><label for="col_Result">Result</label></td><td>Current ShapeSheet cell Value</td></tr>
+		<tr><td><input type="checkbox" id="col_ResultU"/><label for="col_ResultU">Result (U)</label></td><td>Current ShapeSheet cell Value (Universal)</td></tr>
 
 			<tr><td/>
 			<td>Value units: <select label="XXX">
 				<option value="0">Inch</option>
-				<option value="1">mm</option>
+				<option>mm</option>
 				<option value="2">Default</option>
 			</select>
 			</td>

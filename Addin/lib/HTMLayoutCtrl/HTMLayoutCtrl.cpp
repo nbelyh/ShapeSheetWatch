@@ -16,13 +16,6 @@
 #pragma warning( default : 4267 )
 #pragma warning( default : 4996 )
 
-/**-----------------------------------------------------------------------------
-	Message to send to parent frame on hyperlink clicks
-------------------------------------------------------------------------------*/
-
-const UINT MSG_HTMLAYOUT_HYPERLINK = RegisterWindowMessage(L"P4B_MSG_HTMLAYOUT_HYPERLINK");
-const UINT MSG_HTMLAYOUT_BUTTON = RegisterWindowMessage(L"P4B_MSG_HTMLAYOUT_BUTTON");
-
 // CHTMLayoutCtrl
 
 struct CHTMLayoutCtrl::Impl
@@ -55,44 +48,23 @@ struct CHTMLayoutCtrl::Impl
 		HTML behavior events handler
 	------------------------------------------------------------------------------*/
 
-	CWnd* FindOwnerWindow()
-	{
-		CWnd* frame = 
-			CWnd::FromHandle(m_hwnd)->GetParentFrame();
-
-		if (frame == NULL)
-			frame = CWnd::FromHandle(m_hwnd)->GetParent();
-
-		return frame;
-	}
-
 	BOOL handle_event (HELEMENT he, BEHAVIOR_EVENT_PARAMS* params) 
 	{
-		if (!IsWindow(m_hwnd))
+		if (!he || !m_control_manager || !IsWindow(m_hwnd))
 			return FALSE;
 
 		if (params->cmd == BUTTON_CLICK)
 		{
-			LPCWSTR id = L"";
-			::HTMLayoutGetAttributeByName(he, "id", &id);
+			CString type = GetElemAttribute(he, "type");
 
-			CWnd* frame = FindOwnerWindow();
-			if (frame != NULL)
-				frame->SendMessage(MSG_HTMLAYOUT_BUTTON, reinterpret_cast<LPARAM>(id), NULL);
+			if (type == "checkbox")
+				return m_control_manager->OnCheckButton(GetElemAttribute(he, "id"), GetElemState(he, STATE_CHECKED));
+			else
+				return m_control_manager->OnButton(GetElemAttribute(he, "id"));
 		}
 
 		if (params->cmd == HYPERLINK_CLICK)
-		{
-			LPCWSTR href = L"";
-			::HTMLayoutGetAttributeByName(he, "href", &href);
-
-			LPCWSTR id = L"";
-			::HTMLayoutGetAttributeByName(he, "id", &id);
-
-			CWnd* frame = FindOwnerWindow();
-			if (frame != NULL)
-				frame->SendMessage(MSG_HTMLAYOUT_HYPERLINK, reinterpret_cast<WPARAM>(id), reinterpret_cast<LPARAM>(href));
-		}
+			return m_control_manager->OnHyperlink(GetElemAttribute(he, "id"), GetElemAttribute(he, "href"));
 
 		return FALSE;
 	}
@@ -246,12 +218,19 @@ struct CHTMLayoutCtrl::Impl
 		return h_found;
 	}
 
-	void SetElemEnabled(HELEMENT elem, const char* id, bool enabled)
+	bool GetElemState(HELEMENT elem, UINT bits)
 	{
-		if (enabled)
-			HTMLayoutSetElementState(elem, 0, STATE_DISABLED, TRUE);
+		UINT state = 0;
+		HTMLayoutGetElementState(elem, &state);
+		return (state & bits) != 0;
+	}
+
+	void SetElemState(HELEMENT elem, UINT bits, bool val)
+	{
+		if (val)
+			HTMLayoutSetElementState(elem, 0, bits, TRUE);
 		else
-			HTMLayoutSetElementState(elem, STATE_DISABLED, 0, TRUE);
+			HTMLayoutSetElementState(elem, bits, 0, TRUE);
 	}
 
 	HWND m_hwnd;
@@ -377,7 +356,7 @@ void CHTMLayoutCtrl::SetElementAttribute (const char* id, const char* attribute,
 void CHTMLayoutCtrl::SetElementEnabled(const char* id, bool enabled)
 {
 	HELEMENT h_found = m_impl->GetElemById(id);
-	m_impl->SetElemEnabled(h_found, id, enabled);
+	m_impl->SetElemState(h_found, STATE_DISABLED, !enabled);
 }
 
 IMPLEMENT_DYNAMIC(CHTMLayoutCtrl, CWnd)

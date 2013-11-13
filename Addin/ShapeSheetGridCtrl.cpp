@@ -61,25 +61,6 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 		LEAVE_METHOD()
 	}
 
-	CString GetColumnName(int i)
-	{
-		switch (i)
-		{
-		case Column_Mask:		return L"Mask";
-		case Column_Name:		return L"Name";
-		case Column_S:			return L"Section";
-		case Column_R:			return L"Row";
-		case Column_RU:			return L"Row (U)";
-		case Column_C:			return L"Column";
-		case Column_Formula:	return L"Formula";
-		case Column_FormulaU:	return L"Formula (U)";
-		case Column_Value:		return L"Result";
-		case Column_ValueU:		return L"Result (U)";
-
-		default:	return L"";
-		}
-	}
-
 	void UpdateGridColumns()
 	{
 		m_this->SetFixedRowCount(1);
@@ -344,11 +325,6 @@ struct CShapeSheetGridCtrl::Impl : public VEventHandler
 		}
 
 		return FALSE;
-	}
-
-	bool IsColumnVisible(int column)
-	{
-		return !m_view_settings->IsColumnHidden(column);
 	}
 
 	void ToggleColumn(int column)

@@ -112,3 +112,38 @@ ViewSettings::ViewSettings()
 ViewSettings::~ViewSettings()
 {
 }
+
+CString GetColumnName(int i)
+{
+	switch (i)
+	{
+	case Column_Mask:		return L"Mask";
+	case Column_Name:		return L"Name";
+	case Column_S:			return L"Section";
+	case Column_R:			return L"Row";
+	case Column_RU:			return L"Row (U)";
+	case Column_C:			return L"Column";
+	case Column_Formula:	return L"Formula";
+	case Column_FormulaU:	return L"Formula (U)";
+	case Column_Value:		return L"Result";
+	case Column_ValueU:		return L"Result (U)";
+
+	default:	return L"";
+	}
+}
+
+Column GetColumnFromId(const CString& id)
+{
+	if (id == L"col_Mask")		return Column_Mask;
+	if (id == L"col_Name")		return Column_Name;
+	if (id == L"col_Section")	return Column_S;
+	if (id == L"col_Row")		return Column_R;
+	if (id == L"col_RowU")		return Column_RU;
+	if (id == L"col_Column")	return Column_C;
+	if (id == L"col_Formula")	return Column_Formula;
+	if (id == L"col_FormulaU")	return Column_FormulaU;
+	if (id == L"col_Result")	return Column_Value;
+	if (id == L"col_ResultU")	return Column_ValueU;
+
+	return Column_Count;
+}
