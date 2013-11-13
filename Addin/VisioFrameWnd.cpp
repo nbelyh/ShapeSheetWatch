@@ -8,6 +8,7 @@
 #include "stdafx.h"
 #include "VisioFrameWnd.h"
 #include "lib/Visio.h"
+#include "ShapeSheetGridCtrl.h"
 #include "Addin.h"
 
 /**-----------------------------------------------------------------------------
@@ -29,6 +30,8 @@ END_MESSAGE_MAP()
 
 void CVisioFrameWnd::Create(IVWindowPtr window)
 {
+	m_window = window;
+
 	HWND hwnd_parent = 
 		::GetParent(GetVisioWindowHandle(window));
 
@@ -54,7 +57,7 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 
  	CRect rect;
  	GetClientRect(rect);
-	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE, window);
+	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
 
 	m_html.LoadHtmlFile(L"C:\\Users\\Nikolay\\Documents\\GitHub\\ShapeSheetWatch\\Addin\\html\\test.htm");
 
@@ -109,4 +112,35 @@ void CVisioFrameWnd::OnSize(UINT nType, int cx, int cy)
 BOOL CVisioFrameWnd::OnEraseBkgnd(CDC* pDC)
 {
 	return TRUE;
+}
+
+CVisioFrameWnd::CVisioFrameWnd()
+	: m_html(this)
+{
+}
+
+CWnd* CVisioFrameWnd::CreateControl(const CString& type)
+{
+	if (type != L"sheet")
+		return NULL;
+
+	CShapeSheetGridCtrl* pShapeSheetCtrl = new CShapeSheetGridCtrl();
+
+	if (pShapeSheetCtrl->Create(&m_html, 1, m_window))
+		return pShapeSheetCtrl;
+
+	return NULL;
+}
+
+bool CVisioFrameWnd::DestroyControl(const CString& type, CWnd* wnd)
+{
+	if (type != L"sheet")
+		return false;
+
+	CShapeSheetGridCtrl* pShapeSheetCtrl = static_cast<CShapeSheetGridCtrl*>(wnd);
+
+	pShapeSheetCtrl->Destroy();
+	delete pShapeSheetCtrl;
+
+	return true;
 }

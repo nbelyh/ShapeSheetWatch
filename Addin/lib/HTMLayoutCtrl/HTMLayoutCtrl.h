@@ -1,17 +1,20 @@
 
 #pragma once
 
-extern const UINT MSG_HTMLAYOUT_HYPERLINK;
-extern const UINT MSG_HTMLAYOUT_BUTTON;
+struct IHTMLayoutControlManager
+{
+	virtual CWnd*	CreateControl(const CString& type) = 0;
+	virtual bool	DestroyControl(const CString& type, CWnd* wnd) = 0;
+};
 
 class CHTMLayoutCtrl : public CWnd
 {
 public:
-	CHTMLayoutCtrl();
+	CHTMLayoutCtrl(IHTMLayoutControlManager* manager);
 	~CHTMLayoutCtrl();
 
 	// Generic creator
-	BOOL Create(const RECT& rect, CWnd* pParentWnd, UINT nID, DWORD dwStyle, IVWindowPtr window);
+	BOOL Create(const RECT& rect, CWnd* pParentWnd, UINT nID, DWORD dwStyle);
 
 	// Load html from memory buffer
 	bool LoadHtml(const BYTE* pb, DWORD nBytes);
@@ -30,12 +33,14 @@ public:
 	bool LoadHtmlFile(LPCWSTR filename);
 	
 	void SetElementText(const char* id, LPCWSTR text);
-	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
+
 	void SetElementEnabled (const char* id, bool set);
+
+	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
 	CString GetElementAttribute (const char* id, const char* attribute);
 
 protected:
-	virtual BOOL PreTranslateMessage( MSG* pMsg );
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	DECLARE_DYNAMIC(CHTMLayoutCtrl)
 
 private:

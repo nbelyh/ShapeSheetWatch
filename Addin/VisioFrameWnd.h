@@ -11,8 +11,11 @@
 
 class CVisioFrameWnd 
 	: public CWnd
+	, public IHTMLayoutControlManager
 {
 public:
+	CVisioFrameWnd();
+
 	void Create(IVWindowPtr app);
 	void Destroy();
 
@@ -24,5 +27,9 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
+	virtual CWnd* CreateControl(const CString& type);
+	virtual bool DestroyControl(const CString& type, CWnd* wnd);
+
+	IVWindowPtr m_window;
 	CHTMLayoutCtrl m_html;
 };

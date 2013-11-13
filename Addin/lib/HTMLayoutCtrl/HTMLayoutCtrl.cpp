@@ -5,7 +5,6 @@
 #include "stdafx.h"
 
 #include "lib/Utils.h"
-#include "ShapeSheetGridCtrl.h"
 #include "HTMLayoutCtrl.h"
 
 #pragma warning( disable : 4996 )
@@ -28,12 +27,18 @@ const UINT MSG_HTMLAYOUT_BUTTON = RegisterWindowMessage(L"P4B_MSG_HTMLAYOUT_BUTT
 
 struct CHTMLayoutCtrl::Impl
 {
-	void Attach(HWND hwnd, IVWindowPtr window)
+	IHTMLayoutControlManager* m_control_manager;
+
+	Impl(IHTMLayoutControlManager* control_manager)
+		: m_control_manager(control_manager)
+	{
+	}
+
+	void Attach(HWND hwnd)
 	{
 		ASSERT_RETURN(::IsWindow(hwnd));
 
 		m_hwnd = hwnd;
-		m_window = window;
 
 		::HTMLayoutSetCallback(m_hwnd, callback, this);
 		::HTMLayoutWindowAttachEventHandler(m_hwnd, &Impl::element_proc, this, HANDLE_BEHAVIOR_EVENT);
@@ -44,7 +49,6 @@ struct CHTMLayoutCtrl::Impl
 		::HTMLayoutWindowDetachEventHandler(m_hwnd, &Impl::element_proc, this);
 
 		m_hwnd = NULL;
-		m_window = NULL;
 	}
 
 	/**-----------------------------------------------------------------------------
@@ -135,17 +139,20 @@ struct CHTMLayoutCtrl::Impl
 
 	HWND OnCreateControl(LPNMHL_CREATE_CONTROL lpCC)
 	{
-		if (GetElemAttribute(lpCC->helement, "type") == L"sheet")
+		if (m_control_manager)
 		{
-			CShapeSheetGridCtrl* pShapeSheetCtrl = 
-				new CShapeSheetGridCtrl();
+			CString type = GetElemAttribute(lpCC->helement, "type");
 
-			if (!pShapeSheetCtrl->Create(CWnd::FromHandle(m_hwnd), 1, m_window))
-				return HWND_DISCARD_CREATION;
+			if (!type.IsEmpty())
+			{
+				CWnd* wnd = m_control_manager->CreateControl(type);
 
-			lpCC->outControlHwnd = pShapeSheetCtrl->GetSafeHwnd();
-
-			return lpCC->outControlHwnd;
+				if (wnd)
+				{
+					lpCC->outControlHwnd = wnd->GetSafeHwnd();
+					return lpCC->outControlHwnd;
+				}
+			}
 		}
 
 		return HWND_TRY_DEFAULT;
@@ -153,16 +160,17 @@ struct CHTMLayoutCtrl::Impl
 
 	LRESULT OnDestroyControl(LPNMHL_DESTROY_CONTROL lpDC)
 	{
-		if (GetElemAttribute(lpDC->helement, "type") == L"sheet")
+		if (m_control_manager)
 		{
-			CShapeSheetGridCtrl* pShapeSheetCtrl = 
-				static_cast<CShapeSheetGridCtrl*>(CWnd::FromHandle(lpDC->inoutControlHwnd));
+			 CString type = GetElemAttribute(lpDC->helement, "type");
 
-			pShapeSheetCtrl->Destroy();
-			delete pShapeSheetCtrl;
-
-			lpDC->inoutControlHwnd = NULL;
-			return 0;
+			 CWnd* wnd = CWnd::FromHandle(lpDC->inoutControlHwnd);
+			 
+			 if (m_control_manager->DestroyControl(type, wnd))
+			 {
+				 lpDC->inoutControlHwnd = NULL;
+				 return 0;
+			 }
 		}
 
 		return 0;
@@ -246,7 +254,6 @@ struct CHTMLayoutCtrl::Impl
 			HTMLayoutSetElementState(elem, STATE_DISABLED, 0, TRUE);
 	}
 
-	IVWindowPtr m_window;
 	HWND m_hwnd;
 };
 
@@ -312,12 +319,12 @@ BOOL CHTMLayoutCtrl::PreTranslateMessage(MSG* pMsg )
 	
 ------------------------------------------------------------------------------*/
 
-BOOL CHTMLayoutCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID, DWORD dwStyle, IVWindowPtr window)
+BOOL CHTMLayoutCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID, DWORD dwStyle)
 {
 	if (!CWnd::Create(::HTMLayoutClassNameT(), NULL, dwStyle, rect, pParentWnd, nID))
 		return FALSE;
 
-	m_impl->Attach(m_hWnd, window);
+	m_impl->Attach(m_hWnd);
 	return TRUE;
 }
 
@@ -325,8 +332,8 @@ BOOL CHTMLayoutCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID, DWORD 
 	Constructor
 ------------------------------------------------------------------------------*/
 
-CHTMLayoutCtrl::CHTMLayoutCtrl()
-	: m_impl(new Impl())
+CHTMLayoutCtrl::CHTMLayoutCtrl(IHTMLayoutControlManager* manager)
+	: m_impl(new Impl(manager))
 {
 }
 
