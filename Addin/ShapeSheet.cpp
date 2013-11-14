@@ -569,7 +569,7 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 	}
 }
 
-size_t GetGeometryRowCellCount(short row_type)
+short GetGeometryRowCellCount(short row_type)
 {
 	switch (row_type)
 	{
