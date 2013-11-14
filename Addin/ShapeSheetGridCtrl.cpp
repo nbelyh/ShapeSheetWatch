@@ -31,6 +31,10 @@ struct CShapeSheetGridCtrl::Impl
 	{
 	}
 
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	virtual HRESULT HandleVisioEvent(
 		IN      IUnknown*       ipSink,
 		IN      short           nEventCode,
@@ -63,25 +67,9 @@ struct CShapeSheetGridCtrl::Impl
 		LEAVE_METHOD()
 	}
 
-	void UpdateGridColumns()
-	{
-		m_this->SetFixedRowCount(1);
-
-		m_this->SetColumnCount(Column_Count);
-
-		for (int i = 0; i < Column_Count; ++i)
-		{
-			m_this->SetItemBkColour(0, i, COLOR_TH_BK);
-			m_this->SetItemFgColour(0, i, COLOR_TH_FG);
-
-			m_this->SetItemText(0, i, GetColumnName(i));
-
-			if (m_view_settings->IsColumnVisible(i))
-				m_this->SetColumnWidth(i, m_view_settings->GetColumnWidth(i));
-			else
-				m_this->SetColumnWidth(i, 0);
-		}
-	}
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
 
 	CVisioEvent m_evt_shape_deleted;
 	CVisioEvent m_evt_cell_changed;
@@ -114,6 +102,10 @@ struct CShapeSheetGridCtrl::Impl
 		theApp.DelView(this);
 	}
 
+	/**------------------------------------------------------------------------
+		IView
+	-------------------------------------------------------------------------*/
+
 	void Update(int hint)
 	{
 		switch (hint)
@@ -124,6 +116,10 @@ struct CShapeSheetGridCtrl::Impl
 			break;
 		}
 	}
+
+	/**------------------------------------------------------------------------
+		Visio event: selection deleted
+	-------------------------------------------------------------------------*/
 
 	void OnSelectionDelete(IVSelectionPtr selection)
 	{
@@ -139,12 +135,18 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
+	/**------------------------------------------------------------------------
+		Visio event: cell changed
+	-------------------------------------------------------------------------*/
+
 	void OnCellChanged(IVCellPtr cell)
 	{
 		UpdateGridRows();
 	}
 
-	IVShapePtr m_shape;
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
 
 	void SetShape(IVShapePtr shape)
 	{
@@ -159,6 +161,10 @@ struct CShapeSheetGridCtrl::Impl
 		m_shape = shape;
 	}
 
+	/**------------------------------------------------------------------------
+		Visio event: selection changed
+	-------------------------------------------------------------------------*/
+
 	void OnSelectionChanged(IVWindowPtr window)
 	{
 		IVSelectionPtr selection = window->Selection;
@@ -171,6 +177,10 @@ struct CShapeSheetGridCtrl::Impl
 		UpdateGridRows();
 	}
 
+	/**------------------------------------------------------------------------
+		Set "read-only" column text
+	-------------------------------------------------------------------------*/
+
 	void SetHeadColumn(int row, int col, const CString& text)
 	{
 		m_this->SetItemBkColour(row, col, COLOR_SRC_BK);
@@ -178,10 +188,38 @@ struct CShapeSheetGridCtrl::Impl
 		m_this->SetItemText(row, col, text);
 	}
 
-	ViewSettings* m_view_settings;
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
+	void UpdateGridColumns()
+	{
+		m_this->SetFixedRowCount(1);
+
+		m_this->SetColumnCount(Column_Count);
+
+		for (int i = 0; i < Column_Count; ++i)
+		{
+			m_this->SetItemBkColour(0, i, COLOR_TH_BK);
+			m_this->SetItemFgColour(0, i, COLOR_TH_FG);
+
+			m_this->SetItemText(0, i, GetColumnName(i));
+
+			if (m_view_settings->IsColumnVisible(i))
+				m_this->SetColumnWidth(i, m_view_settings->GetColumnWidth(i));
+			else
+				m_this->SetColumnWidth(i, 0);
+		}
+	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
 
 	void UpdateGridRows()
 	{
+		using namespace shapesheet;
+
 		int visio_version = GetVisioVersion(theApp.GetVisioApp());
 
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
@@ -223,6 +261,10 @@ struct CShapeSheetGridCtrl::Impl
 				SetHeadColumn(row, Column_R, L"");
 				SetHeadColumn(row, Column_C, L"");
 
+				m_this->SetItemData(row, Column_S, -1);
+				m_this->SetItemData(row, Column_R, -1);
+				m_this->SetItemData(row, Column_C, -1);
+
 				++row;
 			}
 			else 
@@ -248,6 +290,10 @@ struct CShapeSheetGridCtrl::Impl
 
 					if (m_shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
 					{
+						m_this->SetItemData(row, Column_S, src.s);
+						m_this->SetItemData(row, Column_R, src.r);
+						m_this->SetItemData(row, Column_C, src.c);
+
 						IVCellPtr cell = m_shape->GetCellsSRC(src.s, src.r, src.c);
 
 						m_this->SetItemData(row, Column_Mask, i);
@@ -304,36 +350,79 @@ struct CShapeSheetGridCtrl::Impl
 		m_this->Refresh();
 	}
 
-	BOOL OnItemEdit( int iRow, int iColumn )
+	/**------------------------------------------------------------------------
+		Grid item edited
+	-------------------------------------------------------------------------*/
+
+	BOOL OnEditMask(int iRow, int iColumn)
 	{
-		switch (iColumn)
+		CString text = 
+			m_this->GetItemText(iRow, iColumn);
+
+		if (iRow < m_this->GetRowCount() - 1)
 		{
-		case Column_Mask:
-			if (iRow < m_this->GetRowCount() - 1)
-			{
-				LPARAM idx = m_this->GetItemData(iRow, iColumn);
-				CString text = m_this->GetItemText(iRow, iColumn);
+			LPARAM idx = m_this->GetItemData(iRow, Column_Mask);
 
-				m_view_settings->UpdateCellMask(idx, text);
-				UpdateGridRows();
-			}
+			m_view_settings->UpdateCellMask(idx, text);
+			UpdateGridRows();
+		}
+		else
+		{
+			m_view_settings->AddCellMask(text);
+			UpdateGridRows();
+		}
+
+		return TRUE;
+	}
+
+	BOOL OnEditFormula(int iRow, int iColumn, bool u)
+	{
+		bstr_t text = 
+			m_this->GetItemText(iRow, iColumn);
+
+		if (iRow < m_this->GetRowCount() - 1)
+		{
+			short s = (short)m_this->GetItemData(iRow, Column_S);
+			short r = (short)m_this->GetItemData(iRow, Column_R);
+			short c = (short)m_this->GetItemData(iRow, Column_C);
+
+			IVCellPtr cell = m_shape->GetCellsSRC(s, r, c);
+
+			if (u)
+				cell->PutFormulaForceU(text);
 			else
-			{
-				CString text = m_this->GetItemText(iRow, iColumn);
+				cell->PutFormulaForce(text);
 
-				m_view_settings->AddCellMask(text);
-				UpdateGridRows();
-			}
 			return TRUE;
-
-		case Column_Formula:
-			{
-
-			}
 		}
 
 		return FALSE;
 	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
+	BOOL OnItemEdit( int iRow, int iColumn)
+	{
+		switch (iColumn)
+		{
+		case Column_Mask:
+			return OnEditMask(iRow, iColumn);
+
+		case Column_Formula:
+			return OnEditFormula(iRow, iColumn, false);
+
+		case Column_FormulaU:
+			return OnEditFormula(iRow, iColumn, true);
+		}
+
+		return FALSE;
+	}
+
+	/**------------------------------------------------------------------------
+		Delete row and remove it's mask from view settings
+	-------------------------------------------------------------------------*/
 
 	BOOL OnItemDelete( int iRow, int iColumn )
 	{
@@ -353,16 +442,27 @@ struct CShapeSheetGridCtrl::Impl
 		return FALSE;
 	}
 
+	/**------------------------------------------------------------------------
+		Changed column width - update settings
+	-------------------------------------------------------------------------*/
+
 	void OnEndColumnWidthEdit( int iColumn )
 	{
 		m_view_settings->SetColumnWidth(iColumn, m_this->GetColumnWidth(iColumn));
 	}
 
-	IVWindowPtr	visio_window;
-	IVWindowPtr	this_window;
+private:
+
+	IVShapePtr m_shape;
+	ViewSettings* m_view_settings;
 
 	CShapeSheetGridCtrl	*m_this;
 };
+
+
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
 
 BEGIN_MESSAGE_MAP(CShapeSheetGridCtrl, CGridCtrl)
 	ON_NOTIFY_REFLECT(GVN_ENDLABELEDIT, OnEndLabelEdit)

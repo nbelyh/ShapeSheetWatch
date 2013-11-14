@@ -6,18 +6,31 @@
 
 //TODO: tab support {i}{j}
 
+namespace shapesheet {
+
+// Information about a single ShapeSheet cell,
+// including section, row, column
+// the names of rows/cells can include placeholders: {r} for row name, {i} for for row index
+
 struct SSInfo
 {
-	LPCWSTR s_name;
-	LPCWSTR r_name;
-	LPCWSTR c_name;
-	short s;
-	short r;
-	short c;
-	LPCWSTR name;
+	LPCWSTR s_name;	// ShapeSheet section name
+	LPCWSTR r_name;	// ShapeSheet row name, can include placeholders
+	LPCWSTR c_name;	// ShapeSheet column name
+
+	short s;		// ShapeSheet section index
+	short r;		// ShapeSheet row index
+	short c;		// ShapeSheet column index
+
+	LPCWSTR name;	// full name "mask" with placeholders for variable rows/cells
 	LPCWSTR type;
-	LPCWSTR values;
+	LPCWSTR values;	// possible set of values for the cell (value list, semicolon separated)
 };
+
+// 
+// This ShapeSheet data is copy-pasted from Excel file (in the "Data" folder)
+// If you want to edit it, it is recommend to edit that Excel file instead and then copy-paste!
+// 
 
 SSInfo ss_global[] = {
 
@@ -668,3 +681,5 @@ void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<S
 
 	GetSimpleSectionCellNames(shape, cell_name_mask, result);
 }
+
+} // namespace shapesheet

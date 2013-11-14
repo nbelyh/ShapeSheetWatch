@@ -15,8 +15,8 @@ enum Column
 	Column_Count
 };
 
-LPCSTR GetColumnDbName(int i);
-int GetColumnFromDbName(const CString& id);
+LPCSTR	GetColumnDbName(int i);
+int		GetColumnFromDbName(const CString& id);
 
 CString GetColumnName(int i);
 

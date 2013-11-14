@@ -1,19 +1,23 @@
 
 #pragma once
 
-struct SRC
-{
-	CString name;
+namespace shapesheet {
 
-	short s;
-	CString s_name;
+	struct SRC
+	{
+		CString name;
 
-	short r;
-	CString r_name_l;
-	CString r_name_u;
+		short s;
+		CString s_name;
 
-	short c;
-	CString c_name;
-};
+		short r;
+		CString r_name_l;
+		CString r_name_u;
 
-void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result);
+		short c;
+		CString c_name;
+	};
+
+	void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result);
+
+} // namespace shapesheet
