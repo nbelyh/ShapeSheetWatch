@@ -69,7 +69,7 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 
  	CRect rect;
  	GetClientRect(rect);
-	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE);
+	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN);
 
 	CString index_html = GetHtmlFilePath(L"test.htm");
 	m_html.LoadHtmlFile(index_html);
