@@ -170,7 +170,7 @@ struct CShapeSheetGridCtrl::Impl
 		IVSelectionPtr selection = window->Selection;
 
 		IVShapePtr shape = (selection->Count == 1)
-			? selection->Item[1] : NULL;
+			? selection->Item[1] : window->PageAsObj->PageSheet;
 
 		SetShape(shape);
 
