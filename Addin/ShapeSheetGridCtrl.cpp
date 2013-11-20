@@ -22,6 +22,9 @@
 #define COLOR_SRC_BK	RGB(0xE3,0xE3,0xE3)
 #define COLOR_SRC_FG	RGB(0xF0,0,0)
 
+#define COLOR_RO_BK		RGB(0xF7,0xF7,0xF7)
+#define COLOR_RO_FG		RGB(0x10,0x10,0x10)
+
 struct CShapeSheetGridCtrl::Impl 
 	: public VEventHandler
 	, public IView
@@ -181,10 +184,47 @@ struct CShapeSheetGridCtrl::Impl
 		Set "read-only" column text
 	-------------------------------------------------------------------------*/
 
-	void SetHeadColumn(int row, int col, const CString& text)
+	bool GetCellColors(int row, int col, COLORREF& bk, COLORREF& fg)
 	{
-		m_this->SetItemBkColour(row, col, COLOR_SRC_BK);
-		m_this->SetItemFgColour(row, col, COLOR_SRC_FG);
+		if (row == 0)
+		{
+			bk = COLOR_TH_BK; 
+			fg = COLOR_TH_FG; 
+			return true;
+		}
+
+		switch (col)
+		{
+		case Column_Name:
+		case Column_S:
+		case Column_R:
+		case Column_RU:
+		case Column_C:
+			bk = COLOR_SRC_BK;
+			fg = COLOR_SRC_FG;
+			return true;
+		}
+
+		if (!IsCellEditable(row, col))
+		{
+			bk = COLOR_RO_BK;
+			fg = COLOR_RO_FG;
+			return true;
+		}
+
+		return false;
+	}
+
+	void UpdateCellText(int row, int col, LPCWSTR text)
+	{
+		COLORREF bk;
+		COLORREF fg;
+		if (GetCellColors(row, col, bk, fg))
+		{
+			m_this->SetItemBkColour(row, col, bk);
+			m_this->SetItemFgColour(row, col, fg);
+		}
+
 		m_this->SetItemText(row, col, text);
 	}
 
@@ -200,10 +240,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		for (int i = 0; i < Column_Count; ++i)
 		{
-			m_this->SetItemBkColour(0, i, COLOR_TH_BK);
-			m_this->SetItemFgColour(0, i, COLOR_TH_FG);
-
-			m_this->SetItemText(0, i, GetColumnName(i));
+			UpdateCellText(0, i, GetColumnName(i));
 
 			if (m_view_settings->IsColumnVisible(i))
 				m_this->SetColumnWidth(i, m_view_settings->GetColumnWidth(i));
@@ -273,7 +310,7 @@ struct CShapeSheetGridCtrl::Impl
 		int row = 1;
 		for (int i = 0; i < int(cell_name_masks.size()); ++i)
 		{
-			SetHeadColumn(row, Column_Mask, cell_name_masks[i]);
+			UpdateCellText(row, Column_Mask, cell_name_masks[i]);
 
 			int m_row = row;
 
@@ -281,9 +318,9 @@ struct CShapeSheetGridCtrl::Impl
 			{
 				m_this->SetItemData(row, Column_Mask, i);
 
-				SetHeadColumn(row, Column_S, L"");
-				SetHeadColumn(row, Column_R, L"");
-				SetHeadColumn(row, Column_C, L"");
+				UpdateCellText(row, Column_S, L"");
+				UpdateCellText(row, Column_R, L"");
+				UpdateCellText(row, Column_C, L"");
 
 				m_this->SetItemData(row, Column_S, -1);
 				m_this->SetItemData(row, Column_R, -1);
@@ -305,12 +342,12 @@ struct CShapeSheetGridCtrl::Impl
 				{
 					SRC& src = cell_names[i][j];
 
-					SetHeadColumn(row, Column_Name, src.name);
+					UpdateCellText(row, Column_Name, src.name);
 
-					SetHeadColumn(row, Column_S, src.s_name);
-					SetHeadColumn(row, Column_R, src.r_name_l);
-					SetHeadColumn(row, Column_RU, src.r_name_u);
-					SetHeadColumn(row, Column_C, src.c_name);
+					UpdateCellText(row, Column_S, src.s_name);
+					UpdateCellText(row, Column_R, src.r_name_l);
+					UpdateCellText(row, Column_RU, src.r_name_u);
+					UpdateCellText(row, Column_C, src.c_name);
 
 					if (m_shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
 					{
@@ -322,13 +359,12 @@ struct CShapeSheetGridCtrl::Impl
 
 						m_this->SetItemData(row, Column_Mask, i);
 
-						m_this->SetItemText(row, Column_Formula, cell->Formula);
-						m_this->SetItemText(row, Column_FormulaU, cell->Formula);
-
-						m_this->SetItemText(row, Column_Value, cell->ResultStr[-1L]);
+						UpdateCellText(row, Column_Formula, cell->Formula);
+						UpdateCellText(row, Column_FormulaU, cell->Formula);
+						UpdateCellText(row, Column_Value, cell->ResultStr[-1L]);
 
 						if (visio_version > 11)
-							m_this->SetItemText(row, Column_ValueU, cell->ResultStrU[-1L]);
+							UpdateCellText(row, Column_ValueU, cell->ResultStrU[-1L]);
 					}
 
 					if (s_last == src.s)
@@ -431,7 +467,29 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	BOOL OnItemEdit( int iRow, int iColumn)
+	bool IsCellEditable(int iRow, int iColumn) const
+	{
+		switch (iColumn)
+		{
+		case Column_Mask:
+		case Column_Formula:
+		case Column_FormulaU:
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
+	LRESULT OnBeginItemEdit(int iRow, int iColumn)
+	{
+		if (IsCellEditable(iRow, iColumn))
+			return TRUE;
+		else
+			return -1;
+	}
+
+	LRESULT OnEndItemEdit( int iRow, int iColumn)
 	{
 		switch (iColumn)
 		{
@@ -445,7 +503,7 @@ struct CShapeSheetGridCtrl::Impl
 			return OnEditFormula(iRow, iColumn, true);
 		}
 
-		return FALSE;
+		return -1;
 	}
 
 	/**------------------------------------------------------------------------
@@ -493,15 +551,22 @@ private:
 -------------------------------------------------------------------------*/
 
 BEGIN_MESSAGE_MAP(CShapeSheetGridCtrl, CGridCtrl)
+	ON_NOTIFY_REFLECT(GVN_BEGINLABELEDIT, OnBeginLabelEdit)
 	ON_NOTIFY_REFLECT(GVN_ENDLABELEDIT, OnEndLabelEdit)
 	ON_NOTIFY_REFLECT(GVN_DELETEITEM, OnDeleteItem)
 	ON_NOTIFY_REFLECT(GVN_ENDCOLUMWIDTHEDIT, OnEndColumnWidthEdit)
 END_MESSAGE_MAP()
 
+void CShapeSheetGridCtrl::OnBeginLabelEdit(NMHDR*nmhdr, LRESULT* result)
+{
+	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
+	*result = m_impl->OnBeginItemEdit(nmgv->iRow, nmgv->iColumn);
+}
+
 void CShapeSheetGridCtrl::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
 {
 	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
-	m_impl->OnItemEdit(nmgv->iRow, nmgv->iColumn);
+	*result = m_impl->OnEndItemEdit(nmgv->iRow, nmgv->iColumn);
 }
 
 void CShapeSheetGridCtrl::OnEndColumnWidthEdit(NMHDR*nmhdr, LRESULT* result)

@@ -14,6 +14,7 @@ public:
 	void Destroy();
 
 protected:
+	void OnBeginLabelEdit(NMHDR*nmhdr, LRESULT* result);
 	void OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result);
 	void OnDeleteItem(NMHDR*nmhdr, LRESULT* result);
 	void OnEndColumnWidthEdit(NMHDR*nmhdr, LRESULT* result);
