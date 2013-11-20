@@ -216,8 +216,32 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
+	struct SaveFocus
+	{
+		CShapeSheetGridCtrl* m_this;
+
+		CCellID m_focus;
+
+		SaveFocus(CShapeSheetGridCtrl* p_this)
+			: m_this(p_this)
+		{
+			m_focus = m_this->GetFocusCell();
+		}
+
+		~SaveFocus()
+		{
+			if (m_focus.IsValid())
+			{
+				m_this->SelectCells(m_focus);
+				m_this->SetFocusCell(m_focus);
+			}
+		}
+	};
+
 	void UpdateGridRows()
 	{
+		SaveFocus save(m_this);
+
 		using namespace shapesheet;
 
 		int visio_version = GetVisioVersion(theApp.GetVisioApp());
@@ -356,6 +380,8 @@ struct CShapeSheetGridCtrl::Impl
 
 	BOOL OnEditMask(int iRow, int iColumn)
 	{
+		SaveFocus save(m_this);
+
 		CString text = 
 			m_this->GetItemText(iRow, iColumn);
 
@@ -377,6 +403,8 @@ struct CShapeSheetGridCtrl::Impl
 
 	BOOL OnEditFormula(int iRow, int iColumn, bool u)
 	{
+		SaveFocus save(m_this);
+
 		bstr_t text = 
 			m_this->GetItemText(iRow, iColumn);
 
