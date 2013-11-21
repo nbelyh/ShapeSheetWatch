@@ -25,6 +25,9 @@
 #define COLOR_RO_BK		RGB(0xF7,0xF7,0xF7)
 #define COLOR_RO_FG		RGB(0x10,0x10,0x10)
 
+#define COLOR_MASK_BK		RGB(0xFF,0xFF,0xFF)
+#define COLOR_MASK_FG		RGB(0,0,0)
+
 struct CShapeSheetGridCtrl::Impl 
 	: public VEventHandler
 	, public IView
@@ -195,6 +198,11 @@ struct CShapeSheetGridCtrl::Impl
 
 		switch (col)
 		{
+		case Column_Mask:
+			bk = COLOR_MASK_BK; 
+			fg = COLOR_MASK_FG; 
+			return true;
+
 		case Column_Name:
 		case Column_S:
 		case Column_R:
