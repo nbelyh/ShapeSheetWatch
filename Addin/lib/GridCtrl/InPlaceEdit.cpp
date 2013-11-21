@@ -261,3 +261,5 @@ void CInPlaceEdit::EndEdit()
         SendMessage(WM_CLOSE, 0, 0);
     bAlreadyEnding = FALSE;
 }
+
+IMPLEMENT_DYNAMIC(CInPlaceEdit, CEdit)

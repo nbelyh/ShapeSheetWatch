@@ -82,7 +82,7 @@ public:
 
 // editing cells
 public:
-    virtual BOOL Edit(int nRow, int nCol, CRect rect, CPoint point, UINT nID, UINT nChar);
+    virtual BOOL Edit(int nRow, int nCol, CRect rect, CPoint point, UINT nID, UINT nChar, CStringArray& arrOptions);
     virtual void EndEdit();
 protected:
     virtual void OnEndEdit();

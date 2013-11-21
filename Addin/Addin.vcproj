@@ -555,6 +555,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\lib\GridCtrl\InPlaceList.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\lib\GridCtrl\InPlaceList.h"
+			>
+		</File>
+		<File
 			RelativePath=".\lib\GridCtrl\MemDC.h"
 			>
 		</File>

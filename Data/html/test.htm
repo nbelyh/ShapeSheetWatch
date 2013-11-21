@@ -1,88 +1,82 @@
 <head>
-<style>
- html {
-  font: system;
- }
-
- body {
-	padding: 0;
-	margin: 0;
-	border: 0;
- }
-
- #settings { 
-    behavior:dropdown; 
-	position: absolute;
-	bottom: 2;
-	right: 2;
-  }
-
-  #settings div.button {
-	width: 48px;
-	height: 32px;
-	background-image: url(settings.png);
-	background-position: center;
-	background-repeat: no-repeat;
-	border: 1px solid ThreeDShadow;
-	border-radius: 3px;
-  }
-
-  #settings:hover {
-	background-color: ThreeDLightShadow;
-  }
-
-  #settings:owns-popup div.button {
-	background-color: ThreeDShadow;
-  }
-
-  #settings popup
-  {
-	background-color:ThreeDFace;
-	padding: 0.1em;
-  }
-
-  popup ul {
-	width: 100%;
-	padding-left: 1em 1em 0.5em 1em;
-	list-style-type: none;
-  }
-
-  popup #caption {
-    	font-size: 150%;
-	margin: 0.5em;
-  }
-  
-  div.help {
-    padding-left: 24px;
-    padding-bottom: 0.5em;
-    color: ThreeDDarkShadow;
-  }
-  
-  widget {
-	position:absolute;
-	top:0;
-	left:0;
-	right:0;
-	bottom:40;
-	border: 1px solid ThreeDShadow;
-  }
-  
-  label {
-    padding: 2px;
-  }
-
-  input[type=checkbox]:checked + label {
-	font-weight: bold;
-  }
-
-</style>
+    <style>
+        html {
+            font: system;
+        }
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #head {
+            padding: 6px;
+        }
+        #shape-caption {
+            font-size: 150%;
+        }
+        #settings {
+            behavior: dropdown;
+            position: absolute;
+            bottom: 2;
+            right: 2;
+        }
+        #settings div.button {
+            width: 48px;
+            height: 32px;
+            background-image: url(settings.png);
+            background-position: center;
+            background-repeat: no-repeat;
+            border: 1px solid ThreeDShadow;
+            border-radius: 3px;
+        }
+        #settings:hover {
+            background-color: ThreeDLightShadow;
+        }
+        #settings:owns-popup div.button {
+            background-color: ThreeDShadow;
+        }
+        #settings popup {
+            background-color: ThreeDFace;
+            padding: 0.1em;
+        }
+        popup ul {
+            width: 100%;
+            padding-left: 1em 1em 0.5em 1em;
+            list-style-type: none;
+        }
+        popup #settings-caption {
+            font-size: 150%;
+            margin: 0.5em;
+        }
+        div.help {
+            padding-left: 24px;
+            padding-bottom: 0.5em;
+            color: ThreeDDarkShadow;
+        }
+        widget {
+            position: absolute;
+            top: 40;
+            left: 0;
+            right: 0;
+            bottom: 40;
+        }
+        label {
+            padding: 2px;
+        }
+        input[type=checkbox]:checked + label {
+            font-weight: bold;
+        }
+    </style>
 </head>
-
 <body>
-  <widget type='sheet' />
-  <div id="settings"><div class="button" />
-     <popup>
-		<div id="caption">Columns</div>
+    <div id="head">
+        <span id="shape-caption" >ShapeName</span>
+    </div>
+    <widget type='sheet' />
+    <div id="settings">
+        <div class="button" />
+        <popup>
+		<div id="settings-caption">Columns</div>
 
          <ul>
 		    <li><input type="checkbox" id="col_Mask"/><label for="col_Mask">Mask</label><div class="help">Cell name or mask (editable), like "Prop.*.Value" or "PinX"</div></li>
@@ -98,8 +92,8 @@
 
 		    <li><input type="checkbox" id="col_ResultU"/><label for="col_ResultU">Result (U)</label><div class="help">Current ShapeSheet cell Value (Universal)</div></li>
 		    <li><input type="checkbox" id="col_Result"/><label for="col_Result">Result</label><div class="help">Current ShapeSheet cell Value</div></li>
-			<hr/>
 			<li>
+			    <hr/>
 			    <label for="units">Value units:</label>
 			    <select id="units">
 				    <option value="0">Inch</option>
@@ -110,5 +104,5 @@
          </ul>
 
 	</popup>
-  </div>
+    </div>
 </body>

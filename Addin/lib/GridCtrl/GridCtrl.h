@@ -97,10 +97,18 @@
 
 // This structure sent to Grid's parent in a WM_NOTIFY message
 typedef struct tagNM_GRIDVIEW {
-    NMHDR hdr;
-    int   iRow;
-    int   iColumn;
+	NMHDR hdr;
+	int   iRow;
+	int   iColumn;
 } NM_GRIDVIEW;
+
+// This structure sent to Grid's parent in a WM_NOTIFY message
+typedef struct tagGV_BEGINEDIT {
+	NMHDR hdr;
+	int   iRow;
+	int   iColumn;
+	CStringArray *arrOptions;
+} GV_BEGINEDIT;
 
 // This is sent to the Grid from child in-place edit controls
 typedef struct tagGV_DISPINFO {
@@ -557,6 +565,7 @@ protected:
     LRESULT SendMessageToParent(int nRow, int nCol, int nMessage) const;
     LRESULT SendDisplayRequestToParent(GV_DISPINFO* pDisplayInfo) const;
     LRESULT SendCacheHintToParent(const CCellRange& range) const;
+	LRESULT SendBeginEditToParent(int nRow, int nCol, CStringArray* arrOptions) const;
 
     BOOL InvalidateCellRect(const int row, const int col);
     BOOL InvalidateCellRect(const CCellID& cell);

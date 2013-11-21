@@ -481,6 +481,26 @@ LRESULT CGridCtrl::SendMessageToParent(int nRow, int nCol, int nMessage) const
 		return 0;
 }
 
+LRESULT CGridCtrl::SendBeginEditToParent(int nRow, int nCol, CStringArray* arrOptions) const
+{
+	if (!IsWindow(m_hWnd))
+		return 0;
+
+	GV_BEGINEDIT nmgv;
+	nmgv.iRow         = nRow;
+	nmgv.iColumn      = nCol;
+	nmgv.arrOptions	  = arrOptions;
+	nmgv.hdr.hwndFrom = m_hWnd;
+	nmgv.hdr.idFrom   = GetDlgCtrlID();
+	nmgv.hdr.code     = GVN_BEGINLABELEDIT;
+
+	CWnd *pOwner = GetOwner();
+	if (pOwner && IsWindow(pOwner->m_hWnd))
+		return pOwner->SendMessage(WM_NOTIFY, nmgv.hdr.idFrom, (LPARAM)&nmgv);
+	else
+		return 0;
+}
+
 // Send a request to the parent to return information on a given cell
 LRESULT CGridCtrl::SendDisplayRequestToParent(GV_DISPINFO* pDisplayInfo) const
 {
@@ -2308,7 +2328,7 @@ void CGridCtrl::ValidateAndModifyCellContents(int nRow, int nCol, LPCTSTR strTex
 	if (!IsCellEditable(nRow, nCol))
 		return;
 
-	if (SendMessageToParent(nRow, nCol, GVN_BEGINLABELEDIT) >= 0)
+	if (SendBeginEditToParent(nRow, nCol, NULL) >= 0)
 	{
 		CString strCurrentText = GetItemText(nRow, nCol);
 		if (strCurrentText != strText)
@@ -7696,12 +7716,13 @@ void CGridCtrl::OnEditCell(int nRow, int nCol, CPoint point, UINT nChar)
 		return;
 
 	// Check we can edit...
-	if (SendMessageToParent(nRow, nCol, GVN_BEGINLABELEDIT) >= 0)
+	CStringArray arrOptions;
+	if (SendBeginEditToParent(nRow, nCol, &arrOptions) >= 0)
 	{
 		// Let's do it...
 		CGridCellBase* pCell = GetCell(nRow, nCol);
 		if (pCell)
-			pCell->Edit(nRow, nCol, rect, point, IDC_INPLACE_CONTROL, nChar);
+			pCell->Edit(nRow, nCol, rect, point, IDC_INPLACE_CONTROL, nChar, arrOptions);
 	}
 }
 

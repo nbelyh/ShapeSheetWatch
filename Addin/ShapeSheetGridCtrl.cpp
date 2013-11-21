@@ -489,12 +489,18 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
-	LRESULT OnBeginItemEdit(int iRow, int iColumn)
+	LRESULT OnBeginItemEdit(int iRow, int iColumn, CStringArray* arrOptions)
 	{
-		if (IsCellEditable(iRow, iColumn))
-			return TRUE;
-		else
+		if (!IsCellEditable(iRow, iColumn))
 			return -1;
+
+		if (arrOptions)
+		{
+			arrOptions->Add(L"TRUE");
+			arrOptions->Add(L"FALSE");
+		}
+
+		return TRUE;
 	}
 
 	LRESULT OnEndItemEdit( int iRow, int iColumn)
@@ -567,8 +573,8 @@ END_MESSAGE_MAP()
 
 void CShapeSheetGridCtrl::OnBeginLabelEdit(NMHDR*nmhdr, LRESULT* result)
 {
-	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
-	*result = m_impl->OnBeginItemEdit(nmgv->iRow, nmgv->iColumn);
+	GV_BEGINEDIT*nmgv  = (GV_BEGINEDIT*)nmhdr;
+	*result = m_impl->OnBeginItemEdit(nmgv->iRow, nmgv->iColumn, nmgv->arrOptions);
 }
 
 void CShapeSheetGridCtrl::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)

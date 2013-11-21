@@ -66,6 +66,8 @@ protected:
 	//}}AFX_MSG
     DECLARE_MESSAGE_MAP()
 
+	DECLARE_DYNAMIC(CInPlaceEdit)
+
 private:
     int     m_nRow;
     int     m_nColumn;

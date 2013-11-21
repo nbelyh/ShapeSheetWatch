@@ -33,6 +33,7 @@
 #include "stdafx.h"
 #include "GridCell.h"
 #include "InPlaceEdit.h"
+#include "InPlaceList.h"
 #include "GridCtrl.h"
 
 #ifdef _DEBUG
@@ -168,7 +169,7 @@ UINT CGridCell::GetMargin() const
 /////////////////////////////////////////////////////////////////////////////
 // GridCell Operations
 
-BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nID, UINT nChar)
+BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nID, UINT nChar, CStringArray& arrOptions)
 {
     if ( m_bEditing )
 	{      
@@ -187,7 +188,10 @@ BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nI
 		
 		// InPlaceEdit auto-deletes itself
 		CGridCtrl* pGrid = GetGrid();
-		m_pEditWnd = new CInPlaceEdit(pGrid, rect, dwStyle, nID, nRow, nCol, GetText(), nChar);
+		if (arrOptions.IsEmpty())
+			m_pEditWnd = new CInPlaceEdit(pGrid, rect, dwStyle, nID, nRow, nCol, GetText(), nChar);
+		else
+			m_pEditWnd = new CInPlaceList(pGrid, rect, dwStyle, nID, nRow, nCol, arrOptions, GetText(), nChar);
     }
     return TRUE;
 }
@@ -195,7 +199,13 @@ BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nI
 void CGridCell::EndEdit()
 {
     if (m_pEditWnd)
-        ((CInPlaceEdit*)m_pEditWnd)->EndEdit();
+	{
+		if (DYNAMIC_DOWNCAST(CInPlaceEdit, m_pEditWnd))
+			((CInPlaceEdit*)m_pEditWnd)->EndEdit();
+
+		if (DYNAMIC_DOWNCAST(CInPlaceList, m_pEditWnd))
+			((CInPlaceList*)m_pEditWnd)->EndEdit();
+	}
 }
 
 void CGridCell::OnEndEdit()
