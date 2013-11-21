@@ -2,7 +2,7 @@
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
   <?define Binaries="$(var.SolutionDir)$(var.Platform)\$(var.Configuration)" ?>
-  <?define Version="1.0.3.0"?>
+  <?define Version="1.0.4.0"?>
   
   <?if $(var.Platform)=x64 ?>
   <?define Win64YesNo="yes" ?>

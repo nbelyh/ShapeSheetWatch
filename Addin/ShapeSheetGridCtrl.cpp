@@ -11,6 +11,7 @@
 #include "lib/Utils.h"
 #include "ShapeSheet.h"
 #include "ShapeSheetGridCtrl.h"
+#include "lib/HTMLayoutCtrl/HTMLayoutCtrl.h"
 
 /**-----------------------------------------------------------------------------
 	Message map
@@ -154,6 +155,11 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
+	CHTMLayoutCtrl* GetHtmlControl() const
+	{
+		return DYNAMIC_DOWNCAST(CHTMLayoutCtrl, m_this->GetParent());
+	}
+
 	void SetShape(IVShapePtr shape)
 	{
 		m_evt_cell_changed.Unadvise();
@@ -162,6 +168,12 @@ struct CShapeSheetGridCtrl::Impl
 		{
 			IVEventListPtr event_list = shape->GetEventList();
 			m_evt_cell_changed.Advise(event_list, (visEvtMod|visEvtCell), this);
+		}
+
+		CHTMLayoutCtrl* html = GetHtmlControl();
+		if (html)
+		{
+			html->SetElementText("shape-caption", shape->Name);
 		}
 
 		m_shape = shape;

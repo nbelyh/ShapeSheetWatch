@@ -13,7 +13,17 @@
         }
         #shape-caption {
             font-size: 150%;
+			padding: 4px;
+			border: 1px solid transparent;
+			border-radius: 3px;
+			width: auto;
         }
+		/*
+		#shape-caption:hover {
+			border-color: ThreeDShadow;
+			background-color: ThreeDLightShadow;
+		}
+		*/
         #settings {
             behavior: dropdown;
             position: absolute;
@@ -55,7 +65,7 @@
         }
         widget {
             position: absolute;
-            top: 40;
+            top: 48;
             left: 0;
             right: 0;
             bottom: 40;
@@ -70,7 +80,7 @@
 </head>
 <body>
     <div id="head">
-        <span id="shape-caption" >ShapeName</span>
+        <div id="shape-caption" ></div>
     </div>
     <widget type='sheet' />
     <div id="settings">
