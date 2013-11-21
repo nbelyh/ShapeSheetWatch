@@ -481,7 +481,7 @@ LRESULT CGridCtrl::SendMessageToParent(int nRow, int nCol, int nMessage) const
 		return 0;
 }
 
-LRESULT CGridCtrl::SendBeginEditToParent(int nRow, int nCol, CStringArray* arrOptions) const
+LRESULT CGridCtrl::SendBeginEditToParent(int nRow, int nCol, Strings* arrOptions) const
 {
 	if (!IsWindow(m_hWnd))
 		return 0;
@@ -3502,12 +3502,12 @@ BOOL CGridCtrl::GetCellOriginNoMerge(const CCellID& cell, LPPOINT p)
 }
 
 // Returns the bounding box of the cell
-BOOL CGridCtrl::GetCellRect(const CCellID& cell, LPRECT pRect)
+BOOL CGridCtrl::GetCellRect(const CCellID& cell, LPRECT pRect, BOOL bMerged)
 {
-	return GetCellRect(cell.row, cell.col, pRect);
+	return GetCellRect(cell.row, cell.col, pRect, bMerged);
 }
 
-BOOL CGridCtrl::GetCellRect(int nRow, int nCol, LPRECT pRect)
+BOOL CGridCtrl::GetCellRect(int nRow, int nCol, LPRECT pRect, BOOL bMerged)
 {
 	CPoint CellOrigin;
 	if (!GetCellOrigin(nRow, nCol, &CellOrigin))
@@ -3517,7 +3517,7 @@ BOOL CGridCtrl::GetCellRect(int nRow, int nCol, LPRECT pRect)
 	//by Huang Wei
 	CGridCellBase *pCell = (CGridCellBase*) GetCell(nRow,nCol);
 
-	if(!pCell->IsMerged())
+	if(!pCell->IsMerged() || !bMerged)
 	{
 		pRect->left   = CellOrigin.x;
 		pRect->top    = CellOrigin.y;
@@ -7712,11 +7712,11 @@ void CGridCtrl::OnEditCell(int nRow, int nCol, CPoint point, UINT nChar)
 
 	// Where, exactly, are we gonna do it??
 	CRect rect;
-	if (!GetCellRect(cell, rect))
+	if (!GetCellRect(cell, rect, TRUE))
 		return;
 
 	// Check we can edit...
-	CStringArray arrOptions;
+	Strings arrOptions;
 	if (SendBeginEditToParent(nRow, nCol, &arrOptions) >= 0)
 	{
 		// Let's do it...

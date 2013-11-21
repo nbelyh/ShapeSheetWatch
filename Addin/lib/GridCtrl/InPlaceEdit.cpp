@@ -122,24 +122,6 @@ END_MESSAGE_MAP()
 ////////////////////////////////////////////////////////////////////////////
 // CInPlaceEdit message handlers
 
-// If an arrow key (or associated) is pressed, then exit if
-//  a) The Ctrl key was down, or
-//  b) m_bExitOnArrows == TRUE
-void CInPlaceEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
-{
-//     if ((nChar == VK_PRIOR || nChar == VK_NEXT ||
-//         nChar == VK_DOWN  || nChar == VK_UP   ||
-//         nChar == VK_RIGHT || nChar == VK_LEFT) &&
-//         (m_bExitOnArrows || GetKeyState(VK_CONTROL) < 0))
-//     {
-//         m_nLastChar = nChar;
-//         GetParent()->SetFocus();
-//         return;
-//     }
-    
-    CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
 // As soon as this edit loses focus, kill it.
 void CInPlaceEdit::OnKillFocus(CWnd* pNewWnd)
 {
@@ -164,35 +146,6 @@ void CInPlaceEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
     }
     
     CEdit::OnChar(nChar, nRepCnt, nFlags);
-    
-    // Resize edit control if needed
-    
-    // Get text extent
-    CString str;
-    GetWindowText( str );
-
-    // add some extra buffer
-    str += _T("  ");
-    
-    CWindowDC dc(this);
-    CFont *pFontDC = dc.SelectObject(GetFont());
-    CSize size = dc.GetTextExtent( str );
-    dc.SelectObject( pFontDC );
-       
-    // Get client rect
-    CRect ParentRect;
-    GetParent()->GetClientRect( &ParentRect );
-    
-    // Check whether control needs to be resized
-    // and whether there is space to grow
-    if (size.cx > m_Rect.Width())
-    {
-        if( size.cx + m_Rect.left < ParentRect.right )
-            m_Rect.right = m_Rect.left + size.cx;
-        else
-            m_Rect.right = ParentRect.right;
-        MoveWindow( &m_Rect );
-    }
 }
 
 UINT CInPlaceEdit::OnGetDlgCode() 
@@ -233,7 +186,7 @@ void CInPlaceEdit::EndEdit()
     // causing assertions because the edit control goes away the first time.
     static BOOL bAlreadyEnding = FALSE;
 
-    if(bAlreadyEnding)
+    if (bAlreadyEnding)
         return;
 
     bAlreadyEnding = TRUE;

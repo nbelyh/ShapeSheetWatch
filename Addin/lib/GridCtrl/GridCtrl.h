@@ -107,7 +107,7 @@ typedef struct tagGV_BEGINEDIT {
 	NMHDR hdr;
 	int   iRow;
 	int   iColumn;
-	CStringArray *arrOptions;
+	Strings* arrOptions;
 } GV_BEGINEDIT;
 
 // This is sent to the Grid from child in-place edit controls
@@ -223,8 +223,8 @@ public:
 
     BOOL GetCellOrigin(int nRow, int nCol, LPPOINT p);
     BOOL GetCellOrigin(const CCellID& cell, LPPOINT p);
-    BOOL GetCellRect(int nRow, int nCol, LPRECT pRect);
-    BOOL GetCellRect(const CCellID& cell, LPRECT pRect);
+    BOOL GetCellRect(int nRow, int nCol, LPRECT pRect, BOOL bMerged = TRUE);
+    BOOL GetCellRect(const CCellID& cell, LPRECT pRect, BOOL bMerged = TRUE);
 
     BOOL GetTextRect(const CCellID& cell, LPRECT pRect);
     BOOL GetTextRect(int nRow, int nCol, LPRECT pRect);
@@ -565,7 +565,7 @@ protected:
     LRESULT SendMessageToParent(int nRow, int nCol, int nMessage) const;
     LRESULT SendDisplayRequestToParent(GV_DISPINFO* pDisplayInfo) const;
     LRESULT SendCacheHintToParent(const CCellRange& range) const;
-	LRESULT SendBeginEditToParent(int nRow, int nCol, CStringArray* arrOptions) const;
+	LRESULT SendBeginEditToParent(int nRow, int nCol, Strings* arrOptions) const;
 
     BOOL InvalidateCellRect(const int row, const int col);
     BOOL InvalidateCellRect(const CCellID& cell);

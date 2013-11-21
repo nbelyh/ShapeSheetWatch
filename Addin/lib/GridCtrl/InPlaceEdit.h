@@ -61,7 +61,6 @@ protected:
     //{{AFX_MSG(CInPlaceEdit)
     afx_msg void OnKillFocus(CWnd* pNewWnd);
     afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
-    afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg UINT OnGetDlgCode();
 	//}}AFX_MSG
     DECLARE_MESSAGE_MAP()

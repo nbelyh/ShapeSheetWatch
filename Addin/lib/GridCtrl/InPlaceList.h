@@ -75,7 +75,7 @@ public:
                  DWORD dwStyle,         // window/combobox style
                  UINT nID,              // control ID
                  int nRow, int nColumn, // row and column
-				 CStringArray& Items,   // Items in list
+				 Strings& Items,   // Items in list
                  CString sInitText,     // initial selection
 				 UINT nFirstChar);      // first character to pass to control
 

@@ -169,7 +169,7 @@ UINT CGridCell::GetMargin() const
 /////////////////////////////////////////////////////////////////////////////
 // GridCell Operations
 
-BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nID, UINT nChar, CStringArray& arrOptions)
+BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nID, UINT nChar, Strings& arrOptions)
 {
     if ( m_bEditing )
 	{      
@@ -182,7 +182,7 @@ BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nI
 		
 		// InPlaceEdit auto-deletes itself
 		CGridCtrl* pGrid = GetGrid();
-		if (arrOptions.IsEmpty())
+		if (arrOptions.empty())
 		{
 			DWORD dwStyle = ES_LEFT;
 			if (GetFormat() & DT_RIGHT) 
@@ -226,7 +226,7 @@ CGridDefaultCell::CGridDefaultCell()
 #ifdef _WIN32_WCE
     m_nFormat = DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX;
 #else
-    m_nFormat = DT_LEFT|DT_VCENTER|DT_SINGLELINE|DT_NOPREFIX | DT_END_ELLIPSIS;
+    m_nFormat = DT_LEFT|DT_TOP|DT_NOPREFIX | DT_END_ELLIPSIS;
 #endif
     m_crFgClr = CLR_DEFAULT;
     m_crBkClr = CLR_DEFAULT;

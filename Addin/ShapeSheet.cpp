@@ -8,24 +8,6 @@
 
 namespace shapesheet {
 
-// Information about a single ShapeSheet cell,
-// including section, row, column
-// the names of rows/cells can include placeholders: {r} for row name, {i} for for row index
-
-struct SSInfo
-{
-	LPCWSTR s_name;	// ShapeSheet section name
-	LPCWSTR r_name;	// ShapeSheet row name, can include placeholders
-	LPCWSTR c_name;	// ShapeSheet column name
-
-	short s;		// ShapeSheet section index
-	short r;		// ShapeSheet row index
-	short c;		// ShapeSheet column index
-
-	LPCWSTR name;	// full name "mask" with placeholders for variable rows/cells
-	LPCWSTR type;
-	LPCWSTR values;	// possible set of values for the cell (value list, semicolon separated)
-};
 
 // 
 // This ShapeSheet data is copy-pasted from Excel file (in the "Data" folder)
@@ -402,16 +384,16 @@ SSInfo ss_global[] = {
 	{L"Shape Layout",L"",L"ShapeRouteStyle",visSectionObject,visRowShapeLayout,visSLORouteStyle,L"ShapeRouteStyle",L"",L"0=visLORouteDefault;1=visLORouteRightAngle;2=visLORouteStraight;3=visLORouteOrgChartNS;4=visLORouteOrgChartWE;5=visLORouteFlowchartNS;6=visLORouteFlowchartWE;7=visLORouteTreeNS;8=visLORouteTreeWE;9=visLORouteNetwork;10=visLORouteOrgChartSN;11=visLORouteOrgChartEW;12=visLORouteFlowchartSN;13=visLORouteFlowchartEW;14=visLORouteTreeSN;15=visLORouteTreeEW;16=visLORouteCenterToCenter;17=visLORouteSimpleNS;18=visLORouteSimpleWE;19=visLORouteSimpleSN;20=visLORouteSimpleEW;21=visLORouteSimpleHV;22=visLORouteSimpleVH"},
 	{L"Shape Layout",L"",L"ShapeSplit",visSectionObject,visRowShapeLayout,visSLOSplit,L"ShapeSplit",L"",L"0=visSLOSplitNone;1=visSLOSplitAllow"},
 	{L"Shape Layout",L"",L"ShapeSplittable",visSectionObject,visRowShapeLayout,visSLOSplittable,L"ShapeSplittable",L"",L"0=visSLOSplittableNone;1=visSLOSplittableAllow"},
+	{L"Shape Transform",L"",L"PinX",visSectionObject,visRowXFormOut,visXFormPinX,L"PinX",L"",L""},
+	{L"Shape Transform",L"",L"PinY",visSectionObject,visRowXFormOut,visXFormPinY,L"PinY",L"",L""},
+	{L"Shape Transform",L"",L"Width",visSectionObject,visRowXFormOut,visXFormWidth,L"Width",L"",L""},
+	{L"Shape Transform",L"",L"Height",visSectionObject,visRowXFormOut,visXFormHeight,L"Height",L"",L""},
 	{L"Shape Transform",L"",L"Angle",visSectionObject,visRowXFormOut,visXFormAngle,L"Angle",L"",L""},
 	{L"Shape Transform",L"",L"FlipX",visSectionObject,visRowXFormOut,visXFormFlipX,L"FlipX",L"BOOL",L"TRUE;FALSE"},
 	{L"Shape Transform",L"",L"FlipY",visSectionObject,visRowXFormOut,visXFormFlipY,L"FlipY",L"BOOL",L"TRUE;FALSE"},
-	{L"Shape Transform",L"",L"Height",visSectionObject,visRowXFormOut,visXFormHeight,L"Height",L"",L""},
 	{L"Shape Transform",L"",L"LocPinX",visSectionObject,visRowXFormOut,visXFormLocPinX,L"LocPinX",L"",L""},
 	{L"Shape Transform",L"",L"LocPinY",visSectionObject,visRowXFormOut,visXFormLocPinY,L"LocPinY",L"",L""},
-	{L"Shape Transform",L"",L"PinX",visSectionObject,visRowXFormOut,visXFormPinX,L"PinX",L"",L""},
-	{L"Shape Transform",L"",L"PinY",visSectionObject,visRowXFormOut,visXFormPinY,L"PinY",L"",L""},
 	{L"Shape Transform",L"",L"ResizeMode",visSectionObject,visRowXFormOut,visXFormResizeMode,L"ResizeMode",L"",L"0=visXFormResizeDontCare;1=visXFormResizeSpread;2=visXFormResizeScale"},
-	{L"Shape Transform",L"",L"Width",visSectionObject,visRowXFormOut,visXFormWidth,L"Width",L"",L""},
 	{L"Style Properties",L"",L"EnableFillProps",visSectionObject,visRowStyle,visStyleIncludesFill,L"EnableFillProps",L"BOOL",L"TRUE;FALSE"},
 	{L"Style Properties",L"",L"EnableLineProps",visSectionObject,visRowStyle,visStyleIncludesLine,L"EnableLineProps",L"BOOL",L"TRUE;FALSE"},
 	{L"Style Properties",L"",L"EnableTextProps",visSectionObject,visRowStyle,visStyleIncludesText,L"EnableTextProps",L"BOOL",L"TRUE;FALSE"},
@@ -473,6 +455,7 @@ const SSInfos& GetSectionInfo(short section)
 		{
 			for (size_t i = 0; i < _countof(ss_global); ++i)
 			{
+				ss_global[i].index = i;
 				index[ss_global[i].s].push_back(ss_global[i]);
 			}
 		}
@@ -485,7 +468,7 @@ const SSInfos& GetSectionInfo(short section)
 
 void AddNameMatchResult(const CString& mask, CString name, 
 						short s, short r, short c, 
-						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name,
+						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name, int index,
 						std::vector<SRC> &result)
 {
 	Strings masks;
@@ -508,6 +491,7 @@ void AddNameMatchResult(const CString& mask, CString name,
 			src.r_name_u = r_name_l;
 			src.c = c;
 			src.c_name = c_name;
+			src.index = index;
 
 			result.push_back(src);
 			return;
@@ -535,7 +519,8 @@ void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, cons
 
 			AddNameMatchResult(mask, name, 
 				section_no, r, ss_info[i].c, 
-				ss_info[i].s_name, r_name, r_name, ss_info[i].c_name,
+				ss_info[i].s_name, r_name, r_name, ss_info[i].c_name, 
+				ss_info[i].index,
 				result);
 		}
 	}
@@ -563,7 +548,8 @@ void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const 
 
 			AddNameMatchResult(mask, name, 
 				section_no, r, ss_info[i].c, 
-				ss_info[i].s_name, row_name, row_name_u, ss_info[i].c_name,
+				ss_info[i].s_name, row_name, row_name_u, ss_info[i].c_name, 
+				ss_info[i].index,
 				result);
 		}
 	}
@@ -623,7 +609,8 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 					AddNameMatchResult(mask, name, 
 						visSectionFirstComponent + s, r, ss_infos[i].c, 
-						s_name, L"", L"", ss_infos[i].c_name,
+						s_name, L"", L"", ss_infos[i].c_name, 
+						ss_infos[i].index,
 						result);
 
 					continue;
@@ -637,7 +624,8 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 
 					AddNameMatchResult(mask, name, 
 						visSectionFirstComponent + s, r, ss_infos[i].c, 
-						s_name, r_name, r_name, ss_infos[i].c_name,
+						s_name, r_name, r_name, ss_infos[i].c_name, 
+						ss_infos[i].index,
 						result);
 				}
 			}
@@ -655,6 +643,7 @@ void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vecto
 		AddNameMatchResult(mask, name, 
 			ss_info[i].s, ss_info[i].r, ss_info[i].c, 
 			ss_info[i].s_name, L"", L"", ss_info[i].c_name,
+			ss_info[i].index,
 			result);
 	}
 }
@@ -680,6 +669,17 @@ void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<S
 	GetVariableGeometrySectionCellNames(shape, cell_name_mask, result);
 
 	GetSimpleSectionCellNames(shape, cell_name_mask, result);
+}
+
+const SSInfo& GetSSInfo(int index)
+{
+	if (0 <= index && index <= _countof(ss_global))
+		return ss_global[index];
+
+	ASSERT(FALSE);
+
+	static SSInfo stub;
+	return stub;
 }
 
 } // namespace shapesheet

@@ -128,7 +128,7 @@ void CComboEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
                            int nRow, int nColumn, 
-						   CStringArray& Items,
+						   Strings& Items,
 						   CString sInitText, 
 						   UINT nFirstChar)
 {
@@ -152,7 +152,7 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	m_edit.SubclassWindow(cbInfo.hwndItem);
 
 	// Add the strings
-	for (int i = 0; i < Items.GetSize(); i++) 
+	for (size_t i = 0; i < Items.size(); i++) 
 		AddString(Items[i]);
 
 	// Get the maximum width of the text strings
@@ -160,17 +160,13 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	CClientDC dc(GetParent());
 	CFont* pOldFont = dc.SelectObject(pParent->GetFont());
 
-	for (int i = 0; i < Items.GetSize(); i++) 
+	for (size_t i = 0; i < Items.size(); i++) 
 		nMaxLength = max(nMaxLength, dc.GetTextExtent(Items[i]).cx);
 
 	nMaxLength += (::GetSystemMetrics(SM_CXVSCROLL) + dc.GetTextExtent(_T(" ")).cx*2);
 	dc.SelectObject(pOldFont);
 
-    if (nMaxLength > rect.Width())
-	    rect.right = rect.left + nMaxLength;
-
 	// Resize the edit window and the drop down window
-	MoveWindow(rect);
 
 	SetFont(pParent->GetFont());
 
@@ -180,9 +176,17 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	// Set the initial text to m_sInitText
 	if (SelectString(-1, m_sInitText) == CB_ERR) 
 		SetWindowText(m_sInitText);		// No text selected, so restore what was there before
+	else
+		ShowDropDown();
 
-	ShowDropDown();
 	SetFocus();
+
+	// Added by KiteFly. When entering DBCS chars into cells the first char was being lost
+	// SenMessage changed to PostMessage (John Lagerquist)
+	if( nFirstChar < 0x80)
+		PostMessage(WM_CHAR, nFirstChar);   
+	else
+		PostMessage(WM_IME_CHAR, nFirstChar);
 }
 
 CInPlaceList::~CInPlaceList()

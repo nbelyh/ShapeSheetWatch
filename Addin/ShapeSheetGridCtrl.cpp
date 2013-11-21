@@ -118,7 +118,7 @@ struct CShapeSheetGridCtrl::Impl
 		{
 		case UpdateHint_Columns:
 			UpdateGridColumns();
-			UpdateGridRows();
+			UpdateGridRows(true);
 			break;
 		}
 	}
@@ -147,7 +147,7 @@ struct CShapeSheetGridCtrl::Impl
 
 	void OnCellChanged(IVCellPtr cell)
 	{
-		UpdateGridRows();
+		UpdateGridRows(false);
 	}
 
 	/**------------------------------------------------------------------------
@@ -180,7 +180,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		SetShape(shape);
 
-		UpdateGridRows();
+		UpdateGridRows(false);
 	}
 
 	/**------------------------------------------------------------------------
@@ -289,28 +289,41 @@ struct CShapeSheetGridCtrl::Impl
 			return key;
 		}
 
-		CellKey m_focus;
+		bool m_use_id;
+		CCellID m_focus_id;
+		CellKey m_focus_key;
 
-		SaveFocus(CShapeSheetGridCtrl* p_this)
-			: m_this(p_this)
+		SaveFocus(CShapeSheetGridCtrl* p_this, bool use_id)
+			: m_this(p_this), m_use_id(use_id)
 		{
-			m_focus = GetCellKey(m_this->GetFocusCell());
+			m_focus_id = m_this->GetFocusCell();
+			m_focus_key = GetCellKey(m_focus_id);
+		}
+
+		void RestoreFocus(CCellID id)
+		{
+			m_this->SelectCells(id);
+			m_this->SetFocusCell(id);
 		}
 
 		~SaveFocus()
 		{
-			if (m_focus.col >= 0)
+			if (m_focus_id.IsValid())
 			{
-				for (int r = 0; r < m_this->GetRowCount(); ++r)
+				if (m_use_id)
 				{
-					for (int c = 0; c < m_this->GetColumnCount(); ++c)
+					RestoreFocus(m_focus_id);
+				}
+				else
+				{
+					for (int r = 0; r < m_this->GetRowCount(); ++r)
 					{
-						CCellID id(r,c);
-						CellKey key = GetCellKey(id);
-						if (key.s == m_focus.s && key.r == m_focus.r && key.c == m_focus.c && key.col == m_focus.col)
+						for (int c = 0; c < m_this->GetColumnCount(); ++c)
 						{
-							m_this->SelectCells(id);
-							m_this->SetFocusCell(id);
+							CCellID id(r,c);
+							CellKey key = GetCellKey(id);
+							if (key.s == m_focus_key.s && key.r == m_focus_key.r && key.c == m_focus_key.c && key.col == m_focus_key.col)
+								RestoreFocus(id);
 						}
 					}
 				}
@@ -318,9 +331,9 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	};
 
-	void UpdateGridRows()
+	void UpdateGridRows(bool use_id)
 	{
-		SaveFocus save(m_this);
+		SaveFocus save(m_this, use_id);
 
 		using namespace shapesheet;
 
@@ -360,14 +373,15 @@ struct CShapeSheetGridCtrl::Impl
 			if (cell_names[i].empty())
 			{
 				m_this->SetItemData(row, Column_Mask, i);
+				m_this->SetItemData(row, Column_Name, -1);
 
 				UpdateCellText(row, Column_S, L"");
 				UpdateCellText(row, Column_R, L"");
 				UpdateCellText(row, Column_C, L"");
 
-				m_this->SetItemData(row, Column_S, -1);
-				m_this->SetItemData(row, Column_R, -1);
-				m_this->SetItemData(row, Column_C, -1);
+				m_this->SetItemData(row, Column_S, Column_S);
+				m_this->SetItemData(row, Column_R, Column_R);
+				m_this->SetItemData(row, Column_C, Column_C);
 
 				++row;
 			}
@@ -386,6 +400,7 @@ struct CShapeSheetGridCtrl::Impl
 					SRC& src = cell_names[i][j];
 
 					UpdateCellText(row, Column_Name, src.name);
+					m_this->SetItemData(row, Column_Name, src.index);
 
 					UpdateCellText(row, Column_S, src.s_name);
 					UpdateCellText(row, Column_R, src.r_name_l);
@@ -467,14 +482,13 @@ struct CShapeSheetGridCtrl::Impl
 			LPARAM idx = m_this->GetItemData(iRow, Column_Mask);
 
 			m_view_settings->UpdateCellMask(idx, text);
-			UpdateGridRows();
 		}
 		else
 		{
 			m_view_settings->AddCellMask(text);
-			UpdateGridRows();
 		}
 
+		UpdateGridRows(true);
 		return TRUE;
 	}
 
@@ -520,18 +534,48 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
-	LRESULT OnBeginItemEdit(int iRow, int iColumn, CStringArray* arrOptions)
+	LRESULT OnBeginItemEdit(int iRow, int iColumn, Strings* arrOptions)
 	{
 		if (!IsCellEditable(iRow, iColumn))
 			return -1;
 
-		if (arrOptions)
-		{
-			arrOptions->Add(L"TRUE");
-			arrOptions->Add(L"FALSE");
-		}
+		using namespace shapesheet;
 
-		return TRUE;
+		switch (iColumn)
+		{
+		case Column_Mask:
+			if (m_shape && arrOptions)
+			{
+				std::vector<SRC> srcs;
+				GetCellNames(m_shape, L"*", srcs);
+
+				Strings names;
+				for (size_t i = 0; i < srcs.size(); ++i)
+				{
+					if (m_shape->GetCellsSRCExists(srcs[i].s, srcs[i].r, srcs[i].c, VARIANT_FALSE))
+						arrOptions->push_back(srcs[i].name);
+				}
+
+				std::stable_sort(arrOptions->begin(), arrOptions->end());
+			}
+			return TRUE;
+
+		case Column_Formula:
+		case Column_FormulaU:
+
+			if (arrOptions)
+			{
+				int index = m_this->GetItemData(iRow, Column_Name);
+
+				const SSInfo& ss_info = GetSSInfo(index);
+
+				SplitList(ss_info.values, L";", *arrOptions);
+			}
+			return TRUE;
+
+		default:
+			return -1;
+		}
 	}
 
 	LRESULT OnEndItemEdit( int iRow, int iColumn)
@@ -565,7 +609,7 @@ struct CShapeSheetGridCtrl::Impl
 				LPARAM idx = m_this->GetItemData(iRow, iColumn);
 
 				m_view_settings->RemoveCellMask(idx);
-				UpdateGridRows();
+				UpdateGridRows(true);
 			}
 			return TRUE;
 		}
