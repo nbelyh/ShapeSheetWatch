@@ -178,20 +178,24 @@ BOOL CGridCell::Edit(int nRow, int nCol, CRect rect, CPoint /* point */, UINT nI
     }  
 	else  
 	{   
-		DWORD dwStyle = ES_LEFT;
-		if (GetFormat() & DT_RIGHT) 
-			dwStyle = ES_RIGHT;
-		else if (GetFormat() & DT_CENTER) 
-			dwStyle = ES_CENTER;
-		
 		m_bEditing = TRUE;
 		
 		// InPlaceEdit auto-deletes itself
 		CGridCtrl* pGrid = GetGrid();
 		if (arrOptions.IsEmpty())
+		{
+			DWORD dwStyle = ES_LEFT;
+			if (GetFormat() & DT_RIGHT) 
+				dwStyle = ES_RIGHT;
+			else if (GetFormat() & DT_CENTER) 
+				dwStyle = ES_CENTER;
+
 			m_pEditWnd = new CInPlaceEdit(pGrid, rect, dwStyle, nID, nRow, nCol, GetText(), nChar);
+		}
 		else
-			m_pEditWnd = new CInPlaceList(pGrid, rect, dwStyle, nID, nRow, nCol, arrOptions, GetText(), nChar);
+		{
+			m_pEditWnd = new CInPlaceList(pGrid, rect, CBS_DROPDOWN, nID, nRow, nCol, arrOptions, GetText(), nChar);
+		}
     }
     return TRUE;
 }

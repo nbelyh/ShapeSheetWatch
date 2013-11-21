@@ -45,18 +45,8 @@ class CComboEdit : public CEdit
 public:
 	CComboEdit();
 
-// Attributes
-public:
-
-// Operations
-public:
-
 // Overrides
-	// ClassWizard generated virtual function overrides
-	//{{AFX_VIRTUAL(CComboEdit)
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
-	//}}AFX_VIRTUAL
-
 // Implementation
 public:
 	virtual ~CComboEdit();
@@ -66,7 +56,6 @@ protected:
 	//{{AFX_MSG(CComboEdit)
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
-	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
@@ -115,7 +104,6 @@ protected:
 	//{{AFX_MSG(CInPlaceList)
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
-	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 	//}}AFX_MSG
 
 	DECLARE_DYNAMIC(CInPlaceList)
@@ -127,7 +115,6 @@ private:
 	int		m_nRow;
 	int		m_nCol;
  	UINT    m_nLastChar; 
-	BOOL	m_bExitOnArrows; 
 };
 
 /////////////////////////////////////////////////////////////////////////////

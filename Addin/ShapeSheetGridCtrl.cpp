@@ -265,20 +265,55 @@ struct CShapeSheetGridCtrl::Impl
 	{
 		CShapeSheetGridCtrl* m_this;
 
-		CCellID m_focus;
+		struct CellKey
+		{
+			int s;
+			int r;
+			int c;
+
+			int col;
+		};
+
+		CellKey GetCellKey(CCellID id) const
+		{
+			CellKey key;
+			key.col = id.col;
+
+			if (id.col >= 0)
+			{
+				key.s = m_this->GetItemData(id.row, Column_S);
+				key.r = m_this->GetItemData(id.row, Column_R);
+				key.c = m_this->GetItemData(id.row, Column_C);
+			}
+
+			return key;
+		}
+
+		CellKey m_focus;
 
 		SaveFocus(CShapeSheetGridCtrl* p_this)
 			: m_this(p_this)
 		{
-			m_focus = m_this->GetFocusCell();
+			m_focus = GetCellKey(m_this->GetFocusCell());
 		}
 
 		~SaveFocus()
 		{
-			if (m_focus.IsValid())
+			if (m_focus.col >= 0)
 			{
-				m_this->SelectCells(m_focus);
-				m_this->SetFocusCell(m_focus);
+				for (int r = 0; r < m_this->GetRowCount(); ++r)
+				{
+					for (int c = 0; c < m_this->GetColumnCount(); ++c)
+					{
+						CCellID id(r,c);
+						CellKey key = GetCellKey(id);
+						if (key.s == m_focus.s && key.r == m_focus.r && key.c == m_focus.c && key.col == m_focus.col)
+						{
+							m_this->SelectCells(id);
+							m_this->SetFocusCell(id);
+						}
+					}
+				}
 			}
 		}
 	};
@@ -424,8 +459,6 @@ struct CShapeSheetGridCtrl::Impl
 
 	BOOL OnEditMask(int iRow, int iColumn)
 	{
-		SaveFocus save(m_this);
-
 		CString text = 
 			m_this->GetItemText(iRow, iColumn);
 
@@ -447,8 +480,6 @@ struct CShapeSheetGridCtrl::Impl
 
 	BOOL OnEditFormula(int iRow, int iColumn, bool u)
 	{
-		SaveFocus save(m_this);
-
 		bstr_t text = 
 			m_this->GetItemText(iRow, iColumn);
 

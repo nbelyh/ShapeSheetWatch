@@ -76,7 +76,6 @@ BEGIN_MESSAGE_MAP(CComboEdit, CEdit)
 	//{{AFX_MSG_MAP(CComboEdit)
 	ON_WM_KILLFOCUS()
 	ON_WM_KEYDOWN()
-	ON_WM_KEYUP()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -95,8 +94,7 @@ void CComboEdit::OnKillFocus(CWnd* pNewWnd)
 void CComboEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
 	if ((nChar == VK_PRIOR || nChar == VK_NEXT ||
-		 nChar == VK_DOWN  || nChar == VK_UP   ||
-		 nChar == VK_RIGHT || nChar == VK_LEFT) &&
+		 nChar == VK_DOWN  || nChar == VK_UP   ) &&
 		(GetKeyState(VK_CONTROL) < 0 && GetDlgCtrlID() == IDC_COMBOEDIT))
     {
         CWnd* pOwner = GetOwner();
@@ -105,28 +103,23 @@ void CComboEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         return;
     }
 
-	CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-void CComboEdit::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags) 
-{
 	if (nChar == VK_ESCAPE) 
 	{
-        CWnd* pOwner = GetOwner();
-        if (pOwner)
-            pOwner->SendMessage(WM_KEYUP, nChar, nRepCnt + (((DWORD)nFlags)<<16));
-        return;
-    }
+		CWnd* pOwner = GetOwner();
+		if (pOwner)
+			pOwner->SendMessage(WM_KEYDOWN, nChar, nRepCnt + (((DWORD)nFlags)<<16));
+		return;
+	}
 
 	if (nChar == VK_TAB || nChar == VK_RETURN || nChar == VK_ESCAPE)
-    {
-        CWnd* pOwner = GetOwner();
-        if (pOwner)
-            pOwner->SendMessage(WM_KEYUP, nChar, nRepCnt + (((DWORD)nFlags)<<16));
-        return;
-    }
+	{
+		CWnd* pOwner = GetOwner();
+		if (pOwner)
+			pOwner->SendMessage(WM_KEYDOWN, nChar, nRepCnt + (((DWORD)nFlags)<<16));
+		return;
+	}
 
-	CEdit::OnKeyUp(nChar, nRepCnt, nFlags);
+	CEdit::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
 
@@ -144,15 +137,19 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
  	m_nRow		= nRow;
  	m_nCol      = nColumn;
  	m_nLastChar = 0; 
-	m_bExitOnArrows = FALSE; //(nFirstChar != VK_LBUTTON);	// If mouse click brought us here,
 
 	// Create the combobox
  	DWORD dwComboStyle = WS_BORDER|WS_CHILD|WS_VISIBLE|WS_VSCROLL|
  					     CBS_AUTOHSCROLL | dwStyle;
 
-	int nHeight = rect.Height();
-	rect.bottom = rect.bottom + m_nNumLines*nHeight + ::GetSystemMetrics(SM_CYHSCROLL);
-	if (!Create(dwComboStyle, rect, pParent, nID)) return;
+	if (!Create(dwComboStyle, rect, pParent, nID)) 
+		return;
+
+	COMBOBOXINFO cbInfo;
+	cbInfo.cbSize = sizeof(COMBOBOXINFO);
+	GetComboBoxInfo(&cbInfo);
+
+	m_edit.SubclassWindow(cbInfo.hwndItem);
 
 	// Add the strings
 	for (int i = 0; i < Items.GetSize(); i++) 
@@ -176,7 +173,6 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	MoveWindow(rect);
 
 	SetFont(pParent->GetFont());
-	SetItemHeight(-1, nHeight);
 
 	SetDroppedWidth(nMaxLength);
 	SetHorizontalExtent(0); // no horz scrolling
@@ -185,30 +181,8 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	if (SelectString(-1, m_sInitText) == CB_ERR) 
 		SetWindowText(m_sInitText);		// No text selected, so restore what was there before
 
-    // Subclass the combobox edit control if style includes CBS_DROPDOWN
-    if ((dwStyle & CBS_DROPDOWNLIST) != CBS_DROPDOWNLIST)
-    {
-        m_edit.SubclassDlgItem(IDC_COMBOEDIT, this);
- 	    SetFocus();
-        switch (nFirstChar)
-        {
-            case VK_LBUTTON: 
-            case VK_RETURN:   m_edit.SetSel((int)_tcslen(m_sInitText), -1); return;
-            case VK_BACK:     m_edit.SetSel((int)_tcslen(m_sInitText), -1); break;
-            case VK_DOWN: 
-            case VK_UP:   
-            case VK_RIGHT:
-            case VK_LEFT:  
-            case VK_NEXT:  
-            case VK_PRIOR: 
-            case VK_HOME:  
-            case VK_END:      m_edit.SetSel(0,-1); return;
-            default:          m_edit.SetSel(0,-1);
-        }
-        SendMessage(WM_CHAR, nFirstChar);
-    }
-    else
- 	    SetFocus();
+	ShowDropDown();
+	SetFocus();
 }
 
 CInPlaceList::~CInPlaceList()
@@ -252,7 +226,6 @@ BEGIN_MESSAGE_MAP(CInPlaceList, CComboBox)
 	//{{AFX_MSG_MAP(CInPlaceList)
 	ON_WM_KILLFOCUS()
 	ON_WM_KEYDOWN()
-	ON_WM_KEYUP()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -264,35 +237,30 @@ void CInPlaceList::OnKillFocus(CWnd* pNewWnd)
 {
 	CComboBox::OnKillFocus(pNewWnd);
 
-	if (GetSafeHwnd() == pNewWnd->GetSafeHwnd())
-        return;
+	COMBOBOXINFO cbInfo;
+	cbInfo.cbSize = sizeof(COMBOBOXINFO);
+	GetComboBoxInfo(&cbInfo);
+
+	HWND hwnd = pNewWnd->GetSafeHwnd();
+	if (cbInfo.hwndCombo == hwnd || cbInfo.hwndItem == hwnd || cbInfo.hwndList == hwnd)
+		return;
 
     // Only end editing on change of focus if we're using the CBS_DROPDOWNLIST style
-    if ((GetStyle() & CBS_DROPDOWNLIST) == CBS_DROPDOWNLIST)
-        EndEdit();
+	EndEdit();
 }
 
 // If an arrow key (or associated) is pressed, then exit if
 //  a) The Ctrl key was down, or
-//  b) m_bExitOnArrows == TRUE
 void CInPlaceList::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
 	if ((nChar == VK_PRIOR || nChar == VK_NEXT ||
-		 nChar == VK_DOWN  || nChar == VK_UP   ||
-		 nChar == VK_RIGHT || nChar == VK_LEFT) &&
-		(m_bExitOnArrows || GetKeyState(VK_CONTROL) < 0))
+		 nChar == VK_DOWN  || nChar == VK_UP   ))
 	{
 		m_nLastChar = nChar;
 		GetParent()->SetFocus();
 		return;
 	}
 
-	CComboBox::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-// Need to keep a lookout for Tabs, Esc and Returns.
-void CInPlaceList::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags) 
-{
 	if (nChar == VK_ESCAPE) 
 		SetWindowText(m_sInitText);	// restore previous text
 
@@ -303,7 +271,7 @@ void CInPlaceList::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 		return;
 	}
 
-	CComboBox::OnKeyUp(nChar, nRepCnt, nFlags);
+	CComboBox::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
 IMPLEMENT_DYNAMIC(CInPlaceList, CComboBox)
