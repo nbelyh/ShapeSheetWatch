@@ -284,6 +284,7 @@ struct CShapeSheetGridCtrl::Impl
 			int c;
 
 			int col;
+			CString mask;
 		};
 
 		CellKey GetCellKey(CCellID id) const
@@ -296,6 +297,7 @@ struct CShapeSheetGridCtrl::Impl
 				key.s = m_this->GetItemData(id.row, Column_S);
 				key.r = m_this->GetItemData(id.row, Column_R);
 				key.c = m_this->GetItemData(id.row, Column_C);
+				key.mask = m_this->GetItemText(id.row, Column_Mask);
 			}
 
 			return key;
@@ -334,8 +336,15 @@ struct CShapeSheetGridCtrl::Impl
 						{
 							CCellID id(r,c);
 							CellKey key = GetCellKey(id);
-							if (key.s == m_focus_key.s && key.r == m_focus_key.r && key.c == m_focus_key.c && key.col == m_focus_key.col)
+
+							if (key.s == m_focus_key.s && 
+								key.r == m_focus_key.r && 
+								key.c == m_focus_key.c && 
+								key.col == m_focus_key.col &&
+								key.mask == m_focus_key.mask)
+							{
 								RestoreFocus(id);
+							}
 						}
 					}
 				}
