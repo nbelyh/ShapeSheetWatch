@@ -235,10 +235,47 @@ struct CShapeSheetGridCtrl::Impl
 		return false;
 	}
 
+	bstr_t GetCellValue(IVCellPtr cell, int column) const
+	{
+		switch (column)
+		{
+		case Column_Formula: 
+			return cell->Formula;
+
+		case Column_FormulaU:
+			return cell->FormulaU;
+
+		case Column_Value:
+			return cell->ResultStr[-1L];
+
+		case Column_ValueU:
+			if (GetVisioVersion(theApp.GetVisioApp()) > 11)
+				return cell->ResultStrU[-1L];
+
+		default:
+			return bstr_t();
+		}
+	}
+
+	void UpdateValueCellText(int row, int col, const shapesheet::SRC& src)
+	{
+		IVCellPtr cell = 
+			m_shape->GetCellsSRC(src.s, src.r, src.c);
+
+		IVCellPtr inherited_from_cell = 
+			cell->GetInheritedFormulaSource();
+
+		if (cell == inherited_from_cell)
+			m_this->SetItemFgColour(row, col, RGB(0,0,255));
+
+		m_this->SetItemText(row, col, GetCellValue(cell, col));
+	}
+
 	void UpdateCellText(int row, int col, LPCWSTR text)
 	{
 		COLORREF bk;
 		COLORREF fg;
+
 		if (GetCellColors(row, col, bk, fg))
 		{
 			m_this->SetItemBkColour(row, col, bk);
@@ -314,41 +351,42 @@ struct CShapeSheetGridCtrl::Impl
 			m_focus_key = GetCellKey(m_focus_id);
 		}
 
-		void RestoreFocus(CCellID id)
+		void RestoreFocusUsingId(CCellID focus_id)
 		{
-			m_this->SelectCells(id);
-			m_this->SetFocusCell(id);
+			m_this->SelectCells(focus_id);
+			m_this->SetFocusCell(focus_id);
+		}
+
+		void RestoreFocusUsingKey(const CellKey& focus_key)
+		{
+			for (int r = 0; r < m_this->GetRowCount(); ++r)
+			{
+				for (int c = 0; c < m_this->GetColumnCount(); ++c)
+				{
+					CCellID id(r,c);
+					CellKey key = GetCellKey(id);
+
+					if (key.s == focus_key.s && 
+						key.r == focus_key.r && 
+						key.c == focus_key.c && 
+						key.col == focus_key.col &&
+						key.mask == focus_key.mask)
+					{
+						RestoreFocusUsingId(id);
+					}
+				}
+			}
 		}
 
 		~SaveFocus()
 		{
-			if (m_focus_id.IsValid())
-			{
-				if (m_use_id)
-				{
-					RestoreFocus(m_focus_id);
-				}
-				else
-				{
-					for (int r = 0; r < m_this->GetRowCount(); ++r)
-					{
-						for (int c = 0; c < m_this->GetColumnCount(); ++c)
-						{
-							CCellID id(r,c);
-							CellKey key = GetCellKey(id);
+			if (!m_focus_id.IsValid())
+				return;
 
-							if (key.s == m_focus_key.s && 
-								key.r == m_focus_key.r && 
-								key.c == m_focus_key.c && 
-								key.col == m_focus_key.col &&
-								key.mask == m_focus_key.mask)
-							{
-								RestoreFocus(id);
-							}
-						}
-					}
-				}
-			}
+			if (m_use_id)
+				RestoreFocusUsingId(m_focus_id);
+			else
+				RestoreFocusUsingKey(m_focus_key);
 		}
 	};
 
@@ -357,8 +395,6 @@ struct CShapeSheetGridCtrl::Impl
 		SaveFocus save(m_this, use_id);
 
 		using namespace shapesheet;
-
-		int visio_version = GetVisioVersion(theApp.GetVisioApp());
 
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
@@ -434,16 +470,12 @@ struct CShapeSheetGridCtrl::Impl
 						m_this->SetItemData(row, Column_R, src.r);
 						m_this->SetItemData(row, Column_C, src.c);
 
-						IVCellPtr cell = m_shape->GetCellsSRC(src.s, src.r, src.c);
-
 						m_this->SetItemData(row, Column_Mask, i);
 
-						UpdateCellText(row, Column_Formula, cell->Formula);
-						UpdateCellText(row, Column_FormulaU, cell->Formula);
-						UpdateCellText(row, Column_Value, cell->ResultStr[-1L]);
-
-						if (visio_version > 11)
-							UpdateCellText(row, Column_ValueU, cell->ResultStrU[-1L]);
+						UpdateValueCellText(row, Column_Formula, src);
+						UpdateValueCellText(row, Column_FormulaU, src);
+						UpdateValueCellText(row, Column_Value, src);
+						UpdateValueCellText(row, Column_ValueU, src);
 					}
 
 					if (s_last == src.s)
