@@ -13,12 +13,14 @@
 #include "ShapeSheetGridCtrl.h"
 #include "lib/HTMLayoutCtrl/HTMLayoutCtrl.h"
 
+#include "lib/atlrx.h"
+
 /**-----------------------------------------------------------------------------
 	Message map
 ------------------------------------------------------------------------------*/
 
-#define COLOR_TH_BK	RGB(153,180,209)
-#define COLOR_TH_FG	RGB(0,0,0)
+#define COLOR_TH_BK		RGB(153,180,209)
+#define COLOR_TH_FG		RGB(0,0,0)
 
 #define COLOR_SRC_BK	RGB(0xE3,0xE3,0xE3)
 #define COLOR_SRC_FG	RGB(0xF0,0,0)
@@ -26,8 +28,8 @@
 #define COLOR_RO_BK		RGB(0xF7,0xF7,0xF7)
 #define COLOR_RO_FG		RGB(0x10,0x10,0x10)
 
-#define COLOR_MASK_BK		RGB(0xFF,0xFF,0xFF)
-#define COLOR_MASK_FG		RGB(0,0,0)
+#define COLOR_MASK_BK	RGB(0xFF,0xFF,0xFF)
+#define COLOR_MASK_FG	RGB(0,0,0)
 
 struct CShapeSheetGridCtrl::Impl 
 	: public VEventHandler
@@ -545,6 +547,10 @@ struct CShapeSheetGridCtrl::Impl
 		return TRUE;
 	}
 
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	BOOL SetFormula(int iRow, int iColumn, bstr_t text)
 	{
 		short s = (short)m_this->GetItemData(iRow, Column_S);
@@ -597,6 +603,10 @@ struct CShapeSheetGridCtrl::Impl
 			return false;
 		}
 	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
 
 	LRESULT OnBeginItemEdit(int iRow, int iColumn, Strings* arrOptions)
 	{
