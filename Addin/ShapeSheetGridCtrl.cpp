@@ -545,28 +545,39 @@ struct CShapeSheetGridCtrl::Impl
 		return TRUE;
 	}
 
-	BOOL OnEditFormula(int iRow, int iColumn, bool u)
+	BOOL SetFormula(int iRow, int iColumn, bstr_t text)
 	{
-		bstr_t text = 
-			m_this->GetItemText(iRow, iColumn);
+		short s = (short)m_this->GetItemData(iRow, Column_S);
+		short r = (short)m_this->GetItemData(iRow, Column_R);
+		short c = (short)m_this->GetItemData(iRow, Column_C);
 
-		if (iRow < m_this->GetRowCount() - 1)
+		IVCellPtr cell = m_shape->GetCellsSRC(s, r, c);
+
+		try
 		{
-			short s = (short)m_this->GetItemData(iRow, Column_S);
-			short r = (short)m_this->GetItemData(iRow, Column_R);
-			short c = (short)m_this->GetItemData(iRow, Column_C);
-
-			IVCellPtr cell = m_shape->GetCellsSRC(s, r, c);
-
-			if (u)
+			if (iColumn == Column_FormulaU)
 				cell->PutFormulaForceU(text);
 			else
 				cell->PutFormulaForce(text);
 
 			return TRUE;
 		}
+		catch (_com_error& e)
+		{
+			AfxMessageBox(FormatErrorMessage(e));
+			return FALSE;
+		}
+	}
 
-		return FALSE;
+	BOOL OnEditFormula(int iRow, int iColumn)
+	{
+		if (iRow >= m_this->GetRowCount() - 1)
+			return FALSE;
+
+		bstr_t text = 
+			m_this->GetItemText(iRow, iColumn);
+
+		return SetFormula(iRow, iColumn, text);
 	}
 
 	/**------------------------------------------------------------------------
@@ -639,10 +650,8 @@ struct CShapeSheetGridCtrl::Impl
 			return OnEditMask(iRow, iColumn);
 
 		case Column_Formula:
-			return OnEditFormula(iRow, iColumn, false);
-
 		case Column_FormulaU:
-			return OnEditFormula(iRow, iColumn, true);
+			return OnEditFormula(iRow, iColumn);
 		}
 
 		return -1;
@@ -665,6 +674,10 @@ struct CShapeSheetGridCtrl::Impl
 				UpdateGridRows(true);
 			}
 			return TRUE;
+
+		case Column_Formula:
+		case Column_FormulaU:
+			return SetFormula(iRow, iColumn, L"No Formula");
 		}
 
 		return FALSE;

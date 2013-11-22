@@ -33,12 +33,9 @@ void ThrowComError(HRESULT hr, LPCWSTR error_msg, LPCWSTR error_source)
 	throw _com_error(hr, (IErrorInfo*)ei);
 }
 
-CString	FormatErrorMessage (LPCWSTR msg, _com_error& e)
+CString	FormatErrorMessage (_com_error& e)
 {
-	CString result = msg;
-
-	if (!result.IsEmpty())
-		result += L"\n";
+	CString result;
 
 	if (e.Description().length())
 		result += static_cast<LPCWSTR >(e.Description());
