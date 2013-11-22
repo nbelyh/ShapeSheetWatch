@@ -152,3 +152,13 @@ void CAddinApp::UpdateViews(int hint)
 }
 
 CAddinApp theApp;
+
+int GetVisioVersion()
+{
+	static int result = -1;
+
+	if (result == -1)
+		result = StrToInt(theApp.GetVisioApp()->GetVersion());
+
+	return result;
+}

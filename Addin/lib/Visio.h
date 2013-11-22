@@ -106,4 +106,3 @@ struct VisioIdleTaskProcessor
 	
 -------------------------------------------------------------------------*/
 
-int GetVisioVersion(IVApplicationPtr app);

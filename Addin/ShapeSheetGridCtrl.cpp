@@ -249,7 +249,7 @@ struct CShapeSheetGridCtrl::Impl
 			return cell->ResultStr[-1L];
 
 		case Column_ValueU:
-			if (GetVisioVersion(theApp.GetVisioApp()) > 11)
+			if (GetVisioVersion() > 11)
 				return cell->ResultStrU[-1L];
 
 		default:

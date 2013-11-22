@@ -9,6 +9,8 @@ namespace shapesheet {
 
 	struct SSInfo
 	{
+		int visio_version;
+
 		LPCWSTR s_name;	// ShapeSheet section name
 		LPCWSTR r_name;	// ShapeSheet row name, can include placeholders
 		LPCWSTR c_name;	// ShapeSheet column name
@@ -18,7 +20,6 @@ namespace shapesheet {
 		short c;		// ShapeSheet column index
 
 		LPCWSTR name;	// full name "mask" with placeholders for variable rows/cells
-		LPCWSTR type;
 		LPCWSTR values;	// possible set of values for the cell (value list, semicolon separated)
 
 		int index;

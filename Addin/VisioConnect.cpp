@@ -67,7 +67,7 @@ struct CVisioConnect::Impl
 
 		pAddInInst->QueryInterface(__uuidof(IDispatch), (LPVOID*)&m_addin);
 
-		if (GetVisioVersion(app) < 14)
+		if (GetVisioVersion() < 14)
 			m_ui.CreateCommandBarsUI(app);
 
 		IVEventListPtr evt_list = 

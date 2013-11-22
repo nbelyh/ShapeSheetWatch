@@ -43,3 +43,5 @@ private:
 };
 
 extern CAddinApp theApp;
+
+int GetVisioVersion();

@@ -620,13 +620,3 @@ bool VisioScopeLock::IsInVisioScopeLock ()
 {
 	return g_level > 0;
 }
-
-int GetVisioVersion(IVApplicationPtr app)
-{
-	static int result = -1;
-
-	if (result == -1)
-		result = StrToInt(app->GetVersion());
-
-	return result;
-}
