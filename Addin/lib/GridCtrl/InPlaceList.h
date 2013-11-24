@@ -1,15 +1,9 @@
-#if !defined(AFX_INPLACELIST_H__ECD42822_16DF_11D1_992F_895E185F9C72__INCLUDED_)
-#define AFX_INPLACELIST_H__ECD42822_16DF_11D1_992F_895E185F9C72__INCLUDED_
-
-#if _MSC_VER >= 1000
-#pragma once
-#endif // _MSC_VER >= 1000
 
 /////////////////////////////////////////////////////////////////////////////
 // InPlaceList.h : header file
 //
 // Written by Chris Maunder <cmaunder@mail.com>
-// Copyright (c) 1998-2000. All Rights Reserved.
+// Copyright (c) 19982000. All Rights Reserved.
 //
 // The code contained in this file is based on the original
 // CInPlaceList from http://www.codeguru.com/listview
@@ -34,7 +28,11 @@
 //
 /////////////////////////////////////////////////////////////////////////////
 
+#pragma once
+
 #define IDC_COMBOEDIT 1001
+
+#include <afxtempl.h>
 
 /////////////////////////////////////////////////////////////////////////////
 // CComboEdit window
@@ -61,8 +59,22 @@ protected:
 	DECLARE_MESSAGE_MAP()
 };
 
-/////////////////////////////////////////////////////////////////////////////
-// CInPlaceList window
+
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
+
+class CComboBoxExtList : public CListBox
+{
+protected:
+	afx_msg LRESULT OnLbFindString(WPARAM wParam, LPARAM lParam);
+	DECLARE_MESSAGE_MAP()
+};
+
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
+
 
 class CInPlaceList : public CComboBox
 {
@@ -115,11 +127,57 @@ private:
 	int		m_nRow;
 	int		m_nCol;
  	UINT    m_nLastChar; 
+
+	// Construction
+public:
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
+
+	// Implementation
+public:
+	virtual DWORD GetItemData(int nIndex) const;
+	virtual int SetItemData(int nIndex, DWORD dwItemData);
+
+protected:
+	BOOL m_bEdit;
+	CString m_sTypedText;
+	CComboBoxExtList m_ListBox;
+
+protected:
+
+	class CItemData : public CObject
+	{
+		// Attributes
+	public:
+		DWORD m_dwItemData;
+		CString m_sItem;
+		BOOL m_bState;
+
+		// Implementation
+	public:
+		CItemData();
+		CItemData(DWORD dwItemData, LPCTSTR lpszString, BOOL bState);
+		virtual ~CItemData();
+	};
+
+	CTypedPtrList<CPtrList, CItemData*> m_PtrList;
+
+protected:
+	virtual void FitDropDownToItems();
+	virtual int AddItem(CItemData* pData);
+	virtual int DeleteItem(CItemData* pData);
+
+	// Generated message map functions
+protected:
+	//{{AFX_MSG(CComboBoxExt)
+	afx_msg void OnDestroy();
+	afx_msg BOOL OnCloseup();
+	afx_msg BOOL OnDropdown();
+	afx_msg BOOL OnKillfocus();
+	afx_msg BOOL OnSelchange();
+	afx_msg BOOL OnEditchange();
+	//}}AFX_MSG
+	afx_msg LRESULT OnSetCurSel(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnAddString(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnDeleteString(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnResetContent(WPARAM wParam, LPARAM lParam);
 };
-
-/////////////////////////////////////////////////////////////////////////////
-
-//{{AFX_INSERT_LOCATION}}
-// Microsoft Developer Studio will insert additional declarations immediately before the previous line.
-
-#endif // !defined(AFX_INPLACELIST_H__ECD42822_16DF_11D1_992F_895E185F9C72__INCLUDED_)

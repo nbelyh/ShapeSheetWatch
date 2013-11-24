@@ -34,7 +34,7 @@
 #include "InPlaceList.h"
 
 #include "GridCtrl.h"
-
+#include "lib/Utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -123,6 +123,20 @@ void CComboEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 }
 
 
+
+/////////////////////////////////////////////////////////////////////////////
+// CComboBoxExtList
+
+BEGIN_MESSAGE_MAP(CComboBoxExtList, CListBox)
+	ON_MESSAGE(LB_FINDSTRING, CComboBoxExtList::OnLbFindString)
+END_MESSAGE_MAP()
+
+LRESULT CComboBoxExtList::OnLbFindString(WPARAM wParam, LPARAM lParam)
+{
+	return SendMessage(LB_FINDSTRINGEXACT, wParam, lParam);
+}
+
+
 /////////////////////////////////////////////////////////////////////////////
 // CInPlaceList
 
@@ -137,6 +151,7 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
  	m_nRow		= nRow;
  	m_nCol      = nColumn;
  	m_nLastChar = 0; 
+	m_bEdit = FALSE;
 
 	// Create the combobox
  	DWORD dwComboStyle = WS_BORDER|WS_CHILD|WS_VISIBLE|WS_VSCROLL|
@@ -150,6 +165,7 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	GetComboBoxInfo(&cbInfo);
 
 	m_edit.SubclassWindow(cbInfo.hwndItem);
+	m_ListBox.SubclassWindow(cbInfo.hwndList);
 
 	// Add the strings
 	for (size_t i = 0; i < Items.size(); i++) 
@@ -174,10 +190,8 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 	SetHorizontalExtent(0); // no horz scrolling
 
 	// Set the initial text to m_sInitText
-	if (SelectString(-1, m_sInitText) == CB_ERR) 
-		SetWindowText(m_sInitText);		// No text selected, so restore what was there before
-	else
-		ShowDropDown();
+	SetWindowText(m_sInitText);		// No text selected, so restore what was there before
+	ShowDropDown();
 
 	SetFocus();
 
@@ -196,7 +210,11 @@ CInPlaceList::~CInPlaceList()
 void CInPlaceList::EndEdit()
 {
     CString str;
-    GetWindowText(str);
+
+	if (m_nLastChar != VK_ESCAPE)
+		GetWindowText(str);
+	else
+		str = m_sInitText;
  
     // Send Notification to parent
     GV_DISPINFO dispinfo;
@@ -225,14 +243,6 @@ void CInPlaceList::PostNcDestroy()
 
 	delete this;
 }
-
-BEGIN_MESSAGE_MAP(CInPlaceList, CComboBox)
-	//{{AFX_MSG_MAP(CInPlaceList)
-	ON_WM_KILLFOCUS()
-	ON_WM_KEYDOWN()
-	//}}AFX_MSG_MAP
-END_MESSAGE_MAP()
-
 
 /////////////////////////////////////////////////////////////////////////////
 // CInPlaceList message handlers
@@ -276,6 +286,372 @@ void CInPlaceList::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	}
 
 	CComboBox::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CComboBoxExt
+
+CInPlaceList::CItemData::CItemData()
+	: m_dwItemData(CB_ERR)
+	, m_sItem(_T(""))
+	, m_bState(FALSE)
+{
+}
+
+CInPlaceList::CItemData::CItemData(DWORD dwItemData, LPCTSTR lpszString, BOOL bState)
+{
+	m_dwItemData = dwItemData;
+	m_sItem = lpszString;
+	m_bState = bState;
+}
+
+CInPlaceList::CItemData::~CItemData()
+{
+}
+
+BEGIN_MESSAGE_MAP(CInPlaceList, CComboBox)
+	//{{AFX_MSG_MAP(CComboBoxExt)
+	ON_WM_DESTROY()
+	ON_CONTROL_REFLECT_EX(CBN_CLOSEUP, OnCloseup)
+	ON_CONTROL_REFLECT_EX(CBN_DROPDOWN, OnDropdown)
+	ON_CONTROL_REFLECT_EX(CBN_KILLFOCUS, OnKillfocus)
+	ON_CONTROL_REFLECT_EX(CBN_SELCHANGE, OnSelchange)
+	ON_CONTROL_REFLECT_EX(CBN_EDITCHANGE, OnEditchange)
+	ON_WM_KILLFOCUS()
+	ON_WM_KEYDOWN()
+	//}}AFX_MSG_MAP
+	ON_MESSAGE(CB_SETCURSEL, OnSetCurSel)
+	ON_MESSAGE(CB_ADDSTRING, OnAddString)
+	ON_MESSAGE(CB_DELETESTRING, OnDeleteString)
+	ON_MESSAGE(CB_RESETCONTENT, OnResetContent)
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CComboBoxExt message handlers
+
+BOOL CInPlaceList::PreTranslateMessage(MSG* pMsg) 
+{
+	if (WM_KEYDOWN == pMsg->message)
+	{
+		if (VK_RETURN == pMsg->wParam)
+		{
+			ShowDropDown(FALSE);
+		}
+	}
+
+	return CComboBox::PreTranslateMessage(pMsg);
+}
+
+void CInPlaceList::FitDropDownToItems()
+{
+	if (NULL == m_ListBox.GetSafeHwnd())
+		return;
+
+	CRect rcEdit, rcDropDown, rcDropDownCli;
+	GetWindowRect(rcEdit);
+	m_ListBox.GetWindowRect(rcDropDown);
+	m_ListBox.GetClientRect(rcDropDownCli);
+
+	int nHeight = rcDropDown.Height() - rcDropDownCli.Height();
+	const int nMaxHeight = ::GetSystemMetrics(SM_CYSCREEN) / 2;
+	const int nCount = GetCount();
+	for(int nIndex = 0;nIndex < nCount;++nIndex)
+	{
+		nHeight += GetItemHeight(nIndex);
+		if(nHeight > nMaxHeight)
+			break;
+	}
+
+	CRect rcDropDownNew(rcDropDown.left,rcDropDown.top,rcDropDown.right,rcDropDown.top + nHeight);
+	if(rcEdit.top > rcDropDown.top && rcEdit.top != rcDropDownNew.bottom)
+		rcDropDownNew.top += (rcEdit.top - rcDropDownNew.bottom);
+
+	m_ListBox.MoveWindow(rcDropDownNew);
+}
+
+BOOL CInPlaceList::OnDropdown() 
+{
+	// TODO: Add your control notification handler code here
+
+	SetCursor(LoadCursor(NULL, IDC_ARROW));
+
+	int dx = 0;
+	CSize sz(0,0);
+	TEXTMETRIC tm;
+	CString sLBText;
+	CDC* pDC = GetDC();
+	CFont* pFont = GetFont();
+	// Select the listbox font, save the old font
+	CFont* pOldFont = pDC->SelectObject(pFont);
+	// Get the text metrics for avg char width
+	pDC->GetTextMetrics(&tm);
+
+	const int nCount = GetCount();
+	for(int i = 0;i < nCount;++i)
+	{
+		GetLBText(i, sLBText);
+		sz = pDC->GetTextExtent(sLBText);
+		// Add the avg width to prevent clipping
+		sz.cx += tm.tmAveCharWidth;
+		if(sz.cx > dx)
+			dx = sz.cx;
+	}
+
+	// Select the old font back into the DC
+	pDC->SelectObject(pOldFont);
+	ReleaseDC(pDC);
+
+	// Adjust the width for the vertical scroll bar and the left and right border.
+	dx += ::GetSystemMetrics(SM_CXVSCROLL) + 2 * ::GetSystemMetrics(SM_CXEDGE);
+	if(GetDroppedWidth() < dx)
+		SetDroppedWidth(dx);
+
+	return Default();
+}
+
+void CInPlaceList::OnDestroy() 
+{
+	if(NULL != m_ListBox.GetSafeHwnd())
+		m_ListBox.UnsubclassWindow();
+
+	m_edit.UnsubclassWindow();
+
+	CComboBox::OnDestroy();
+
+	// TODO: Add your message handler code here
+
+	POSITION pos = m_PtrList.GetHeadPosition();
+	while(pos)
+	{
+		CItemData* pData = m_PtrList.GetNext(pos);
+		if(NULL != pData)
+			delete pData;
+	}
+	m_PtrList.RemoveAll();
+}
+
+LRESULT CInPlaceList::OnResetContent(WPARAM wParam, LPARAM lParam)
+{
+	m_sTypedText.Empty();
+
+	POSITION pos = m_PtrList.GetHeadPosition();
+	while(pos)
+	{
+		CItemData* pData = m_PtrList.GetNext(pos);
+		if(NULL != pData)
+			delete pData;
+	}
+	m_PtrList.RemoveAll();
+
+	return Default();
+}
+
+BOOL CInPlaceList::OnKillfocus() 
+{
+	// TODO: Add your control notification handler code here
+
+	int nIndex = GetCurSel();
+	if(CB_ERR == nIndex || nIndex >= GetCount())
+	{
+		nIndex = FindStringExact(0, m_sTypedText);
+		SetCurSel(nIndex);
+	}
+	if(CB_ERR != nIndex && nIndex < GetCount())
+		GetLBText(nIndex, m_sTypedText);
+	SetWindowText(m_sTypedText);
+
+	return Default();
+}
+
+BOOL CInPlaceList::OnSelchange() 
+{
+	// TODO: Add your control notification handler code here
+
+	if(m_bEdit)
+		return Default();
+
+	const int nIndex = GetCurSel();
+	if(nIndex >= 0 && nIndex < GetCount())
+	{
+		GetLBText(nIndex, m_sTypedText);
+		SetWindowText(m_sTypedText);
+	}
+
+	return Default();
+}
+
+BOOL CInPlaceList::OnEditchange() 
+{
+	// TODO: Add your control notification handler code here
+
+	m_bEdit = TRUE;
+	DWORD dwGetSel = GetEditSel();
+	WORD wStart = LOWORD(dwGetSel);
+	WORD wEnd	= HIWORD(dwGetSel);
+	GetWindowText(m_sTypedText);
+	CString sEditText(m_sTypedText);
+	sEditText.MakeLower();
+
+	CString sTemp, sFirstOccurrence;
+	const BOOL bEmpty = m_sTypedText.IsEmpty();
+	POSITION pos = m_PtrList.GetHeadPosition();
+	while(! bEmpty && pos)
+	{
+		CItemData* pData = m_PtrList.GetNext(pos);
+		sTemp = pData->m_sItem;
+		sTemp.MakeLower();
+		if (StringIsLike(sEditText + "*", sTemp))
+			AddItem(pData);
+		else
+			DeleteItem(pData);
+	}
+
+	if(GetCount() < 1 || bEmpty)
+	{
+		if(GetDroppedState())
+			ShowDropDown(FALSE);
+		else
+		{
+			pos = m_PtrList.GetHeadPosition();
+			while(pos)
+				AddItem(m_PtrList.GetNext(pos));
+		}
+	}
+	else
+	{
+		ShowDropDown();
+		FitDropDownToItems();
+	}
+
+	SetWindowText(m_sTypedText);
+	SetEditSel(wStart,wEnd);
+
+	m_bEdit = FALSE;
+
+	return Default();
+}
+
+BOOL CInPlaceList::OnCloseup() 
+{
+	// TODO: Add your control notification handler code here
+
+	POSITION pos = m_PtrList.GetHeadPosition();
+	while(pos)
+		AddItem(m_PtrList.GetNext(pos));
+
+	return Default();
+}
+
+LRESULT CInPlaceList::OnSetCurSel(WPARAM wParam, LPARAM lParam) 
+{
+	// TODO: Add your control notification handler code here
+
+	int nSelect = (int)wParam;
+	if(nSelect >= 0 && GetCount() > nSelect)
+		GetLBText(nSelect, m_sTypedText);
+
+	return Default();
+}
+
+LRESULT CInPlaceList::OnAddString(WPARAM wParam, LPARAM lParam)
+{
+	int nIndex = (int)Default();
+
+	POSITION pos = (POSITION)wParam;
+	if(NULL == pos)
+	{
+		CItemData* pData = new CItemData(CB_ERR, (LPCTSTR)lParam, TRUE);
+		m_PtrList.AddTail(pData);
+		SetItemDataPtr(nIndex, pData);
+	}
+
+	return nIndex;
+}
+
+LRESULT CInPlaceList::OnDeleteString(WPARAM wParam, LPARAM lParam)
+{
+	POSITION pos = (POSITION)lParam;
+	if(NULL == pos)
+	{
+		CItemData* pData = (CItemData*)GetItemDataPtr((int)wParam);
+		if(NULL != pData)
+		{
+			POSITION pos = m_PtrList.Find(pData);
+			if(NULL != pos)
+			{
+				delete pData;
+				m_PtrList.RemoveAt(pos);
+			}
+		}
+	}
+
+	return Default();
+}
+// Add item in dropdown list
+int CInPlaceList::AddItem(CItemData* pData)
+{
+	if(NULL == pData || TRUE == pData->m_bState)
+		return CB_ERR;
+
+	int nIndex = SendMessage(CB_ADDSTRING, (WPARAM)m_PtrList.Find(pData), (LPARAM)(LPCTSTR)pData->m_sItem);
+	if(CB_ERR == nIndex || CB_ERRSPACE == nIndex)
+		return nIndex;
+
+	pData->m_bState = TRUE;
+	SetItemData(nIndex, pData->m_dwItemData);
+	SetItemDataPtr(nIndex, pData);
+
+	return nIndex;
+}
+// Delete item from dropdown list
+int CInPlaceList::DeleteItem(CItemData* pData)
+{
+	int nIndex = CB_ERR;
+
+	if(NULL == pData || FALSE == pData->m_bState)
+		return nIndex;
+
+	pData->m_bState = FALSE;
+	const int nCount = GetCount();
+	for(int i = 0;i < nCount;++i)
+	{
+		if(pData == (CItemData*)GetItemDataPtr(i))
+		{
+			nIndex = SendMessage(CB_DELETESTRING, (WPARAM)i, (LPARAM)m_PtrList.Find(pData));
+			break;
+		}
+	}
+
+	return nIndex;
+}
+
+int CInPlaceList::SetItemData(int nIndex, DWORD dwItemData)
+{
+	if(CB_ERR == nIndex)
+		return nIndex;
+
+	CItemData* pData = (CItemData*)GetItemDataPtr(nIndex);
+	if(NULL != pData)
+	{
+		pData->m_dwItemData = dwItemData;
+		return 0;
+	}
+
+	return CB_ERR;
+}
+
+DWORD CInPlaceList::GetItemData(int nIndex) const
+{
+	if(CB_ERR == nIndex)
+		return nIndex;
+
+	DWORD dwItemData = CB_ERR;
+
+	CItemData* pData = (CItemData*)GetItemDataPtr(nIndex);
+	if(NULL != pData)
+		dwItemData = pData->m_dwItemData;
+
+	return dwItemData;
 }
 
 IMPLEMENT_DYNAMIC(CInPlaceList, CComboBox)

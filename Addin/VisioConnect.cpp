@@ -65,6 +65,8 @@ struct CVisioConnect::Impl
 		IVApplicationPtr app;
 		pApplication->QueryInterface(__uuidof(IDispatch), (LPVOID*)&app);
 
+		theApp.SetVisioApp(app);
+
 		pAddInInst->QueryInterface(__uuidof(IDispatch), (LPVOID*)&m_addin);
 
 		if (GetVisioVersion() < 14)
@@ -76,8 +78,6 @@ struct CVisioConnect::Impl
 		evt_idle.Advise(evt_list, visEvtApp|visEvtNonePending, this);
 		evt_win_activated.Advise(evt_list, visEvtApp|visEvtWinActivate, this);
 		evt_keystroke.Advise(evt_list, visEvtCodeWinOnAddonKeyMSG, this);
-
-		theApp.SetVisioApp(app);
 	}
 
 	/**------------------------------------------------------------------------

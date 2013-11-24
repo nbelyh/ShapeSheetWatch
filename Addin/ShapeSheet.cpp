@@ -488,12 +488,16 @@ void AddNameMatchResult(const CString& mask, CString name,
 	Strings masks;
 	SplitList(mask, L",", masks);
 
+	CString lcase_name = name;
+	lcase_name.MakeLower();
+
 	for (Strings::const_iterator it = masks.begin(); it != masks.end(); ++it)
 	{
 		CString mask = *it;
 		mask.Trim();
+		mask.MakeLower();
 
-		if (StringIsLike(mask, name))
+		if (StringIsLike(mask, lcase_name))
 		{
 			SRC src;
 

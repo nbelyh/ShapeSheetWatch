@@ -13,8 +13,6 @@
 #include "ShapeSheetGridCtrl.h"
 #include "lib/HTMLayoutCtrl/HTMLayoutCtrl.h"
 
-#include "lib/atlrx.h"
-
 /**-----------------------------------------------------------------------------
 	Message map
 ------------------------------------------------------------------------------*/
@@ -174,9 +172,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		CHTMLayoutCtrl* html = GetHtmlControl();
 		if (html)
-		{
-			html->SetElementText("shape-caption", shape->Name);
-		}
+			html->SetElementText("shape-caption", shape ? shape->Name : bstr_t());
 
 		m_shape = shape;
 	}
@@ -264,11 +260,12 @@ struct CShapeSheetGridCtrl::Impl
 		IVCellPtr cell = 
 			m_shape->GetCellsSRC(src.s, src.r, src.c);
 
-		IVCellPtr inherited_from_cell = 
-			cell->GetInheritedFormulaSource();
-
-		if (cell == inherited_from_cell)
-			m_this->SetItemFgColour(row, col, RGB(0,0,255));
+		IVCellPtr inherited_from_cell;
+		if (SUCCEEDED(cell->get_InheritedFormulaSource(&inherited_from_cell)))
+		{
+			if (cell == inherited_from_cell)
+				m_this->SetItemFgColour(row, col, RGB(0,0,255));
+		}
 
 		m_this->SetItemText(row, col, GetCellValue(cell, col));
 	}
