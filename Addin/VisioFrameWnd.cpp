@@ -36,14 +36,30 @@ CString GetHtmlFilePath(LPCWSTR file_name)
 	WCHAR path[MAX_PATH] = L"";
 	DWORD path_len = MAX_PATH;
 
-	if (0 == SHRegGetUSValue(L"Software\\Microsoft\\Visio\\Addins\\ShapeSheetWatchAddin.VisioConnect", L"InstallPath", 
+	if (0 != SHRegGetUSValue(L"Software\\Microsoft\\Visio\\Addins\\ShapeSheetWatchAddin.VisioConnect", L"InstallPath", 
 		NULL, path, &path_len, FALSE, NULL, 0))
 	{
+
+#ifdef DEBUG
+		GetModuleFileName(AfxGetInstanceHandle(), path, MAX_PATH);
+		PathRemoveFileSpec(path);
 		PathAddBackslash(path);
-		PathAppend(path, L"html");
+		PathAppend(path, L"..");
 		PathAddBackslash(path);
-		PathAppend(path, file_name);
+		PathAppend(path, L"..");
+		PathAddBackslash(path);
+		PathAppend(path, L"Data");
+#else
+		GetModuleFileName(AfxGetInstanceHandle(), path, MAX_PATH);
+		PathRemoveFileSpec(path);
+#endif
+
 	}
+
+	PathAddBackslash(path);
+	PathAppend(path, L"html");
+	PathAddBackslash(path);
+	PathAppend(path, file_name);
 
 	return path;
 }

@@ -1,3 +1,26 @@
+HKCU
+{
+	NoRemove Software
+	{
+		NoRemove Microsoft
+		{
+			NoRemove Visio
+			{
+				NoRemove Addins
+				{
+					ForceRemove ShapeSheetWatchAddin.VisioConnect
+					{
+						val CommandLineSafe = d '0'
+						val Description = s 'ShapeSheetWatchAddin.VisioConnect'
+						val FriendlyName = s 'Shape Sheet Watch'
+						val LoadBehavior = d '3'
+					}
+				}
+			}
+		}
+	}
+}
+
 HKCR
 {
 	ShapeSheetWatchAddin.VisioConnect.1 = s 'VisioConnect Class'

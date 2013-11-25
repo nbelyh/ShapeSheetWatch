@@ -466,11 +466,12 @@ const SSInfos& GetSectionInfo(short section)
 		{
 			for (size_t i = 0; i < _countof(ss_global); ++i)
 			{
-				ss_global[i].index = i;
+				SSInfo& ss_global_item = ss_global[i];
+				
+				ss_global_item.index = i;
 
-				if (ss_global->visio_version <= GetVisioVersion())
-
-				index[ss_global[i].s].push_back(ss_global[i]);
+				if (ss_global_item.visio_version <= GetVisioVersion())
+					index[ss_global_item.s].push_back(ss_global_item);
 			}
 		}
 	};
@@ -656,6 +657,9 @@ void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vecto
 	const SSInfos& ss_info = GetSectionInfo(visSectionObject);
 	for (size_t i = 0; i < ss_info.size(); ++i)
 	{
+		if (!shape->GetRowExists(visSectionObject, ss_info[i].r, VARIANT_FALSE))
+			continue;
+
 		CString name = ss_info[i].name;
 
 		AddNameMatchResult(mask, name, 
