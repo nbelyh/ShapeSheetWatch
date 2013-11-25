@@ -42,3 +42,8 @@ private:
 };
 
 HRESULT GetRibbonText(BSTR * RibbonXml);
+
+
+// Handy functions
+#define IsSHIFTpressed() ( (GetKeyState(VK_SHIFT) & (1 << (sizeof(SHORT)*8-1))) != 0   )
+#define IsCTRLpressed()  ( (GetKeyState(VK_CONTROL) & (1 << (sizeof(SHORT)*8-1))) != 0 )

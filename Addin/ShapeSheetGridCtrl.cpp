@@ -574,13 +574,19 @@ struct CShapeSheetGridCtrl::Impl
 
 	BOOL OnEditFormula(int iRow, int iColumn)
 	{
+		VisioScopeLock lock(theApp.GetVisioApp(), L"Edit Formula");
+
 		if (iRow >= m_this->GetRowCount() - 1)
 			return FALSE;
 
 		bstr_t text = 
 			m_this->GetItemText(iRow, iColumn);
 
-		return SetFormula(iRow, iColumn, text);
+		if (!SetFormula(iRow, iColumn, text))
+			return FALSE;
+
+		lock.Commit();
+		return TRUE;
 	}
 
 	/**------------------------------------------------------------------------

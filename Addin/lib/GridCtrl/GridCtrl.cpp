@@ -122,6 +122,8 @@
 #include "GridCtrl.h"
 #include <algorithm>
 
+#include "lib/UI.h"
+
 // OLE stuff for clipboard operations
 #include <afxadv.h>            // For CSharedFile
 #include <afxconv.h>           // For LPTSTR -> LPSTR macros
