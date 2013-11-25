@@ -12,6 +12,8 @@
 #include "ShapeSheetGridCtrl.h"
 #include "Addin.h"
 
+#define WINDOW_CAPTION		L"Shape Sheet Watch"
+
 /**-----------------------------------------------------------------------------
 	Message map
 ------------------------------------------------------------------------------*/
@@ -50,26 +52,24 @@ void CVisioFrameWnd::Create(IVWindowPtr window)
 {
 	m_window = window;
 
-	HWND hwnd_parent = 
-		::GetParent(GetVisioWindowHandle(window));
+	long l = 0, t = 0, w = 400, h = 300;
+	theApp.GetViewSettings()->GetWindowRect(l, t, w, h);
 
-	CWnd* parent_window = 
-		CWnd::FromHandle(hwnd_parent);
+	long state = theApp.GetViewSettings()->GetWindowState();
 
 	// Construct Visio window. Make this window size a half of Visio's size
-	IVWindowPtr this_window = window->GetWindows()->Add(
-		bstr_t(L"Shape Sheet Watch"), 
-		static_cast<long>(visWSVisible | visWSAnchorTop | visWSAnchorRight), 
-		static_cast<long>(visAnchorBarAddon), 
-		0L, 0L, 400L, 300L,
+	m_this_window = window->GetWindows()->Add(
+		bstr_t(WINDOW_CAPTION), 
+		state, static_cast<long>(visAnchorBarAddon), 
+		l, t, w, h,
 		vtMissing, vtMissing, vtMissing);
 
-	HWND client = GetVisioWindowHandle(this_window);
+	HWND client = GetVisioWindowHandle(m_this_window);
 	SubclassWindow(client);
 
- 	CRect rect;
- 	GetClientRect(rect);
-	m_html.Create(rect, this, 1, WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN);
+	CRect client_rect;
+ 	GetClientRect(client_rect);
+	m_html.Create(client_rect, this, 1, WS_CHILD|WS_VISIBLE|WS_CLIPCHILDREN);
 
 	CString index_html = GetHtmlFilePath(L"test.htm");
 	m_html.LoadHtmlFile(index_html);
@@ -104,9 +104,44 @@ BOOL CVisioFrameWnd::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 	Called when window size is changed.
 ------------------------------------------------------------------------------*/
 
+struct UpdateWindowSize : VisioIdleTask
+{
+	UpdateWindowSize(IVWindowPtr this_window)
+		: m_this_window(this_window)
+	{
+	}
+
+	virtual bool Execute()
+	{
+		long l = 0, t = 0, w = 400, h = 300;
+		if (SUCCEEDED(m_this_window->raw_GetWindowRect(&l, &t, &w, &h)))
+			theApp.GetViewSettings()->SetWindowRect(l, t, w, h);
+
+		long state = (visWSVisible | visWSAnchorTop | visWSAnchorRight);
+		if (SUCCEEDED(m_this_window->get_WindowState(&state)))
+			theApp.GetViewSettings()->SetWindowState(state);
+
+		return true;
+	}
+
+	virtual bool Equals(VisioIdleTask* otehr) const
+	{
+		UpdateWindowSize* other_task = dynamic_cast<UpdateWindowSize*>(otehr);
+		if (other_task)
+			return m_this_window->ID == other_task->m_this_window->ID;
+		else
+			return false;
+	}
+
+	IVWindowPtr m_this_window;
+};
+
+
 void CVisioFrameWnd::OnSize(UINT nType, int cx, int cy)
 {
 	m_html.MoveWindow(0, 0, cx, cy);
+
+	theApp.AddVisioIdleTask(new UpdateWindowSize(m_this_window));
 }
 
 /**-----------------------------------------------------------------------------

@@ -18,8 +18,7 @@
 -------------------------------------------------------------------------*/
 
 struct CVisioConnect::Impl 
-	: public VisioIdleTaskProcessor
-	, public VEventHandler
+	: public VEventHandler
 {
 	AddinUi m_ui;
 
@@ -37,8 +36,8 @@ struct CVisioConnect::Impl
 
 		switch(nEventCode) 
 		{
-		case (short)(visEvtApp|visEvtNonePending):
-			OnVisioIdle();
+		case (short)(visEvtApp|visEvtIdle):
+			theApp.ProcessIdleTasks();
 			break;
 
 		case (short)(visEvtApp|visEvtWinActivate):
@@ -75,7 +74,7 @@ struct CVisioConnect::Impl
 		IVEventListPtr evt_list = 
 			app->EventList;
 
-		evt_idle.Advise(evt_list, visEvtApp|visEvtNonePending, this);
+		evt_idle.Advise(evt_list, visEvtApp|visEvtIdle, this);
 		evt_win_activated.Advise(evt_list, visEvtApp|visEvtWinActivate, this);
 		evt_keystroke.Advise(evt_list, visEvtCodeWinOnAddonKeyMSG, this);
 	}
@@ -179,32 +178,6 @@ struct CVisioConnect::Impl
 	CVisioEvent	 evt_idle;
 	CVisioEvent	 evt_win_activated;
 	CVisioEvent	 evt_keystroke;
-
-	CSimpleArray<VisioIdleTask*> idle_tasks;
-
-	void AddVisioIdleTask(VisioIdleTask* task)
-	{
-		idle_tasks.Add(task);
-	}
-
-	void OnVisioIdle()
-	{
-		long idx = 0;
-		while (idx < idle_tasks.GetSize())
-		{
-			VisioIdleTask* task = idle_tasks[idx];
-
-			if (task->Execute())
-			{
-				idle_tasks.RemoveAt(idx);
-				delete task;
-			}
-			else
-			{
-				++idx;
-			} 
-		}
-	}
 
 	void OnWindowActivated()
 	{

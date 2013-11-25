@@ -162,3 +162,39 @@ int GetVisioVersion()
 
 	return result;
 }
+
+void CAddinApp::AddVisioIdleTask(VisioIdleTask* new_task)
+{
+	long idx = 0;
+	while (idx < m_idle_tasks.GetSize())
+	{
+		VisioIdleTask* task = m_idle_tasks[idx];
+
+		if (new_task->Equals(task))
+		{
+			delete new_task;
+			return;
+		}
+	}
+
+	m_idle_tasks.Add(new_task);
+}
+
+void CAddinApp::ProcessIdleTasks()
+{
+	long idx = 0;
+	while (idx < m_idle_tasks.GetSize())
+	{
+		VisioIdleTask* task = m_idle_tasks[idx];
+
+		if (task->Execute())
+		{
+			m_idle_tasks.RemoveAt(idx);
+			delete task;
+		}
+		else
+		{
+			++idx;
+		} 
+	}
+}

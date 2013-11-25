@@ -100,7 +100,7 @@ void GetTagSet(Strings* result)
 void UninstallControls(Office::_CommandBarsPtr cbs, LPCWSTR tag)
 {
 	Office::CommandBarControlsPtr old_controls;
-	if (SUCCEEDED(cbs->FindControls(vtMissing, vtMissing, variant_t(tag), vtMissing, &old_controls)))
+	if (SUCCEEDED(cbs->FindControls(vtMissing, vtMissing, variant_t(tag), vtMissing, &old_controls)) && old_controls != NULL)
 	{
 		int count = 0;
 		old_controls->get_Count(&count);

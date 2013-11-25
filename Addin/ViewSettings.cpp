@@ -111,10 +111,42 @@ ViewSettings::ViewSettings()
 	: m_column_widths(Column_Count, 50)
 	, m_column_visible(Column_Count, true)
 {
+	m_window_top = 0;
+	m_window_left = 0;
+	m_window_height = 300;
+	m_window_width = 400;
+
+	m_window_state = (visWSAnchorTop | visWSAnchorRight);
 }
 
 ViewSettings::~ViewSettings()
 {
+}
+
+LONG ViewSettings::GetWindowState() const
+{
+	return m_window_state | visWSVisible;
+}
+
+void ViewSettings::SetWindowState( LONG state )
+{
+	m_window_state = state;
+}
+
+void ViewSettings::GetWindowRect(long& l, long& t, long& w, long& h) const
+{
+	l = m_window_left;
+	t = m_window_top;
+	w = m_window_width;
+	h = m_window_height;
+}
+
+void ViewSettings::SetWindowRect(long l, long t, long w, long h)
+{
+	m_window_left = l;
+	m_window_top = t;
+	m_window_width = w;
+	m_window_height = h;
 }
 
 CString GetColumnName(int i)

@@ -38,12 +38,25 @@ public:
 	void SetColumnVisible(int column, bool visible);
 	bool IsColumnVisible(int column) const;
 
+	void GetWindowRect(long& l, long& t, long& w, long& h) const;
+	void SetWindowRect(long l, long t, long w, long h);
+
+	LONG GetWindowState() const;
+	void SetWindowState(LONG state);
+
 	void Save();
 	void Load();
 
 private:
 	std::vector<bool> m_column_visible;
 	std::vector<int> m_column_widths;
+
+	long m_window_top;
+	long m_window_left;
+	long m_window_width;
+	long m_window_height;
+
+	long m_window_state;
 
 	Strings m_cell_name_masks;
 };

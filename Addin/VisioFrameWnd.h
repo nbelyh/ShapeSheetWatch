@@ -34,5 +34,6 @@ protected:
 	void SetChecks();
 
 	IVWindowPtr m_window;
+	IVWindowPtr m_this_window;
 	CHTMLayoutCtrl m_html;
 };
