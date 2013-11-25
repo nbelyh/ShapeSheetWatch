@@ -13,8 +13,8 @@
 _ATL_FUNC_INFO ClickEventInfo = { CC_STDCALL, VT_EMPTY, 2, { VT_DISPATCH, VT_BOOL|VT_BYREF } };
 
 
-ClickEventRedirector::ClickEventRedirector(IUnknownPtr punk) 
-	: m_punk(punk)
+ClickEventRedirector::ClickEventRedirector(IUnknownPtr punk, const CString& tag) 
+	: m_punk(punk), m_tag(tag)
 {
 	DispEventAdvise(punk);
 }
@@ -24,6 +24,15 @@ ClickEventRedirector::~ClickEventRedirector()
 	DispEventUnadvise(m_punk);
 }
 
+UINT GetCommandId(Office::_CommandBarButtonPtr button)
+{
+	CComBSTR parameter;
+	if (SUCCEEDED(button->get_Parameter(&parameter)))
+		return StrToInt(parameter);
+	else
+		return -1;
+}
+
 void __stdcall ClickEventRedirector::OnClick(IDispatch* pButton, VARIANT_BOOL* pCancel)
 {
 	try
@@ -31,13 +40,7 @@ void __stdcall ClickEventRedirector::OnClick(IDispatch* pButton, VARIANT_BOOL* p
 		Office::_CommandBarButtonPtr button;
 		pButton->QueryInterface(__uuidof(Office::_CommandBarButton), (void**)&button);
 
-		CComBSTR parameter;
-		button->get_Parameter(&parameter);
-
-		UINT cmd_id = StrToInt(parameter);
-
-		if (cmd_id > 0)
-			theApp.OnCommand(cmd_id);
+		theApp.OnCommand(GetCommandId(button));
 
 	}
 	catch (_com_error)
@@ -130,12 +133,12 @@ void AddinUi::InitializeItem( Office::CommandBarControlPtr item, UINT command_id
 	caption.LoadString(command_id);
 	item->put_Caption(bstr_t(caption));
 
-	CString parameter;
-	parameter.Format(L"%d", command_id);
+	CString parameter = FormatString(L"%d", command_id);
 	item->put_Parameter(bstr_t(parameter));
 
 	// Set unique tag, so that the command is not lost
-	item->put_Tag(bstr_t(GetCommandTag(command_id)));
+	CString tag = GetCommandTag(command_id);
+	item->put_Tag(bstr_t(tag));
 
 	CBitmap bm_picture;
 	// if we are command button
@@ -161,10 +164,45 @@ void AddinUi::InitializeItem( Office::CommandBarControlPtr item, UINT command_id
 		}
 	}
 
-	m_buttons.Add(new ClickEventRedirector(item));
+	UpdateItem(item);
+
+	m_buttons.Add(new ClickEventRedirector(item, tag));
 }
 
-void AddinUi::FillMenuItems( long position, Office::CommandBarControlsPtr menu_items, CMenu* popup_menu )
+void AddinUi::UpdateItem(Office::_CommandBarButtonPtr button)
+{
+	UINT id = GetCommandId(button);
+
+	CComBSTR tag;
+	button->get_Tag(&tag);
+
+	VARIANT_BOOL new_visible = theApp.IsCommandVisible(id) ? VARIANT_TRUE : VARIANT_FALSE;
+
+	VARIANT_BOOL old_visible = new_visible;
+	button->get_Visible(&old_visible);
+
+	if (old_visible != new_visible)
+		button->put_Visible(new_visible);
+
+	VARIANT_BOOL new_enabled = theApp.IsCommandEnabled(id) ? VARIANT_TRUE : VARIANT_FALSE;
+
+	VARIANT_BOOL old_enabled = new_enabled;
+	button->get_Enabled(&old_enabled);
+
+	if (old_enabled != new_enabled)
+		button->put_Enabled(new_enabled);
+
+	Office::MsoButtonState new_state = 
+		theApp.IsCommandChecked(id) ? Office::msoButtonDown : Office::msoButtonUp;
+
+	Office::MsoButtonState old_state = new_state;
+	button->get_State(&old_state);
+
+	if (old_state != new_state)
+		button->put_State(new_state);
+}
+
+void AddinUi::FillMenuItems( long position, Office::CommandBarControlsPtr menu_items, CMenu* popup_menu)
 {
 	// For each items in the menu,
 	bool begin_group = false;
@@ -222,7 +260,7 @@ void AddinUi::FillMenuItems( long position, Office::CommandBarControlsPtr menu_i
 	}
 }
 
-void AddinUi::FillMenu( long position, Office::CommandBarControlsPtr cbs, UINT menu_id )
+void AddinUi::FillMenu(long position, Office::CommandBarControlsPtr cbs, UINT menu_id)
 {
 	CMenu menu;
 	menu.LoadMenu(menu_id);
@@ -255,6 +293,38 @@ void AddinUi::CreateCommandBarsUI(IVApplicationPtr app)
 	frame_toolbar->get_Controls(&controls);
 
 	FillMenu(-1, controls, IDR_MENU);
+}
+
+void AddinUi::UpdateCommandBarsUI()
+{
+	Office::_CommandBarsPtr cbs = theApp.GetVisioApp()->GetCommandBars();
+
+	Strings tag_set;
+	GetTagSet(&tag_set);
+
+	for (Strings::const_iterator it = tag_set.begin(); it != tag_set.end(); ++it)
+	{
+		CString tag = (*it);
+
+		Office::CommandBarControlsPtr controls;
+		if (SUCCEEDED(cbs->FindControls(vtMissing, vtMissing, variant_t(tag), vtMissing, &controls)) && controls != NULL)
+		{
+			int count = 0;
+			controls->get_Count(&count);
+
+			for (long i = count; i > 0; --i)
+			{
+				Office::CommandBarControlPtr control;
+				if (SUCCEEDED(controls->get_Item(variant_t(i), &control)))
+				{
+					Office::_CommandBarButtonPtr button = control;
+
+					if (button)
+						UpdateItem(button);
+				}
+			}
+		}
+	}
 }
 
 void AddinUi::DestroyCommandBarsUI()

@@ -13,12 +13,29 @@
 
 #include "VisioConnect.h"
 
+namespace {
+
+	UINT GetControlCommand(IDispatch* pControl)
+	{
+		IRibbonControlPtr control;
+		pControl->QueryInterface(__uuidof(IRibbonControl), (void**)&control);
+
+		CComBSTR tag;
+		if (FAILED(control->get_Tag(&tag)))
+			return S_OK;
+
+		return StrToInt(tag);
+	}
+
+}
+
 /**------------------------------------------------------------------------
 	
 -------------------------------------------------------------------------*/
 
 struct CVisioConnect::Impl 
 	: public VEventHandler
+	, IAddinUI
 {
 	AddinUi m_ui;
 
@@ -44,6 +61,14 @@ struct CVisioConnect::Impl
 			OnWindowActivated();
 			break;
 
+		case (short)(visEvtWindow|visEvtDel):
+			OnWindowClosed(pSubjectObj);
+			break;
+
+		case (short)(visEvtWindow|visEvtAdd):
+			OnWindowOpened(pSubjectObj);
+			break;
+
 		case (short)(visEvtCodeWinOnAddonKeyMSG):
 			return OnKeystroke(pSubjectObj, pvResult);
 			break;
@@ -65,6 +90,7 @@ struct CVisioConnect::Impl
 		pApplication->QueryInterface(__uuidof(IDispatch), (LPVOID*)&app);
 
 		theApp.SetVisioApp(app);
+		theApp.SetUI(this);
 
 		pAddInInst->QueryInterface(__uuidof(IDispatch), (LPVOID*)&m_addin);
 
@@ -76,7 +102,11 @@ struct CVisioConnect::Impl
 
 		evt_idle.Advise(evt_list, visEvtApp|visEvtIdle, this);
 		evt_win_activated.Advise(evt_list, visEvtApp|visEvtWinActivate, this);
+		evt_win_opened.Advise(evt_list, visEvtWindow|visEvtAdd, this);
+		evt_win_closed.Advise(evt_list, visEvtWindow|visEvtDel, this);
 		evt_keystroke.Advise(evt_list, visEvtCodeWinOnAddonKeyMSG, this);
+
+		theApp.UpdateVisioUI();
 	}
 
 	/**------------------------------------------------------------------------
@@ -89,27 +119,12 @@ struct CVisioConnect::Impl
 
 		evt_idle.Unadvise();
 		evt_win_activated.Unadvise();
+		evt_win_opened.Unadvise();
+		evt_win_closed.Unadvise();
 		evt_keystroke.Unadvise();
 
 		theApp.SetVisioApp(NULL);
-		m_ribbon = NULL;
 		m_addin = NULL;
-	}
-
-	/**------------------------------------------------------------------------
-		
-	-------------------------------------------------------------------------*/
-
-	UINT GetControlCommand(IDispatch* pControl)
-	{
-		IRibbonControlPtr control;
-		pControl->QueryInterface(__uuidof(IRibbonControl), (void**)&control);
-
-		CComBSTR tag;
-		if (FAILED(control->get_Tag(&tag)))
-			return S_OK;
-
-		return StrToInt(tag);
 	}
 
 	/**------------------------------------------------------------------------
@@ -122,34 +137,6 @@ struct CVisioConnect::Impl
 
 		if (cmd_id > 0)
 			theApp.OnCommand(cmd_id);
-	}
-
-	/**------------------------------------------------------------------------
-		
-	-------------------------------------------------------------------------*/
-
-	VARIANT_BOOL IsRibbonButtonVisible(IDispatch * pControl)
-	{
-		return VARIANT_TRUE;
-	}
-
-	/**------------------------------------------------------------------------
-		
-	-------------------------------------------------------------------------*/
-
-	VARIANT_BOOL IsRibbonButtonEnabled(IDispatch * pControl)
-	{
-		IVApplicationPtr app = theApp.GetVisioApp();
-
-		IVDocumentPtr doc;
-		if (FAILED(app->get_ActiveDocument(&doc)) || doc == NULL)
-			return VARIANT_FALSE;
-
-		VisDocumentTypes doc_type = visDocTypeInval;
-		if (FAILED(doc->get_Type(&doc_type)) || doc_type == visDocTypeInval)
-			return VARIANT_FALSE;
-
-		return VARIANT_TRUE;
 	}
 
 	/**------------------------------------------------------------------------
@@ -173,16 +160,34 @@ struct CVisioConnect::Impl
 	-------------------------------------------------------------------------*/
 
 	IDispatchPtr m_addin;
-	IRibbonUIPtr m_ribbon;
 
 	CVisioEvent	 evt_idle;
 	CVisioEvent	 evt_win_activated;
+	CVisioEvent  evt_win_opened;
+	CVisioEvent	 evt_win_closed;
 	CVisioEvent	 evt_keystroke;
+
+	void OnWindowOpened(IVWindowPtr wnd)
+	{
+		switch (wnd->Type)
+		{
+		case visTypeDrawing:
+		case visTypeTemplate:
+			if (theApp.IsCommandChecked(ID_ShowSheetWindow))
+				theApp.OnCommand(ID_ShowSheetWindow);
+			theApp.UpdateVisioUI();
+			break;
+		}
+	}
+
+	void OnWindowClosed(IVWindowPtr wnd)
+	{
+		theApp.UpdateVisioUI();
+	}
 
 	void OnWindowActivated()
 	{
-		if (m_ribbon)
-			m_ribbon->Invalidate();
+		theApp.UpdateVisioUI();
 	}
 
 	bool IsProcessedByAddon(WPARAM wp)
@@ -256,10 +261,15 @@ struct CVisioConnect::Impl
 		return S_OK;
 	}
 
-	void SetRibbon(IDispatch* disp)
+	virtual void Update()
 	{
-		m_ribbon = disp;
+		if (m_ribbon)
+			m_ribbon->Invalidate();
+		else
+			m_ui.UpdateCommandBarsUI();
 	}
+
+	Office::IRibbonUIPtr m_ribbon;
 };
 
 /**------------------------------------------------------------------------
@@ -365,8 +375,7 @@ STDMETHODIMP CVisioConnect::OnRibbonLoad(IDispatch* disp)
 {
 	ENTER_METHOD();
 
-	m_impl->SetRibbon(disp);
-	return S_OK;
+	return disp->QueryInterface(__uuidof(Office::IRibbonUI), (void**)&m_impl->m_ribbon);
 
 	LEAVE_METHOD();
 }
@@ -392,7 +401,7 @@ STDMETHODIMP CVisioConnect::IsRibbonButtonEnabled(IDispatch * RibbonControl, VAR
 {
 	ENTER_METHOD();
 
-	*pResult = m_impl->IsRibbonButtonEnabled(RibbonControl);
+	*pResult = theApp.IsCommandEnabled(GetControlCommand(RibbonControl));
 	return S_OK;
 
 	LEAVE_METHOD();
@@ -429,11 +438,41 @@ STDMETHODIMP CVisioConnect::IsRibbonButtonVisible(IDispatch * RibbonControl, VAR
 {
 	ENTER_METHOD();
 
-	*pResult = m_impl->IsRibbonButtonVisible(RibbonControl);
+	*pResult = theApp.IsCommandVisible(GetControlCommand(RibbonControl));
 	return S_OK;
 
 	LEAVE_METHOD();
 }
+
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
+
+STDMETHODIMP CVisioConnect::OnRibbonCheckboxClicked(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
+{
+	ENTER_METHOD();
+
+	theApp.OnCommand(GetControlCommand(RibbonControl));
+
+	return S_OK;
+
+	LEAVE_METHOD();
+}
+
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
+
+STDMETHODIMP CVisioConnect::IsRibbonButtonPressed(IDispatch * RibbonControl, VARIANT_BOOL* pResult)
+{
+	ENTER_METHOD();
+
+	*pResult = theApp.IsCommandChecked(GetControlCommand(RibbonControl));
+	return S_OK;
+
+	LEAVE_METHOD();
+}
+
 
 /**------------------------------------------------------------------------
 	

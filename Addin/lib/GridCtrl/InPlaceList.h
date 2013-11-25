@@ -180,4 +180,6 @@ protected:
 	afx_msg LRESULT OnAddString(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDeleteString(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnResetContent(WPARAM wParam, LPARAM lParam);
+
+	void UpdateText(const CString& text);
 };

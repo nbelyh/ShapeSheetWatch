@@ -50,10 +50,11 @@ public:
 
 	STDMETHOD(IsRibbonButtonEnabled)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
 	STDMETHOD(IsRibbonButtonVisible)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
+	STDMETHOD(OnRibbonCheckboxClicked)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
+	STDMETHOD(IsRibbonButtonPressed)(IDispatch * RibbonControl, VARIANT_BOOL* pResult);
 
 	STDMETHOD(GetRibbonLabel)(IDispatch *pControl, BSTR *pbstrLabel);
 	STDMETHOD(GetRibbonImage)(IDispatch *pControl, IPictureDisp ** ppdispImage);
-
 private:
 	struct Impl;
 	Impl* m_impl;

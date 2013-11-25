@@ -114,13 +114,23 @@ void CAddinApp::OnCommand(UINT id)
 
 			HWND hwnd = GetVisioWindowHandle(window);
 
-			CVisioFrameWnd* wnd = new CVisioFrameWnd();
-			wnd->Create(window);
+			CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);
+			if (wnd)
+			{
+				wnd->Destroy();
+				RegisterWindow(hwnd, NULL);
+			}
+			else
+			{
+				wnd = new CVisioFrameWnd();
+				wnd->Create(window);
+				RegisterWindow(hwnd, wnd);
+			}
 		}
 	}
 }
 
-IVApplicationPtr CAddinApp::GetVisioApp()
+IVApplicationPtr CAddinApp::GetVisioApp() const
 {
 	return m_app;
 }
@@ -196,5 +206,112 @@ void CAddinApp::ProcessIdleTasks()
 		{
 			++idx;
 		} 
+	}
+}
+
+CVisioFrameWnd* CAddinApp::GetWindowShapeSheet(HWND hwnd) const
+{
+	int idx = m_shown_windows.FindKey(hwnd);
+
+	if (idx < 0)
+		return NULL;
+	return
+		m_shown_windows.GetValueAt(idx);
+}
+
+void CAddinApp::RegisterWindow(HWND hwnd, CVisioFrameWnd* window)
+{
+	if (window)
+		m_shown_windows.Add(hwnd, window);
+	else
+		m_shown_windows.Remove(hwnd);
+
+	UpdateVisioUI();
+}
+
+IAddinUI* CAddinApp::GetUI()
+{
+	return m_ui;
+}
+
+void CAddinApp::SetUI(IAddinUI* ui)
+{
+	m_ui = ui;
+}
+
+struct UpdateUITask : VisioIdleTask
+{
+	virtual bool Execute()
+	{
+		theApp.GetUI()->Update();
+		return true;
+	}
+
+	virtual bool Equals(VisioIdleTask* otehr) const
+	{
+		return dynamic_cast<UpdateUITask*>(otehr) != NULL;
+	}
+};
+
+void CAddinApp::UpdateVisioUI()
+{
+	AddVisioIdleTask(new UpdateUITask());
+}
+
+bool CAddinApp::IsCommandEnabled(UINT id) const
+{
+	switch (id)
+	{
+	case ID_ShowSheetWindow:
+		{
+			IVApplicationPtr app = GetVisioApp();
+
+			IVDocumentPtr doc;
+			if (FAILED(app->get_ActiveDocument(&doc)) || doc == NULL)
+				return false;
+
+			VisDocumentTypes doc_type = visDocTypeInval;
+			if (FAILED(doc->get_Type(&doc_type)) || doc_type == visDocTypeInval)
+				return false;
+
+			return true;
+		}
+
+	default:
+		return true;
+	}
+}
+
+bool CAddinApp::IsCommandVisible(UINT id) const
+{
+	switch (id)
+	{
+	case ID_ShowSheetWindow:
+		{
+			return true;
+		}
+
+	default:
+		return true;
+	}
+}
+
+bool CAddinApp::IsCommandChecked(UINT id) const
+{
+	switch (id)
+	{
+	case ID_ShowSheetWindow:
+		{
+			IVApplicationPtr app = GetVisioApp();
+
+			IVWindowPtr window;
+			if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
+				return VARIANT_FALSE;
+
+			return GetWindowShapeSheet(GetVisioWindowHandle(window)) != NULL;
+		}
+
+	default:
+		return false;
 	}
 }

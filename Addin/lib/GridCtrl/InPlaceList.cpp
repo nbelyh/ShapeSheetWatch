@@ -458,7 +458,7 @@ BOOL CInPlaceList::OnKillfocus()
 	}
 	if(CB_ERR != nIndex && nIndex < GetCount())
 		GetLBText(nIndex, m_sTypedText);
-	SetWindowText(m_sTypedText);
+	UpdateText(m_sTypedText);
 
 	return Default();
 }
@@ -474,7 +474,7 @@ BOOL CInPlaceList::OnSelchange()
 	if(nIndex >= 0 && nIndex < GetCount())
 	{
 		GetLBText(nIndex, m_sTypedText);
-		SetWindowText(m_sTypedText);
+		UpdateText(m_sTypedText);
 	}
 
 	return Default();
@@ -523,7 +523,7 @@ BOOL CInPlaceList::OnEditchange()
 		FitDropDownToItems();
 	}
 
-	SetWindowText(m_sTypedText);
+	UpdateText(m_sTypedText);
 	SetEditSel(wStart,wEnd);
 
 	m_bEdit = FALSE;
@@ -652,6 +652,17 @@ DWORD CInPlaceList::GetItemData(int nIndex) const
 		dwItemData = pData->m_dwItemData;
 
 	return dwItemData;
+}
+
+void CInPlaceList::UpdateText(const CString& text)
+{
+	Strings strings;
+	SplitList(text, L"=", strings);
+
+	CString val = (strings.size() == 2)
+		? strings[0] : text;
+
+	SetWindowText(val);
 }
 
 IMPLEMENT_DYNAMIC(CInPlaceList, CComboBox)

@@ -21,13 +21,24 @@ struct VisioIdleTask
 	virtual bool Equals(VisioIdleTask* otehr) const = 0;
 };
 
-class CAddinApp : public CWinApp
+class CVisioFrameWnd;
+
+struct IAddinUI
+{
+	virtual void Update() = 0;
+};
+
+class CAddinApp 
+	: public CWinApp
 {
 public:
 	void OnCommand(UINT id);
 
-	IVApplicationPtr GetVisioApp();
+	IVApplicationPtr GetVisioApp() const;
 	void SetVisioApp(IVApplicationPtr app);
+
+	IAddinUI* GetUI();
+	void SetUI(IAddinUI* ui);
 
 	virtual BOOL InitInstance();
 	virtual int ExitInstance();
@@ -41,7 +52,18 @@ public:
 
 	void AddVisioIdleTask(VisioIdleTask* task);
 	void ProcessIdleTasks();
+
+	CVisioFrameWnd* GetWindowShapeSheet(HWND hwnd) const;
+	void RegisterWindow(HWND hwnd, CVisioFrameWnd* window);
+	void UpdateVisioUI();
+
+	virtual bool IsCommandEnabled(UINT id) const;
+	virtual bool IsCommandVisible(UINT id) const;
+	virtual bool IsCommandChecked(UINT id) const;
+
 private:
+	CSimpleMap<HWND, CVisioFrameWnd*> m_shown_windows;
+
 	typedef std::set<IView*> Views;
 	Views m_views;
 
@@ -50,6 +72,7 @@ private:
 	mutable ViewSettings m_view_settings;
 
 	IVApplicationPtr m_app;
+	IAddinUI* m_ui;
 };
 
 extern CAddinApp theApp;

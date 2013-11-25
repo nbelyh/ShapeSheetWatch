@@ -104,6 +104,7 @@ void CVisioFrameWnd::Destroy()
 
 void CVisioFrameWnd::PostNcDestroy()
 {
+	theApp.RegisterWindow(GetVisioWindowHandle(m_window), NULL);
 	delete this;
 }
 
