@@ -8,6 +8,7 @@
 #include "AddIn_i.c"
 
 #include "lib/Visio.h"
+#include "VisioConnect.h"
 #include "VisioFrameWnd.h"
 
 CComModule _Module;
@@ -75,6 +76,7 @@ STDAPI DllInstall(BOOL bInstall, LPCWSTR pszCmdLine)
 }
 
 BEGIN_OBJECT_MAP(ObjectMap)
+	OBJECT_ENTRY(__uuidof(VisioConnect), CVisioConnect)
 END_OBJECT_MAP()
 
 BOOL CAddinApp::InitInstance()

@@ -61,4 +61,3 @@ private:
 
 };
 
-OBJECT_ENTRY_AUTO(__uuidof(VisioConnect), CVisioConnect)
