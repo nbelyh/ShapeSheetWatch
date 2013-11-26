@@ -9,6 +9,8 @@
 
 #include "lib/HTMLayoutCtrl/HTMLayoutCtrl.h"
 
+class CShapeSheetGridCtrl;
+
 class CVisioFrameWnd 
 	: public CWnd
 	, public IHTMLayoutControlManager
@@ -36,4 +38,7 @@ protected:
 	IVWindowPtr m_window;
 	IVWindowPtr m_this_window;
 	CHTMLayoutCtrl m_html;
+
+	typedef std::set<CShapeSheetGridCtrl*> Sheets;
+	Sheets m_sheets;
 };

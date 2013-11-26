@@ -121,6 +121,9 @@ struct CShapeSheetGridCtrl::Impl
 			UpdateGridColumns();
 			UpdateGridRows(true);
 			break;
+
+		case UpdateHint_Rows:
+			UpdateGridRows(true);
 		}
 	}
 

@@ -155,7 +155,7 @@ IDR_ADDIN               REGISTRY                "AddIn.rgs"
 STRINGTABLE 
 BEGIN
     ID_ShowSheetWindow      "ShapeSheet Watch"
-    IDS_TEST                "Test"
+	ID_AddWatch				"Add to ShapeSheet Watch"
 END
 
 #endif    // English (U.S.) resources

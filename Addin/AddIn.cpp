@@ -101,30 +101,45 @@ int CAddinApp::ExitInstance()
 
 bool CAddinApp::IsShapeSheetWatchWindowShown(IVWindowPtr window) const
 {
-	return GetWindowShapeSheet(GetVisioWindowHandle(window)) != NULL;
+	return GetWindowShapeSheet(window) != NULL;
 }
 
-void CAddinApp::ShowShapeSheetWatchWindow(IVWindowPtr window, bool show)
+CVisioFrameWnd* CAddinApp::ShowShapeSheetWatchWindow(IVWindowPtr window, bool show)
 {
-	bool shown = IsShapeSheetWatchWindowShown(window);
+	CVisioFrameWnd* wnd = GetWindowShapeSheet(window);
 
-	if (show == shown)
-		return;
+	if ((wnd != NULL) == show)
+		return wnd;
 
-	HWND hwnd = GetVisioWindowHandle(window);
-
-	CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);
 	if (wnd)
 	{
 		wnd->Destroy();
-		RegisterWindow(hwnd, NULL);
+		RegisterWindow(window, NULL);
+		return NULL;
 	}
 	else
 	{
 		wnd = new CVisioFrameWnd();
 		wnd->Create(window);
-		RegisterWindow(hwnd, wnd);
+		RegisterWindow(window, wnd);
+		return wnd;
 	}
+}
+
+IVWindowPtr FindDocumentWindow(IVCellPtr cell)
+{
+	long doc_id = cell->GetDocument()->GetID();
+
+	IVWindowsPtr windows = cell->Application->GetWindows();
+	for (short i = 1; i <= windows->GetCount(); ++i)
+	{
+		IVWindowPtr window = windows->GetItem(i);
+
+		if (window->GetDocument()->GetID() == doc_id)
+			return window;
+	}
+
+	return NULL;
 }
 
 void CAddinApp::OnCommand(UINT id)
@@ -133,12 +148,36 @@ void CAddinApp::OnCommand(UINT id)
 	{
 	case ID_ShowSheetWindow:
 		{
-			IVWindowPtr window = m_app->GetActiveWindow();
+			IVWindowPtr window = GetValidActiveWindow(visDrawing);
 
-			if (window == NULL)
+			if (!window)
 				return;
 
 			ShowShapeSheetWatchWindow(window, !IsShapeSheetWatchWindowShown(window));
+			break;
+		}
+
+	case ID_AddWatch:
+		{
+			IVWindowPtr sheet_window = GetValidActiveWindow(visSheet);
+
+			if (!sheet_window)
+				return;
+
+			IVCellPtr selected_cell = sheet_window->GetSelectedCell();
+			if (selected_cell)
+			{
+				IVWindowPtr window = FindDocumentWindow(selected_cell);
+
+				if (window)
+				{
+					CVisioFrameWnd* wnd = 
+						ShowShapeSheetWatchWindow(window, true);
+
+					GetViewSettings()->AddCellMask(selected_cell->Name);
+					UpdateViews(UpdateHint_Rows);
+				}
+			}
 		}
 	}
 }
@@ -226,8 +265,10 @@ void CAddinApp::ProcessIdleTasks()
 	}
 }
 
-CVisioFrameWnd* CAddinApp::GetWindowShapeSheet(HWND hwnd) const
+CVisioFrameWnd* CAddinApp::GetWindowShapeSheet(IVWindowPtr window) const
 {
+	HWND hwnd = GetVisioWindowHandle(window);
+
 	int idx = m_shown_windows.FindKey(hwnd);
 
 	if (idx < 0)
@@ -236,10 +277,12 @@ CVisioFrameWnd* CAddinApp::GetWindowShapeSheet(HWND hwnd) const
 		m_shown_windows.GetValueAt(idx);
 }
 
-void CAddinApp::RegisterWindow(HWND hwnd, CVisioFrameWnd* window)
+void CAddinApp::RegisterWindow(IVWindowPtr window, CVisioFrameWnd* sheet)
 {
-	if (window)
-		m_shown_windows.Add(hwnd, window);
+	HWND hwnd = GetVisioWindowHandle(window);
+
+	if (sheet)
+		m_shown_windows.Add(hwnd, sheet);
 	else
 		m_shown_windows.Remove(hwnd);
 
@@ -275,24 +318,30 @@ void CAddinApp::UpdateVisioUI()
 	AddVisioIdleTask(new UpdateUITask());
 }
 
+IVWindowPtr CAddinApp::GetValidActiveWindow(VisWinTypes expected_type) const
+{
+	IVApplicationPtr app = GetVisioApp();
+
+	IVWindowPtr window;
+	if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
+		return NULL;
+
+	short window_type = 0;
+	if (FAILED(window->get_Type(&window_type)) || window_type != expected_type)
+		return NULL;
+
+	return window;
+}
+
 bool CAddinApp::IsCommandEnabled(UINT id) const
 {
 	switch (id)
 	{
 	case ID_ShowSheetWindow:
-		{
-			IVApplicationPtr app = GetVisioApp();
+		return GetValidActiveWindow(visDrawing) != NULL;
 
-			IVDocumentPtr doc;
-			if (FAILED(app->get_ActiveDocument(&doc)) || doc == NULL)
-				return false;
-
-			VisDocumentTypes doc_type = visDocTypeInval;
-			if (FAILED(doc->get_Type(&doc_type)) || doc_type == visDocTypeInval)
-				return false;
-
-			return true;
-		}
+	case ID_AddWatch:
+		return GetValidActiveWindow(visSheet) != NULL;
 
 	default:
 		return true;
@@ -304,9 +353,10 @@ bool CAddinApp::IsCommandVisible(UINT id) const
 	switch (id)
 	{
 	case ID_ShowSheetWindow:
-		{
-			return true;
-		}
+		return true;
+
+	case ID_AddWatch:
+		return true;
 
 	default:
 		return true;
@@ -319,13 +369,17 @@ bool CAddinApp::IsCommandChecked(UINT id) const
 	{
 	case ID_ShowSheetWindow:
 		{
-			IVApplicationPtr app = GetVisioApp();
+			IVWindowPtr window = GetValidActiveWindow(visDrawing);
 
-			IVWindowPtr window;
-			if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
+			if (!window)
 				return VARIANT_FALSE;
 
 			return IsShapeSheetWatchWindowShown(window);
+		}
+
+	case ID_AddWatch:
+		{
+			return false;
 		}
 
 	default:

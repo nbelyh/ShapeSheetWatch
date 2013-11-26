@@ -6,6 +6,7 @@
 enum UpdateHint
 {
 	UpdateHint_Columns,
+	UpdateHint_Rows,
 
 	UpdateHint_Count
 };
@@ -53,8 +54,8 @@ public:
 	void AddVisioIdleTask(VisioIdleTask* task);
 	void ProcessIdleTasks();
 
-	CVisioFrameWnd* GetWindowShapeSheet(HWND hwnd) const;
-	void RegisterWindow(HWND hwnd, CVisioFrameWnd* window);
+	CVisioFrameWnd* GetWindowShapeSheet(IVWindowPtr window) const;
+	void RegisterWindow(IVWindowPtr hwnd, CVisioFrameWnd* window);
 	void UpdateVisioUI();
 
 	virtual bool IsCommandEnabled(UINT id) const;
@@ -62,9 +63,11 @@ public:
 	virtual bool IsCommandChecked(UINT id) const;
 
 	bool IsShapeSheetWatchWindowShown(IVWindowPtr window) const;
-	void ShowShapeSheetWatchWindow(IVWindowPtr window, bool show);
+	CVisioFrameWnd* ShowShapeSheetWatchWindow(IVWindowPtr window, bool show);
 
 private:
+	IVWindowPtr GetValidActiveWindow(VisWinTypes expected_type) const;
+
 	CSimpleMap<HWND, CVisioFrameWnd*> m_shown_windows;
 
 	typedef std::set<IView*> Views;

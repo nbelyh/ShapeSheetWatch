@@ -104,7 +104,7 @@ void CVisioFrameWnd::Destroy()
 
 void CVisioFrameWnd::PostNcDestroy()
 {
-	theApp.RegisterWindow(GetVisioWindowHandle(m_window), NULL);
+	theApp.RegisterWindow(m_window, NULL);
 	delete this;
 }
 
@@ -183,7 +183,10 @@ CWnd* CVisioFrameWnd::CreateControl(const CString& type)
 	CShapeSheetGridCtrl* pShapeSheetCtrl = new CShapeSheetGridCtrl();
 
 	if (pShapeSheetCtrl->Create(&m_html, 1, m_window))
+	{
+		m_sheets.insert(pShapeSheetCtrl);
 		return pShapeSheetCtrl;
+	}
 
 	return NULL;
 }
@@ -196,6 +199,9 @@ bool CVisioFrameWnd::DestroyControl(const CString& type, CWnd* wnd)
 	CShapeSheetGridCtrl* pShapeSheetCtrl = static_cast<CShapeSheetGridCtrl*>(wnd);
 
 	pShapeSheetCtrl->Destroy();
+
+	m_sheets.erase(pShapeSheetCtrl);
+
 	delete pShapeSheetCtrl;
 
 	return true;
