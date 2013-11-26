@@ -406,7 +406,7 @@ BOOL CInPlaceList::OnDropdown()
 	if(GetDroppedWidth() < dx)
 		SetDroppedWidth(dx);
 
-	return Default();
+	return Default() != 0;
 }
 
 void CInPlaceList::OnDestroy() 
@@ -460,7 +460,7 @@ BOOL CInPlaceList::OnKillfocus()
 		GetLBText(nIndex, m_sTypedText);
 	UpdateText(m_sTypedText);
 
-	return Default();
+	return Default() != 0;
 }
 
 BOOL CInPlaceList::OnSelchange() 
@@ -468,7 +468,7 @@ BOOL CInPlaceList::OnSelchange()
 	// TODO: Add your control notification handler code here
 
 	if(m_bEdit)
-		return Default();
+		return Default() != 0;
 
 	const int nIndex = GetCurSel();
 	if(nIndex >= 0 && nIndex < GetCount())
@@ -477,7 +477,7 @@ BOOL CInPlaceList::OnSelchange()
 		UpdateText(m_sTypedText);
 	}
 
-	return Default();
+	return Default() != 0;
 }
 
 BOOL CInPlaceList::OnEditchange() 
@@ -528,7 +528,7 @@ BOOL CInPlaceList::OnEditchange()
 
 	m_bEdit = FALSE;
 
-	return Default();
+	return Default() != 0;
 }
 
 BOOL CInPlaceList::OnCloseup() 
@@ -539,7 +539,7 @@ BOOL CInPlaceList::OnCloseup()
 	while(pos)
 		AddItem(m_PtrList.GetNext(pos));
 
-	return Default();
+	return Default() != 0;
 }
 
 LRESULT CInPlaceList::OnSetCurSel(WPARAM wParam, LPARAM lParam) 
@@ -593,7 +593,7 @@ int CInPlaceList::AddItem(CItemData* pData)
 	if(NULL == pData || TRUE == pData->m_bState)
 		return CB_ERR;
 
-	int nIndex = SendMessage(CB_ADDSTRING, (WPARAM)m_PtrList.Find(pData), (LPARAM)(LPCTSTR)pData->m_sItem);
+	int nIndex = (int)SendMessage(CB_ADDSTRING, (WPARAM)m_PtrList.Find(pData), (LPARAM)(LPCTSTR)pData->m_sItem);
 	if(CB_ERR == nIndex || CB_ERRSPACE == nIndex)
 		return nIndex;
 
@@ -617,7 +617,7 @@ int CInPlaceList::DeleteItem(CItemData* pData)
 	{
 		if(pData == (CItemData*)GetItemDataPtr(i))
 		{
-			nIndex = SendMessage(CB_DELETESTRING, (WPARAM)i, (LPARAM)m_PtrList.Find(pData));
+			nIndex = (int)SendMessage(CB_DELETESTRING, (WPARAM)i, (LPARAM)m_PtrList.Find(pData));
 			break;
 		}
 	}

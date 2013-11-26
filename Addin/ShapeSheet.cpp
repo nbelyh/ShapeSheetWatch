@@ -483,7 +483,7 @@ const SSInfos& GetSectionInfo(short section)
 
 void AddNameMatchResult(const CString& mask, CString name, 
 						short s, short r, short c, 
-						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name, int index,
+						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name, size_t index,
 						std::vector<SRC> &result)
 {
 	Strings masks;
@@ -693,7 +693,7 @@ void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<S
 	GetSimpleSectionCellNames(shape, cell_name_mask, result);
 }
 
-const SSInfo& GetSSInfo(int index)
+const SSInfo& GetSSInfo(size_t index)
 {
 	if (0 <= index && index <= _countof(ss_global))
 		return ss_global[index];

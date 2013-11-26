@@ -315,9 +315,9 @@ struct CShapeSheetGridCtrl::Impl
 
 		struct CellKey
 		{
-			int s;
-			int r;
-			int c;
+			LPARAM s;
+			LPARAM r;
+			LPARAM c;
 
 			int col;
 			CString mask;
@@ -642,7 +642,7 @@ struct CShapeSheetGridCtrl::Impl
 
 			if (arrOptions)
 			{
-				int index = m_this->GetItemData(iRow, Column_Name);
+				LPARAM index = m_this->GetItemData(iRow, Column_Name);
 
 				const SSInfo& ss_info = GetSSInfo(index);
 

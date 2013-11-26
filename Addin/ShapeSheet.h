@@ -22,10 +22,10 @@ namespace shapesheet {
 		LPCWSTR name;	// full name "mask" with placeholders for variable rows/cells
 		LPCWSTR values;	// possible set of values for the cell (value list, semicolon separated)
 
-		int index;
+		size_t index;
 	};
 
-	const SSInfo& GetSSInfo(int index);
+	const SSInfo& GetSSInfo(size_t index);
 
 	struct SRC
 	{
@@ -41,7 +41,7 @@ namespace shapesheet {
 		short c;
 		CString c_name;
 
-		int index;
+		size_t index;
 	};
 
 	void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result);
