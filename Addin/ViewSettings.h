@@ -1,4 +1,6 @@
 
+#define ADDIN_KEY	L"Software\\UnmanagedVisio\\ShapeSheetWatch"
+
 enum Column 
 {
 	Column_Mask,

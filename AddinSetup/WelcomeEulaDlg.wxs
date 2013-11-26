@@ -16,7 +16,7 @@
       <Dialog Id="SimpleWelcomeEulaDlg" Width="370" Height="270" Title="!(loc.WelcomeEulaDlg_Title)">
         <Control Id="LicenseAcceptedCheckBox" Type="CheckBox" X="11" Y="207" Width="344" Height="18" CheckBoxValue="1" Property="LicenseAccepted" Text="!(loc.WelcomeEulaDlgLicenseAcceptedCheckBox)" />
         <Control Id="Back" Type="PushButton" X="156" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
-        <Control Id="Install" Type="PushButton" ElevationShield="yes" X="212" Y="243" Width="90" Height="17" Default="yes" Text="!(loc.WelcomeEulaDlgInstall)" >
+        <Control Id="Install" Type="PushButton" X="212" Y="243" Width="90" Height="17" Default="yes" Text="!(loc.WelcomeEulaDlgInstall)" >
           <Publish Event="SpawnWaitDialog" Value="WaitForCostingDlg">CostingComplete = 1</Publish>
           <Publish Event="EndDialog" Value="Return"><![CDATA[OutOfDiskSpace <> 1]]></Publish>
           <Publish Event="SpawnDialog" Value="OutOfRbDiskDlg">OutOfDiskSpace = 1 AND OutOfNoRbDiskSpace = 0 AND (PROMPTROLLBACKCOST="P" OR NOT PROMPTROLLBACKCOST)</Publish>

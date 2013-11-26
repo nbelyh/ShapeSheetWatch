@@ -284,6 +284,7 @@ STDMETHODIMP CVisioConnect::OnConnection(IDispatch *pApplication, ext_ConnectMod
 
 	m_impl->Create(pApplication, pAddInInst);
 
+	theApp.GetViewSettings()->Load();
 	return S_OK;
 
 	LEAVE_METHOD()
@@ -298,6 +299,8 @@ STDMETHODIMP CVisioConnect::OnDisconnection(ext_DisconnectMode /*RemoveMode*/, S
 	ENTER_METHOD()
 
 	m_impl->Destroy();
+
+	theApp.GetViewSettings()->Save();
 	return S_OK;
 
 	LEAVE_METHOD()

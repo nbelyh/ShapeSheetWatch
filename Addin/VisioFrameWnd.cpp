@@ -36,8 +36,7 @@ CString GetHtmlFilePath(LPCWSTR file_name)
 	WCHAR path[MAX_PATH] = L"";
 	DWORD path_len = MAX_PATH;
 
-	if (0 != SHRegGetUSValue(L"Software\\Microsoft\\Visio\\Addins\\ShapeSheetWatchAddin.VisioConnect", L"InstallPath", 
-		NULL, path, &path_len, FALSE, NULL, 0))
+	if (0 != SHRegGetPath(HKEY_CURRENT_USER, ADDIN_KEY, L"InstallPath", path, 0))
 	{
 
 #ifdef DEBUG

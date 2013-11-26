@@ -24,12 +24,13 @@
 
     <Package InstallerVersion="200" 
              Compressed="yes" 
-             InstallPrivileges="elevated" 
-             InstallScope="perMachine" 
+             InstallPrivileges="limited"
+             InstallScope="perUser"
              Platform="$(var.Platform)"
              />
 
     <Property Id="MSIFASTINSTALL">1</Property>
+    <Property Id="ALLUSERS" Secure="yes"/>
     
     <Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
 
@@ -37,15 +38,21 @@
       DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
 
     <Directory Id="TARGETDIR" Name="SourceDir">
-      <Directory Id="$(var.cf)">
+      <Directory Id="LocalAppDataFolder">
         <Directory Id="COMPANYDIR" Name="UnmanagedVisio" >
           <Directory Id="PRODUCTDIR" Name="ShapeSheetWatch">
+            
+            <Component Id="ProductComponent" Win64="$(var.Win64YesNo)" Guid="{F47CB333-3F63-4c6c-BDF5-10F09622B17A}">
 
-            <Component Id="HTMLayoutDLL" Win64="$(var.Win64YesNo)">
-              <File KeyPath="yes" Source="lib\$(var.Platform)\htmlayout.dll" />
-            </Component>
-            <Component Id="ProductComponent" Win64="$(var.Win64YesNo)">
-              <File KeyPath="yes" Source="$(var.Binaries)\Addin.dll" >
+              <RegistryValue Root="HKCU" Key="Software\UnmanagedVisio\ShapeSheetWatch" Name="AddinInstalled" Type="integer" Value="1" KeyPath="yes"/>
+              <RegistryValue Root="HKCU" Key="Software\UnmanagedVisio\ShapeSheetWatch" Name="InstallPath" Type="string" Value="[PRODUCTDIR]" />
+
+              <File Source="lib\$(var.Platform)\htmlayout.dll" />
+
+              <RemoveFolder Id="COMPANYDIR" On="uninstall" Directory="COMPANYDIR" />
+              <RemoveFolder Id="PRODUCTDIR" On="uninstall" Directory="PRODUCTDIR" />
+
+              <File Source="$(var.Binaries)\Addin.dll" >
                 <TypeLib Id="{03AB8311-3616-4692-A9BE-447DD0F3F6DF}" Description="ShapeSheetWatch Addin 1.0 Type Library" HelpDirectory="TARGETDIR" Language="0" MajorVersion="1" MinorVersion="0">
                   <Class Id="{46288C2D-7FDA-4f64-91C3-17BD6773640D}" Context="InprocServer32" Description="VisioConnect Class" ThreadingModel="apartment" Programmable="yes">
                     <ProgId Id="ShapeSheetWatchAddin.VisioConnect.1" Description="VisioConnect Class">
@@ -58,21 +65,26 @@
             </Component>
 
             <Component Id="VisioRegistration" Win64="$(var.Win64YesNo)" >
-              <RegistryKey Root="HKLM" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.VisioConnect" >
+              <RegistryKey Root="HKCU" Key="Software\Microsoft\Visio\Addins\ShapeSheetWatchAddin.VisioConnect" >
                 <RegistryValue Name="CommandLineSafe" Type="integer" Value="0" />
                 <RegistryValue Name="FriendlyName" Type="string" Value="ShapeSheetWatchAddin" KeyPath="yes" />
                 <RegistryValue Name="LoadBehavior" Type="integer" Value="3" />
-                <RegistryValue Name="InstallPath" Type="string" Value="[PRODUCTDIR]" />
               </RegistryKey>
             </Component>
 
             <Directory Id="HTML" Name="html" FileSource="..\Data\html">
-              <Component Id="test.htm">
+              
+              <Component Id="HTML" Guid="{1981AC5C-6A69-4746-A073-74BD6D9457ED}">
+
+                <RegistryValue Root="HKCU" Key="Software\UnmanagedVisio\ShapeSheetWatch" Name="HtmlInstalled" Type="integer" Value="1" KeyPath="yes"/>
+
                 <File Name="test.htm" />
-              </Component>
-              <Component Id="settings.png">
                 <File Name="settings.png" />
+
+                <RemoveFolder Id="HTML" On="uninstall"/>
+                
               </Component>
+              
             </Directory>
 
           </Directory>
@@ -82,11 +94,9 @@
     
     <Feature Id="ProductFeature" Title="ShapeSheetWatch Addin" Level="1">
       <ComponentRef Id="ProductComponent" />
-      <ComponentRef Id="HTMLayoutDLL" />
       <ComponentRef Id="VisioRegistration" />
 
-      <ComponentRef Id="test.htm"/>
-      <ComponentRef Id="settings.png"/>
+      <ComponentRef Id="HTML"/>
     </Feature>
 
     <UIRef Id="WixUI_ErrorProgressText" />

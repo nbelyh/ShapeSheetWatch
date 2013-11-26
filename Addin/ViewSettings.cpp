@@ -18,8 +18,6 @@ void ViewSettings::RemoveCellMask(size_t idx)
 	m_cell_name_masks.erase(m_cell_name_masks.begin() + idx);
 }
 
-#define ADDIN_KEY	L"Software\\UnmanagedVisio\\ShapeSheetWatch"
-
 void ViewSettings::Save()
 {
 	CRegKey key;
