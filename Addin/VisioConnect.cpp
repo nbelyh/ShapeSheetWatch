@@ -167,28 +167,23 @@ struct CVisioConnect::Impl
 	CVisioEvent	 evt_win_closed;
 	CVisioEvent	 evt_keystroke;
 
-	void OnWindowOpened(IVWindowPtr wnd)
+	void OnWindowOpened(IVWindowPtr window)
 	{
-		switch (wnd->Type)
-		{
-		case visTypeDrawing:
-		case visTypeTemplate:
-			if (theApp.IsCommandChecked(ID_ShowSheetWindow))
-				theApp.OnCommand(ID_ShowSheetWindow);
-			theApp.UpdateVisioUI();
-			break;
-		}
+		if (window != NULL && window->Type == visDrawing)
+			theApp.ShowShapeSheetWatchWindow(window, theApp.GetViewSettings()->IsVisibleByDefault());
+
+		theApp.UpdateVisioUI();
 	}
 
 	void OnWindowClosed(IVWindowPtr window)
 	{
-		theApp.GetViewSettings()->SetVisibleByDefault(theApp.IsShapeSheetWatchWindowShown(window));
+		if (window != NULL && window->Type == visDrawing)
+			theApp.GetViewSettings()->SetVisibleByDefault(theApp.IsShapeSheetWatchWindowShown(window));
 		theApp.UpdateVisioUI();
 	}
 
 	void OnWindowActivated(IVWindowPtr window)
 	{
-		theApp.ShowShapeSheetWatchWindow(window, theApp.GetViewSettings()->IsVisibleByDefault());
 		theApp.UpdateVisioUI();
 	}
 
