@@ -198,6 +198,10 @@ void CAddinApp::AddVisioIdleTask(VisioIdleTask* new_task)
 			delete new_task;
 			return;
 		}
+		else
+		{
+			++idx;
+		}
 	}
 
 	m_idle_tasks.Add(new_task);
