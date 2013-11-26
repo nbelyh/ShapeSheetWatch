@@ -277,9 +277,9 @@ STDMETHODIMP CVisioConnect::OnConnection(IDispatch *pApplication, ext_ConnectMod
 {
 	ENTER_METHOD()
 
-	m_impl->Create(pApplication, pAddInInst);
-
 	theApp.GetViewSettings()->Load();
+
+	m_impl->Create(pApplication, pAddInInst);
 	return S_OK;
 
 	LEAVE_METHOD()
