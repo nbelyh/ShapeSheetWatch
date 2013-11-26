@@ -264,7 +264,7 @@ SSInfo ss_global[] = {
 	{0,L"Page Layout",L"",L"LineToNodeY",visSectionObject,visRowPageLayout,visPLOLineToNodeY,L"LineToNodeY",L""},
 	{0,L"Page Layout",L"",L"BlockSizeX",visSectionObject,visRowPageLayout,visPLOBlockSizeX,L"BlockSizeX",L""},
 	{0,L"Page Layout",L"",L"BlockSizeY",visSectionObject,visRowPageLayout,visPLOBlockSizeY,L"BlockSizeY",L""},
-	{0,L"Page Layout",L"",L"AvenueSizeY",visSectionObject,visRowPageLayout,visPLOAvenueSizeX,L"AvenueSizeY",L""},
+	{0,L"Page Layout",L"",L"AvenueSizeX",visSectionObject,visRowPageLayout,visPLOAvenueSizeX,L"AvenueSizeX",L""},
 	{0,L"Page Layout",L"",L"AvenueSizeY",visSectionObject,visRowPageLayout,visPLOAvenueSizeY,L"AvenueSizeY",L""},
 	{0,L"Page Layout",L"",L"LineToLineX",visSectionObject,visRowPageLayout,visPLOLineToLineX,L"LineToLineX",L""},
 	{0,L"Page Layout",L"",L"LineToLineY",visSectionObject,visRowPageLayout,visPLOLineToLineY,L"LineToLineY",L""},
