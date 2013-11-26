@@ -76,6 +76,7 @@ BEGIN_MESSAGE_MAP(CComboEdit, CEdit)
 	//{{AFX_MSG_MAP(CComboEdit)
 	ON_WM_KILLFOCUS()
 	ON_WM_KEYDOWN()
+	ON_WM_CHAR()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -89,6 +90,14 @@ void CComboEdit::OnKillFocus(CWnd* pNewWnd)
     CInPlaceList* pOwner = (CInPlaceList*) GetOwner();  // This MUST be a CInPlaceList
     if (pOwner)
         pOwner->EndEdit();	
+}
+
+void CComboEdit::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+	if (nChar == VK_RETURN || nChar == VK_ESCAPE)
+		return;
+
+	return CEdit::OnChar(nChar, nRepCnt, nFlags);
 }
 
 void CComboEdit::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
@@ -197,10 +206,14 @@ CInPlaceList::CInPlaceList(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
 
 	// Added by KiteFly. When entering DBCS chars into cells the first char was being lost
 	// SenMessage changed to PostMessage (John Lagerquist)
-	if( nFirstChar < 0x80)
+	switch (nFirstChar)
+	{
+	case VK_RETURN:
+		break;
+
+	default:
 		PostMessage(WM_CHAR, nFirstChar);   
-	else
-		PostMessage(WM_IME_CHAR, nFirstChar);
+	}
 }
 
 CInPlaceList::~CInPlaceList()
@@ -314,7 +327,6 @@ BEGIN_MESSAGE_MAP(CInPlaceList, CComboBox)
 	ON_WM_DESTROY()
 	ON_CONTROL_REFLECT_EX(CBN_CLOSEUP, OnCloseup)
 	ON_CONTROL_REFLECT_EX(CBN_DROPDOWN, OnDropdown)
-	ON_CONTROL_REFLECT_EX(CBN_KILLFOCUS, OnKillfocus)
 	ON_CONTROL_REFLECT_EX(CBN_SELCHANGE, OnSelchange)
 	ON_CONTROL_REFLECT_EX(CBN_EDITCHANGE, OnEditchange)
 	ON_WM_KILLFOCUS()
@@ -444,23 +456,6 @@ LRESULT CInPlaceList::OnResetContent(WPARAM wParam, LPARAM lParam)
 	m_PtrList.RemoveAll();
 
 	return Default();
-}
-
-BOOL CInPlaceList::OnKillfocus() 
-{
-	// TODO: Add your control notification handler code here
-
-	int nIndex = GetCurSel();
-	if(CB_ERR == nIndex || nIndex >= GetCount())
-	{
-		nIndex = FindStringExact(0, m_sTypedText);
-		SetCurSel(nIndex);
-	}
-	if(CB_ERR != nIndex && nIndex < GetCount())
-		GetLBText(nIndex, m_sTypedText);
-	UpdateText(m_sTypedText);
-
-	return Default() != 0;
 }
 
 BOOL CInPlaceList::OnSelchange() 

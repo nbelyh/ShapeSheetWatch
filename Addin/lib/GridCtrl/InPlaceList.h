@@ -54,6 +54,7 @@ protected:
 	//{{AFX_MSG(CComboEdit)
 	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 	//}}AFX_MSG
 
 	DECLARE_MESSAGE_MAP()
@@ -172,7 +173,6 @@ protected:
 	afx_msg void OnDestroy();
 	afx_msg BOOL OnCloseup();
 	afx_msg BOOL OnDropdown();
-	afx_msg BOOL OnKillfocus();
 	afx_msg BOOL OnSelchange();
 	afx_msg BOOL OnEditchange();
 	//}}AFX_MSG
