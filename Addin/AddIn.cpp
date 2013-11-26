@@ -101,6 +101,34 @@ int CAddinApp::ExitInstance()
 	return CWinApp::ExitInstance();
 }
 
+bool CAddinApp::IsShapeSheetWatchWindowShown(IVWindowPtr window) const
+{
+	return GetWindowShapeSheet(GetVisioWindowHandle(window)) != NULL;
+}
+
+void CAddinApp::ShowShapeSheetWatchWindow(IVWindowPtr window, bool show)
+{
+	bool shown = IsShapeSheetWatchWindowShown(window);
+
+	if (show == shown)
+		return;
+
+	HWND hwnd = GetVisioWindowHandle(window);
+
+	CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);
+	if (wnd)
+	{
+		wnd->Destroy();
+		RegisterWindow(hwnd, NULL);
+	}
+	else
+	{
+		wnd = new CVisioFrameWnd();
+		wnd->Create(window);
+		RegisterWindow(hwnd, wnd);
+	}
+}
+
 void CAddinApp::OnCommand(UINT id)
 {
 	switch (id)
@@ -112,20 +140,7 @@ void CAddinApp::OnCommand(UINT id)
 			if (window == NULL)
 				return;
 
-			HWND hwnd = GetVisioWindowHandle(window);
-
-			CVisioFrameWnd* wnd = GetWindowShapeSheet(hwnd);
-			if (wnd)
-			{
-				wnd->Destroy();
-				RegisterWindow(hwnd, NULL);
-			}
-			else
-			{
-				wnd = new CVisioFrameWnd();
-				wnd->Create(window);
-				RegisterWindow(hwnd, wnd);
-			}
+			ShowShapeSheetWatchWindow(window, !IsShapeSheetWatchWindowShown(window));
 		}
 	}
 }
@@ -308,7 +323,7 @@ bool CAddinApp::IsCommandChecked(UINT id) const
 			if (FAILED(app->get_ActiveWindow(&window)) || window == NULL)
 				return VARIANT_FALSE;
 
-			return GetWindowShapeSheet(GetVisioWindowHandle(window)) != NULL;
+			return IsShapeSheetWatchWindowShown(window);
 		}
 
 	default:

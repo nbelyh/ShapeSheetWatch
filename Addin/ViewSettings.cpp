@@ -42,6 +42,13 @@ void ViewSettings::Save()
 
 		CString val_hidden = JoinList(column_hidden, L"|");
 		key.SetStringValue(L"ColumnVisible", val_hidden, REG_SZ);
+
+		key.SetDWORDValue(L"WindowLeft", m_window_left);
+		key.SetDWORDValue(L"WindowTop", m_window_top);
+		key.SetDWORDValue(L"WindowWidth", m_window_width);
+		key.SetDWORDValue(L"WindowHeight", m_window_width);
+		key.SetDWORDValue(L"WindowState", m_window_state);
+		key.SetDWORDValue(L"VisibleByDefault", m_visible_by_default);
 	}
 }
 
@@ -54,31 +61,40 @@ void ViewSettings::Load()
 		ULONG len = 0;
 
 		len = _countof(val);
-		if (0 == key.QueryStringValue(L"Masks", val, &len))
-			SplitList(val, L"|", m_cell_name_masks);
+		if (ERROR_SUCCESS != key.QueryStringValue(L"Masks", val, &len))
+			lstrcpy(val, L"Prop.*.Value|Pin*|Width|Height");
+
+		SplitList(val, L"|", m_cell_name_masks);
 
 		len = _countof(val);
 		Strings column_widths;
-		if (0 == key.QueryStringValue(L"ColumnWidth", val, &len))
-			lstrcpy(val, L"100|100|50|50|50|50|50|100|50|100");
+		if (ERROR_SUCCESS != key.QueryStringValue(L"ColumnWidth", val, &len))
+			lstrcpy(val, L"120|100|50|50|50|50|50|100|50|100");
 
 		SplitList(val, L"|", column_widths);
 
 		len = _countof(val);
-		Strings column_hidden;
-		if (0 == key.QueryStringValue(L"ColumnVisible", val, &len))
+		Strings column_visible;
+		if (ERROR_SUCCESS != key.QueryStringValue(L"ColumnVisible", val, &len))
 			lstrcpy(val, L"1|1|0|0|0|0|0|1|0|1");
 
-		SplitList(val, L"|", column_hidden);
+		SplitList(val, L"|", column_visible);
 
 		for (size_t i = 0; i < Column_Count; ++i)
 		{
 			if (i < column_widths.size())
 				m_column_widths[i] = StrToInt(column_widths[i]);
 
-			if (i < column_hidden.size())
-				m_column_visible[i] = StrToInt(column_hidden[i]) != 0;
+			if (i < column_visible.size())
+				m_column_visible[i] = StrToInt(column_visible[i]) != 0;
 		}
+
+		key.QueryDWORDValue(L"WindowLeft", m_window_left);
+		key.QueryDWORDValue(L"WindowTop", m_window_top);
+		key.QueryDWORDValue(L"WindowWidth", m_window_width);
+		key.QueryDWORDValue(L"WindowHeight", m_window_width);
+		key.QueryDWORDValue(L"WindowState", m_window_state);
+		key.QueryDWORDValue(L"VisibleByDefault", m_visible_by_default);
 	}
 }
 
@@ -117,6 +133,8 @@ ViewSettings::ViewSettings()
 	m_window_width = 400;
 
 	m_window_state = (visWSAnchorTop | visWSAnchorRight);
+
+	m_visible_by_default = false;
 }
 
 ViewSettings::~ViewSettings()
@@ -147,6 +165,16 @@ void ViewSettings::SetWindowRect(long l, long t, long w, long h)
 	m_window_top = t;
 	m_window_width = w;
 	m_window_height = h;
+}
+
+bool ViewSettings::IsVisibleByDefault() const
+{
+	return m_visible_by_default != 0;
+}
+
+void ViewSettings::SetVisibleByDefault(bool set)
+{
+	m_visible_by_default = set;
 }
 
 CString GetColumnName(int i)

@@ -44,6 +44,9 @@ public:
 	LONG GetWindowState() const;
 	void SetWindowState(LONG state);
 
+	bool IsVisibleByDefault() const;
+	void SetVisibleByDefault(bool set);
+
 	void Save();
 	void Load();
 
@@ -51,12 +54,12 @@ private:
 	std::vector<bool> m_column_visible;
 	std::vector<int> m_column_widths;
 
-	long m_window_top;
-	long m_window_left;
-	long m_window_width;
-	long m_window_height;
-
-	long m_window_state;
+	DWORD m_window_top;
+	DWORD m_window_left;
+	DWORD m_window_width;
+	DWORD m_window_height;
+	DWORD m_window_state;
+	DWORD m_visible_by_default;
 
 	Strings m_cell_name_masks;
 };

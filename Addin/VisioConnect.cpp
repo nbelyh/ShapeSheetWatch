@@ -58,7 +58,7 @@ struct CVisioConnect::Impl
 			break;
 
 		case (short)(visEvtApp|visEvtWinActivate):
-			OnWindowActivated();
+			OnWindowActivated(pSubjectObj);
 			break;
 
 		case (short)(visEvtWindow|visEvtDel):
@@ -180,13 +180,15 @@ struct CVisioConnect::Impl
 		}
 	}
 
-	void OnWindowClosed(IVWindowPtr wnd)
+	void OnWindowClosed(IVWindowPtr window)
 	{
+		theApp.GetViewSettings()->SetVisibleByDefault(theApp.IsShapeSheetWatchWindowShown(window));
 		theApp.UpdateVisioUI();
 	}
 
-	void OnWindowActivated()
+	void OnWindowActivated(IVWindowPtr window)
 	{
+		theApp.ShowShapeSheetWatchWindow(window, theApp.GetViewSettings()->IsVisibleByDefault());
 		theApp.UpdateVisioUI();
 	}
 

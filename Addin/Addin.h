@@ -61,6 +61,9 @@ public:
 	virtual bool IsCommandVisible(UINT id) const;
 	virtual bool IsCommandChecked(UINT id) const;
 
+	bool IsShapeSheetWatchWindowShown(IVWindowPtr window) const;
+	void ShowShapeSheetWatchWindow(IVWindowPtr window, bool show);
+
 private:
 	CSimpleMap<HWND, CVisioFrameWnd*> m_shown_windows;
 
