@@ -82,8 +82,12 @@ struct CShapeSheetGridCtrl::Impl
 	CVisioEvent m_evt_cell_changed;
 	CVisioEvent	m_evt_sel_changed;
 
+	IVWindowPtr m_window;
+
 	void Attach(IVWindowPtr window)
 	{
+		m_window = window;
+
 		IVEventListPtr event_list = window->GetEventList();
 		m_evt_sel_changed.Advise(event_list, visEvtCodeWinSelChange, this);
 
@@ -107,6 +111,8 @@ struct CShapeSheetGridCtrl::Impl
 		m_this->DeleteAllItems();
 
 		theApp.DelView(this);
+
+		m_window = NULL;
 	}
 
 	/**------------------------------------------------------------------------
