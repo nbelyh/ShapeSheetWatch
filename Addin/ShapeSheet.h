@@ -42,8 +42,25 @@ namespace shapesheet {
 		CString c_name;
 
 		size_t index;
+
+		bool operator < (const SRC& other) const
+		{
+			if (index < other.index) return true;
+			if (index > other.index) return false;
+
+			if (s < other.s) return true;
+			if (s > other.s) return false;
+
+			if (r < other.r) return true;
+			if (r > other.r) return false;
+
+			if (c < other.c) return true;
+			if (c > other.c) return false;
+
+			return name < other.name;
+		}
 	};
 
-	void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result);
+	void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::set<SRC>& result);
 
 } // namespace shapesheet

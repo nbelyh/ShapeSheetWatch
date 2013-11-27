@@ -484,7 +484,7 @@ const SSInfos& GetSectionInfo(short section)
 void AddNameMatchResult(const CString& mask, CString name, 
 						short s, short r, short c, 
 						const CString& s_name, const CString& r_name_l, const CString r_name_u, const CString& c_name, size_t index,
-						std::vector<SRC> &result)
+						std::set<SRC> &result)
 {
 	Strings masks;
 	SplitList(mask, L",", masks);
@@ -512,13 +512,13 @@ void AddNameMatchResult(const CString& mask, CString name,
 			src.c_name = c_name;
 			src.index = index;
 
-			result.push_back(src);
+			result.insert(src);
 			return;
 		}
 	}
 }
 
-void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, const CString& mask, std::vector<SRC>& result)
+void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, const CString& mask, std::set<SRC>& result)
 {
 	if (!shape->GetSectionExists(section_no, VARIANT_FALSE))
 		return;
@@ -545,7 +545,7 @@ void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, cons
 	}
 }
 
-void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const CString& mask, std::vector<SRC>& result)
+void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const CString& mask, std::set<SRC>& result)
 {
 	if (!shape->GetSectionExists(section_no, VARIANT_FALSE))
 		return;
@@ -600,7 +600,7 @@ short GetGeometryRowCellCount(short row_type)
 	}
 }
 
-void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, std::vector<SRC>& result)
+void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, std::set<SRC>& result)
 {
 	const SSInfos& ss_infos = GetSectionInfo(visSectionFirstComponent);
 
@@ -652,7 +652,7 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 	}
 }
 
-void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vector<SRC>& result)
+void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::set<SRC>& result)
 {
 	const SSInfos& ss_info = GetSectionInfo(visSectionObject);
 	for (size_t i = 0; i < ss_info.size(); ++i)
@@ -670,7 +670,7 @@ void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::vecto
 	}
 }
 
-void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::vector<SRC>& result)
+void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::set<SRC>& result)
 {
 	GetVariableNamedSectionCellNames(shape, visSectionAction, cell_name_mask, result);
 	GetVariableNamedSectionCellNames(shape, visSectionSmartTag, cell_name_mask, result);

@@ -400,7 +400,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
-		typedef std::vector< std::vector<SRC> > GroupCellInfos;
+		typedef std::vector< std::set<SRC> > GroupCellInfos;
 		GroupCellInfos cell_names(cell_name_masks.size());
 
 		if (m_shape != NULL)
@@ -454,9 +454,9 @@ struct CShapeSheetGridCtrl::Impl
 				int r_count = 0;
 				short r_last = -1;
 
-				for (int j = 0; j < int(cell_names[i].size()); ++j)
+				for (std::set<SRC>::const_iterator it = cell_names[i].begin(); it != cell_names[i].end(); ++it)
 				{
-					SRC& src = cell_names[i][j];
+					const SRC& src = (*it);
 
 					UpdateCellText(row, Column_Name, src.name);
 					m_this->SetItemData(row, Column_Name, src.index);
@@ -626,14 +626,16 @@ struct CShapeSheetGridCtrl::Impl
 		case Column_Mask:
 			if (m_shape && arrOptions)
 			{
-				std::vector<SRC> srcs;
+				std::set<SRC> srcs;
 				GetCellNames(m_shape, L"*", srcs);
 
 				Strings names;
-				for (size_t i = 0; i < srcs.size(); ++i)
+				for (std::set<SRC>::const_iterator it = srcs.begin(); it != srcs.end(); ++it)
 				{
-					if (m_shape->GetCellsSRCExists(srcs[i].s, srcs[i].r, srcs[i].c, VARIANT_FALSE))
-						arrOptions->push_back(srcs[i].name);
+					const SRC& src = (*it);
+
+					if (m_shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
+						arrOptions->push_back(src.name);
 				}
 
 				std::stable_sort(arrOptions->begin(), arrOptions->end());
