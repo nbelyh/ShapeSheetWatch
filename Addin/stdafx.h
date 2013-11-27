@@ -39,6 +39,8 @@
 #include "import\MSO.tlh"
 #include "import\VISLIB.tlh"
 
+#include "lib/Ptr.h"
+
 #pragma warning( default : 4146 )
 #pragma warning( default : 4278 )
 

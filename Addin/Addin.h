@@ -22,6 +22,8 @@ struct VisioIdleTask
 	virtual bool Equals(VisioIdleTask* otehr) const = 0;
 };
 
+typedef Ptr<VisioIdleTask> VisioIdleTaskPtr;
+
 class CVisioFrameWnd;
 
 struct IAddinUI
@@ -51,7 +53,8 @@ public:
 
 	void UpdateViews(int hint = 0);
 
-	void AddVisioIdleTask(VisioIdleTask* task);
+	void AddVisioIdleTask(VisioIdleTaskPtr task);
+
 	void ProcessIdleTasks();
 
 	CVisioFrameWnd* GetWindowShapeSheet(IVWindowPtr window) const;
@@ -73,7 +76,7 @@ private:
 	typedef std::set<IView*> Views;
 	Views m_views;
 
-	CSimpleArray<VisioIdleTask*> m_idle_tasks;
+	CSimpleArray<VisioIdleTaskPtr> m_idle_tasks;
 
 	mutable ViewSettings m_view_settings;
 

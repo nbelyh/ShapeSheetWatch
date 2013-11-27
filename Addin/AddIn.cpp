@@ -225,22 +225,17 @@ int GetVisioVersion()
 	return result;
 }
 
-void CAddinApp::AddVisioIdleTask(VisioIdleTask* new_task)
+void CAddinApp::AddVisioIdleTask(VisioIdleTaskPtr new_task)
 {
 	long idx = 0;
 	while (idx < m_idle_tasks.GetSize())
 	{
-		VisioIdleTask* task = m_idle_tasks[idx];
+		VisioIdleTaskPtr task = m_idle_tasks[idx];
 
-		if (new_task->Equals(task))
-		{
-			delete new_task;
+		if (new_task->Equals(task.get()))
 			return;
-		}
 		else
-		{
 			++idx;
-		}
 	}
 
 	m_idle_tasks.Add(new_task);
@@ -251,17 +246,12 @@ void CAddinApp::ProcessIdleTasks()
 	long idx = 0;
 	while (idx < m_idle_tasks.GetSize())
 	{
-		VisioIdleTask* task = m_idle_tasks[idx];
+		VisioIdleTaskPtr task = m_idle_tasks[idx];
 
 		if (task->Execute())
-		{
 			m_idle_tasks.RemoveAt(idx);
-			delete task;
-		}
 		else
-		{
 			++idx;
-		} 
 	}
 }
 
@@ -315,7 +305,7 @@ struct UpdateUITask : VisioIdleTask
 
 void CAddinApp::UpdateVisioUI()
 {
-	AddVisioIdleTask(new UpdateUITask());
+	AddVisioIdleTask(VisioIdleTaskPtr(new UpdateUITask()));
 }
 
 IVWindowPtr CAddinApp::GetValidActiveWindow(VisWinTypes expected_type) const

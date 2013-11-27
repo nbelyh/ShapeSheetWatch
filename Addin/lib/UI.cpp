@@ -166,7 +166,7 @@ void AddinUi::InitializeItem( Office::CommandBarControlPtr item, UINT command_id
 
 	UpdateItem(item);
 
-	m_buttons.Add(new ClickEventRedirector(item, tag));
+	m_buttons.Add(ClickEventRedirectorPtr(new ClickEventRedirector(item, tag)));
 }
 
 void AddinUi::UpdateItem(Office::_CommandBarButtonPtr button)
@@ -329,9 +329,6 @@ void AddinUi::UpdateCommandBarsUI()
 
 void AddinUi::DestroyCommandBarsUI()
 {
-	for (size_t i = 0; i < m_buttons.GetCount(); ++i)
-		delete m_buttons[i];
-
 	m_buttons.RemoveAll();
 }
 

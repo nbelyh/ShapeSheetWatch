@@ -42,7 +42,8 @@ private:
 	Office::CommandBarPopupPtr CreateFrameMenu(Office::CommandBarControlsPtr menus);
 	void UpdateItem(Office::_CommandBarButtonPtr button);
 private:
-	CAtlArray<ClickEventRedirector*> m_buttons;
+	typedef Ptr<ClickEventRedirector> ClickEventRedirectorPtr;
+	CAtlArray<ClickEventRedirectorPtr> m_buttons;
 };
 
 HRESULT GetRibbonText(BSTR * RibbonXml);

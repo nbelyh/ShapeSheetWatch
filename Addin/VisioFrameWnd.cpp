@@ -158,7 +158,7 @@ void CVisioFrameWnd::OnSize(UINT nType, int cx, int cy)
 {
 	m_html.MoveWindow(0, 0, cx, cy);
 
-	theApp.AddVisioIdleTask(new UpdateWindowSize(m_this_window));
+	theApp.AddVisioIdleTask(VisioIdleTaskPtr(new UpdateWindowSize(m_this_window)));
 }
 
 /**-----------------------------------------------------------------------------

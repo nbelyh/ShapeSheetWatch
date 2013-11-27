@@ -567,6 +567,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\lib\Ptr.h"
+			>
+		</File>
+		<File
 			RelativePath="Resource.h"
 			>
 		</File>
