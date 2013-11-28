@@ -149,13 +149,20 @@ IDR_ADDIN               REGISTRY                "AddIn.rgs"
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Bitmap
+//
+
+IDB_CHECKBOXES          BITMAP                  "res\\checkboxes.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 
 STRINGTABLE 
 BEGIN
     ID_ShowSheetWindow      "ShapeSheet Watch"
-	ID_AddWatch				"Add to ShapeSheet Watch"
+    ID_AddWatch             "Add to ShapeSheet Watch"
 END
 
 #endif    // English (U.S.) resources

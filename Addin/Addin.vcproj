@@ -414,6 +414,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\res\checkboxes.bmp"
+				>
+			</File>
+			<File
 				RelativePath=".\res\icon16.png"
 				>
 			</File>

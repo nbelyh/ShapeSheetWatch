@@ -86,9 +86,14 @@ struct CShapeSheetGridCtrl::Impl
 
 	IVWindowPtr m_window;
 
+	CImageList m_images;
+
 	void Attach(IVWindowPtr window)
 	{
 		m_window = window;
+
+		m_images.Create(IDB_CHECKBOXES, 16, 16, RGB(0,0,0));
+		m_this->SetImageList(&m_images);
 
 		IVEventListPtr event_list = window->GetEventList();
 		m_evt_sel_changed.Advise(event_list, visEvtCodeWinSelChange, this);
@@ -257,6 +262,10 @@ struct CShapeSheetGridCtrl::Impl
 		return false;
 	}
 
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	bstr_t GetCellValue(IVCellPtr cell, int column) const
 	{
 		switch (column)
@@ -279,43 +288,66 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	void UpdateValueCellText(int row, int col, const shapesheet::SRC& src)
 	{
-		bool blue = false;
+		bool have_local = false;
+
+		int missing_count = 0;
+		int valid_count = 0;
+
 		bstr_t common_val = L"?";
 
 		for (std::set<long>::const_iterator it = m_shape_ids.begin(); it != m_shape_ids.end(); ++it)
 		{
 			IVShapePtr shape = GetShapeFromId(*it);
 
-			if (!shapesheet::CellExists(shape, src))
-				continue;
-
-			IVCellPtr cell = shapesheet::GetShapeCell(shape, src);
-
-			IVCellPtr inherited_from_cell;
-			if (SUCCEEDED(cell->get_InheritedFormulaSource(&inherited_from_cell)))
+			if (shapesheet::CellExists(shape, src))
 			{
-				if (cell == inherited_from_cell)
-					blue = true;
+				++valid_count;
+
+				IVCellPtr cell = shapesheet::GetShapeCell(shape, src);
+
+				IVCellPtr inherited_from_cell;
+				if (SUCCEEDED(cell->get_InheritedFormulaSource(&inherited_from_cell)))
+				{
+					if (cell == inherited_from_cell)
+						have_local = true;
+				}
+
+				bstr_t val = GetCellValue(cell, col);
+
+				if (val != common_val)
+				{
+					if (common_val == bstr_t(L"?"))
+						common_val = val;
+					else
+						common_val = L"<multiselect>";
+				}
 			}
-
-			bstr_t val = GetCellValue(cell, col);
-
-			if (val != common_val)
+			else
 			{
-				if (common_val == bstr_t(L"?"))
-					common_val = val;
-				else
-					common_val = L"<multiselect>";
+				++missing_count;
 			}
 		}
 
-		if (blue)
+		if (have_local)
 			m_this->SetItemFgColour(row, col, RGB(0,0,255));
+
+		if (missing_count + valid_count > 1)
+		{
+			m_this->SetItemImage(row, Column_Name, valid_count ? (missing_count ? 1 : 2) : 0);
+		}
 
 		m_this->SetItemText(row, col, common_val);
 	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
 
 	void UpdateCellText(int row, int col, LPCWSTR text)
 	{
