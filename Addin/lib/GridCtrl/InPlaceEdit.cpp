@@ -82,7 +82,7 @@ CInPlaceEdit::CInPlaceEdit(CWnd* pParent, CRect& rect, DWORD dwStyle, UINT nID,
     
     switch (nFirstChar){
         case VK_LBUTTON: 
-        case VK_RETURN:   SetSel((int)_tcslen(m_sInitText), -1); return;
+        case VK_RETURN:   SetSel(0, -1); return;
         case VK_BACK:     SetSel((int)_tcslen(m_sInitText), -1); break;
         case VK_TAB:
         case VK_DOWN: 
