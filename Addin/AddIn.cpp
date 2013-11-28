@@ -207,10 +207,37 @@ void CAddinApp::DelView( IView* view )
 	m_views.erase(view);
 }
 
-void CAddinApp::UpdateViews(int hint)
+struct UpdateViewsTask : VisioIdleTask
 {
-	for (Views::const_iterator it = m_views.begin(); it != m_views.end(); ++it)
-		(*it)->Update(hint);
+	int m_hint;
+	UpdateViewsTask(int hint)
+		: m_hint(hint)
+	{
+	}
+
+	virtual bool Execute()
+	{
+		theApp.UpdateViews(m_hint, false);
+		return true;
+	}
+
+	virtual bool Equals(VisioIdleTask* otehr) const
+	{
+		return dynamic_cast<UpdateViewsTask*>(otehr) != NULL;
+	}
+};
+
+void CAddinApp::UpdateViews(int hint, bool idle)
+{
+	if (idle)
+	{
+		AddVisioIdleTask(VisioIdleTaskPtr(new UpdateViewsTask(hint)));
+	}
+	else
+	{
+		for (Views::const_iterator it = m_views.begin(); it != m_views.end(); ++it)
+			(*it)->Update(hint);
+	}
 }
 
 CAddinApp theApp;
@@ -289,7 +316,7 @@ void CAddinApp::SetUI(IAddinUI* ui)
 	m_ui = ui;
 }
 
-struct UpdateUITask : VisioIdleTask
+struct UpdateVisioUITask : VisioIdleTask
 {
 	virtual bool Execute()
 	{
@@ -299,13 +326,13 @@ struct UpdateUITask : VisioIdleTask
 
 	virtual bool Equals(VisioIdleTask* otehr) const
 	{
-		return dynamic_cast<UpdateUITask*>(otehr) != NULL;
+		return dynamic_cast<UpdateVisioUITask*>(otehr) != NULL;
 	}
 };
 
 void CAddinApp::UpdateVisioUI()
 {
-	AddVisioIdleTask(VisioIdleTaskPtr(new UpdateUITask()));
+	AddVisioIdleTask(VisioIdleTaskPtr(new UpdateVisioUITask()));
 }
 
 IVWindowPtr CAddinApp::GetValidActiveWindow(VisWinTypes expected_type) const

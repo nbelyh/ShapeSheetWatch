@@ -51,7 +51,7 @@ public:
 	void AddView(IView* view);
 	void DelView(IView* view);
 
-	void UpdateViews(int hint = 0);
+	void UpdateViews(int hint = 0, bool idle = true);
 
 	void AddVisioIdleTask(VisioIdleTaskPtr task);
 
