@@ -44,6 +44,7 @@ namespace shapesheet {
 		size_t index;
 
 		bool operator < (const SRC& other) const;
+		bool operator == (const SRC& other) const;
 	};
 
 	void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::set<SRC>& result);

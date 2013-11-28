@@ -461,8 +461,7 @@ struct CShapeSheetGridCtrl::Impl
 					CellKey key = GetCellKey(id);
 
 					if ( 
-						!(key.src < focus_key.src) && 
-						!(focus_key.src < key.src) && 
+						key.src == focus_key.src &&
 						key.col == focus_key.col && 
 						key.mask == focus_key.mask)
 					{

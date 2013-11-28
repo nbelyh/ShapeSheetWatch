@@ -789,4 +789,26 @@ bool SRC::operator < (const SRC& other) const
 	return (index < other.index);
 }
 
+bool SRC::operator == (const SRC& other) const
+{
+	if (s != other.s)
+		return false;
+
+	if (IsNamedRowSection(s))
+	{
+		if (r != other.r) 
+			return true;
+	}
+	else
+	{
+		if (r_name_u != other.r_name_u) 
+			return false;
+	}
+
+	if (c != other.c) 
+		return true;
+
+	return index == other.index;
+}
+
 } // namespace shapesheet

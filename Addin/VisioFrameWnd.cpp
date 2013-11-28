@@ -25,11 +25,9 @@ BEGIN_MESSAGE_MAP(CVisioFrameWnd, CWnd)
 	ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
-/**------------------------------------------------------------------------------
-	Creates and initializes a new Visio (top-level) window, and subclasses the 
-	"client area" of that parent Visio window (this "client area" is actually 
-	a special window provided by visio for sub-classing).
--------------------------------------------------------------------------------*/
+/**------------------------------------------------------------------------
+	
+-------------------------------------------------------------------------*/
 
 CString GetHtmlFilePath(LPCWSTR file_name)
 {
@@ -63,6 +61,12 @@ CString GetHtmlFilePath(LPCWSTR file_name)
 
 	return path;
 }
+
+/**------------------------------------------------------------------------------
+	Creates and initializes a new Visio (top-level) window, and subclasses the 
+	"client area" of that parent Visio window (this "client area" is actually 
+	a special window provided by visio for sub-classing).
+-------------------------------------------------------------------------------*/
 
 void CVisioFrameWnd::Create(IVWindowPtr window)
 {
