@@ -193,6 +193,7 @@ struct CShapeSheetGridCtrl::Impl
 	void OnSelectionChanged(IVWindowPtr window)
 	{
 		IVSelectionPtr selection = window->Selection;
+		selection->PutIterationMode(visSelModeSkipSuper);
 
 		IVShapePtr shape = (selection->Count == 1)
 			? selection->Item[1] : window->PageAsObj->PageSheet;
