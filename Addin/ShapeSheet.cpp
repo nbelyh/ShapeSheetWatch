@@ -670,6 +670,40 @@ void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::set<S
 	}
 }
 
+bool IsNamedRowSection(short s)
+{
+	switch (s)
+	{
+	case visSectionAction:
+	case visSectionSmartTag:
+	case visSectionControls:
+	case visSectionHyperlink:
+	case visSectionProp:
+	case visSectionUser:
+		return true;
+
+	default:
+		return false;
+	}
+}
+
+LPCWSTR GetNamedSectionName(short s)
+{
+	switch (s)
+	{
+	case visSectionAction:		return L"Actions";
+	case visSectionSmartTag:	return L"SmartTags";
+	case visSectionControls:	return L"Controls";
+	case visSectionHyperlink:	return L"Hyperlink";
+	case visSectionProp:		return L"Prop";
+	case visSectionUser:		return L"User";
+
+	default:
+		ASSERT_RETURN_VALUE(FALSE, L"");
+	}
+}
+
+
 void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::set<SRC>& result)
 {
 	GetVariableNamedSectionCellNames(shape, visSectionAction, cell_name_mask, result);
@@ -702,6 +736,57 @@ const SSInfo& GetSSInfo(size_t index)
 
 	static SSInfo stub;
 	return stub;
+}
+
+bool CellExists(IVShapePtr shape, const SRC& src)
+{
+	if (IsNamedRowSection(src.s))
+	{
+		return shape->GetCellExistsU(
+			bstr_t(FormatString(L"%s.%s.%s", GetNamedSectionName(src.s), src.r_name_u, src.c_name)), 
+			VARIANT_FALSE) != VARIANT_FALSE;
+	}
+	else
+	{
+		return shape->GetCellsSRCExists(
+			src.s, src.r, src.c, 
+			VARIANT_FALSE) != VARIANT_FALSE;	
+	}
+}
+
+IVCellPtr GetShapeCell( IVShapePtr shape, const SRC& src )
+{
+	if (IsNamedRowSection(src.s))
+	{
+		return shape->GetCellsU(
+			bstr_t(FormatString(L"%s.%s.%s", GetNamedSectionName(src.s), src.r_name_u, src.c_name)));
+	}
+	else
+	{
+		return shape->GetCellsSRC(src.s, src.r, src.c);	
+	}
+}
+
+bool SRC::operator < (const SRC& other) const
+{
+	if (s < other.s) return true;
+	if (s > other.s) return false;
+
+	if (IsNamedRowSection(s))
+	{
+		if (r < other.r) return true;
+		if (r > other.r) return false;
+	}
+	else
+	{
+		if (r_name_u < other.r_name_u) return true;
+		if (r_name_u > other.r_name_u) return false;
+	}
+
+	if (c < other.c) return true;
+	if (c > other.c) return false;
+
+	return (index < other.index);
 }
 
 } // namespace shapesheet

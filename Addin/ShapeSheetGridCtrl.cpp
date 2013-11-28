@@ -78,9 +78,11 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	CVisioEvent m_evt_shape_deleted;
-	CVisioEvent m_evt_cell_changed;
+	CVisioEvent m_evt_sel_deleted;
 	CVisioEvent	m_evt_sel_changed;
+
+	typedef Ptr<CVisioEvent> VisioEventPtr;
+	std::vector<VisioEventPtr> m_evt_cell_changed;
 
 	IVWindowPtr m_window;
 
@@ -92,7 +94,7 @@ struct CShapeSheetGridCtrl::Impl
 		m_evt_sel_changed.Advise(event_list, visEvtCodeWinSelChange, this);
 
 		IVEventListPtr doc_event_list = window->GetDocument()->GetEventList();
-		m_evt_shape_deleted.Advise(doc_event_list, visEvtCodeBefSelDel, this);
+		m_evt_sel_deleted.Advise(doc_event_list, visEvtCodeBefSelDel, this);
 
 		m_view_settings = theApp.GetViewSettings();
 
@@ -106,7 +108,7 @@ struct CShapeSheetGridCtrl::Impl
 	void Detach()
 	{
 		m_evt_sel_changed.Unadvise();
-		m_evt_shape_deleted.Unadvise();
+		m_evt_sel_deleted.Unadvise();
 
 		m_this->DeleteAllItems();
 
@@ -139,16 +141,8 @@ struct CShapeSheetGridCtrl::Impl
 
 	void OnSelectionDelete(IVSelectionPtr selection)
 	{
-		if (m_shape && selection)
-		{
-			for (long i = 1; i <= selection->Count; ++i)
-			{
-				IVShapePtr shape = selection->Item[i];
-
-				if (shape->ID == m_shape->ID)
-					SetShape(NULL);
-			}
-		}
+		m_evt_cell_changed.clear();
+		m_shape_ids.clear();
 	}
 
 	/**------------------------------------------------------------------------
@@ -157,7 +151,7 @@ struct CShapeSheetGridCtrl::Impl
 
 	void OnCellChanged(IVCellPtr cell)
 	{
-		UpdateGridRows(false);
+		theApp.UpdateViews(UpdateHint_Rows);
 	}
 
 	/**------------------------------------------------------------------------
@@ -169,21 +163,26 @@ struct CShapeSheetGridCtrl::Impl
 		return DYNAMIC_DOWNCAST(CHTMLayoutCtrl, m_this->GetParent());
 	}
 
-	void SetShape(IVShapePtr shape)
-	{
-		m_evt_cell_changed.Unadvise();
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
 
-		if (shape)
+	CString GetSelectionCaption(IVSelectionPtr selection)
+	{
+		long count = selection->Count;
+
+		if (count == 0)
+			return L"";
+
+		if (count <= 3)
 		{
-			IVEventListPtr event_list = shape->GetEventList();
-			m_evt_cell_changed.Advise(event_list, (visEvtMod|visEvtCell), this);
+			Strings names;
+			for (long i = 1; i <= selection->Count; ++i)
+				names.push_back(static_cast<LPCWSTR>(selection->Item[i]->Name));
+			return JoinList(names, L", ");
 		}
 
-		CHTMLayoutCtrl* html = GetHtmlControl();
-		if (html)
-			html->SetElementText("shape-caption", shape ? shape->Name : bstr_t());
-
-		m_shape = shape;
+		return L"<multiple selection>";
 	}
 
 	/**------------------------------------------------------------------------
@@ -192,13 +191,28 @@ struct CShapeSheetGridCtrl::Impl
 
 	void OnSelectionChanged(IVWindowPtr window)
 	{
+		m_evt_cell_changed.clear();
+		m_shape_ids.clear();
+
 		IVSelectionPtr selection = window->Selection;
 		selection->PutIterationMode(visSelModeSkipSuper);
 
-		IVShapePtr shape = (selection->Count == 1)
-			? selection->Item[1] : window->PageAsObj->PageSheet;
+		for (long i = 1; i <= selection->Count; ++i)
+		{
+			IVShapePtr shape = selection->Item[i];
 
-		SetShape(shape);
+			m_shape_ids.insert(shape->ID);
+
+			IVEventListPtr event_list = shape->GetEventList();
+
+			VisioEventPtr evt(new CVisioEvent());
+			evt->Advise(event_list, (visEvtMod|visEvtCell), this);
+			m_evt_cell_changed.push_back(evt);
+		}
+
+		CHTMLayoutCtrl* html = GetHtmlControl();
+		if (html)
+			html->SetElementText("shape-caption", GetSelectionCaption(selection));
 
 		UpdateGridRows(false);
 	}
@@ -267,17 +281,40 @@ struct CShapeSheetGridCtrl::Impl
 
 	void UpdateValueCellText(int row, int col, const shapesheet::SRC& src)
 	{
-		IVCellPtr cell = 
-			m_shape->GetCellsSRC(src.s, src.r, src.c);
+		bool blue = false;
+		bstr_t common_val = L"?";
 
-		IVCellPtr inherited_from_cell;
-		if (SUCCEEDED(cell->get_InheritedFormulaSource(&inherited_from_cell)))
+		for (std::set<long>::const_iterator it = m_shape_ids.begin(); it != m_shape_ids.end(); ++it)
 		{
-			if (cell == inherited_from_cell)
-				m_this->SetItemFgColour(row, col, RGB(0,0,255));
+			IVShapePtr shape = GetShapeFromId(*it);
+
+			if (!shapesheet::CellExists(shape, src))
+				continue;
+
+			IVCellPtr cell = shapesheet::GetShapeCell(shape, src);
+
+			IVCellPtr inherited_from_cell;
+			if (SUCCEEDED(cell->get_InheritedFormulaSource(&inherited_from_cell)))
+			{
+				if (cell == inherited_from_cell)
+					blue = true;
+			}
+
+			bstr_t val = GetCellValue(cell, col);
+
+			if (val != common_val)
+			{
+				if (common_val == bstr_t(L"?"))
+					common_val = val;
+				else
+					common_val = L"<multiselect>";
+			}
 		}
 
-		m_this->SetItemText(row, col, GetCellValue(cell, col));
+		if (blue)
+			m_this->SetItemFgColour(row, col, RGB(0,0,255));
+
+		m_this->SetItemText(row, col, common_val);
 	}
 
 	void UpdateCellText(int row, int col, LPCWSTR text)
@@ -319,15 +356,33 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
+	static shapesheet::SRC GetRowSRC(CShapeSheetGridCtrl* p_this, int iRow)
+	{
+		shapesheet::SRC src;
+
+		src.s = (short)p_this->GetItemData(iRow, Column_S);
+		src.r = (short)p_this->GetItemData(iRow, Column_R);
+		src.c = (short)p_this->GetItemData(iRow, Column_C);
+
+		src.c_name = p_this->GetItemText(iRow, Column_S);
+		src.r_name_u = p_this->GetItemText(iRow, Column_RU);
+		src.r_name_l = p_this->GetItemText(iRow, Column_R);
+		src.c_name = p_this->GetItemText(iRow, Column_C);
+
+		return src;
+	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	struct SaveFocus
 	{
 		CShapeSheetGridCtrl* m_this;
 
 		struct CellKey
 		{
-			LPARAM s;
-			LPARAM r;
-			LPARAM c;
+			shapesheet::SRC src;
 
 			int col;
 			CString mask;
@@ -340,9 +395,7 @@ struct CShapeSheetGridCtrl::Impl
 
 			if (id.col >= 0)
 			{
-				key.s = m_this->GetItemData(id.row, Column_S);
-				key.r = m_this->GetItemData(id.row, Column_R);
-				key.c = m_this->GetItemData(id.row, Column_C);
+				key.src = GetRowSRC(m_this, id.row);
 				key.mask = m_this->GetItemText(id.row, Column_Mask);
 			}
 
@@ -375,10 +428,10 @@ struct CShapeSheetGridCtrl::Impl
 					CCellID id(r,c);
 					CellKey key = GetCellKey(id);
 
-					if (key.s == focus_key.s && 
-						key.r == focus_key.r && 
-						key.c == focus_key.c && 
-						key.col == focus_key.col &&
+					if ( 
+						!(key.src < focus_key.src) && 
+						!(focus_key.src < key.src) && 
+						key.col == focus_key.col && 
 						key.mask == focus_key.mask)
 					{
 						RestoreFocusUsingId(id);
@@ -403,18 +456,13 @@ struct CShapeSheetGridCtrl::Impl
 	{
 		SaveFocus save(m_this, use_id);
 
-		using namespace shapesheet;
-
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
-		typedef std::vector< std::set<SRC> > GroupCellInfos;
+		typedef std::vector< std::set<shapesheet::SRC> > GroupCellInfos;
 		GroupCellInfos cell_names(cell_name_masks.size());
 
-		if (m_shape != NULL)
-		{
-			for (size_t i = 0; i < cell_name_masks.size(); ++i)
-				GetCellNames(m_shape, cell_name_masks[i], cell_names[i]);
-		}
+		for (size_t i = 0; i < cell_name_masks.size(); ++i)
+			GetCellNames(cell_name_masks[i], cell_names[i]);
 
 		m_this->SetRowCount(1);
 
@@ -461,9 +509,9 @@ struct CShapeSheetGridCtrl::Impl
 				int r_count = 0;
 				short r_last = -1;
 
-				for (std::set<SRC>::const_iterator it = cell_names[i].begin(); it != cell_names[i].end(); ++it)
+				for (std::set<shapesheet::SRC>::const_iterator it = cell_names[i].begin(); it != cell_names[i].end(); ++it)
 				{
-					const SRC& src = (*it);
+					const shapesheet::SRC& src = (*it);
 
 					UpdateCellText(row, Column_Name, src.name);
 					m_this->SetItemData(row, Column_Name, src.index);
@@ -473,14 +521,13 @@ struct CShapeSheetGridCtrl::Impl
 					UpdateCellText(row, Column_RU, src.r_name_u);
 					UpdateCellText(row, Column_C, src.c_name);
 
-					if (m_shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
+					m_this->SetItemData(row, Column_S, src.s);
+					m_this->SetItemData(row, Column_R, src.r);
+					m_this->SetItemData(row, Column_C, src.c);
+					m_this->SetItemData(row, Column_Mask, i);
+
+					if (CellExists(src))
 					{
-						m_this->SetItemData(row, Column_S, src.s);
-						m_this->SetItemData(row, Column_R, src.r);
-						m_this->SetItemData(row, Column_C, src.c);
-
-						m_this->SetItemData(row, Column_Mask, i);
-
 						UpdateValueCellText(row, Column_Formula, src);
 						UpdateValueCellText(row, Column_FormulaU, src);
 						UpdateValueCellText(row, Column_Value, src);
@@ -558,45 +605,52 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	BOOL SetFormula(int iRow, int iColumn, bstr_t text)
+	bool SetFormula(int iRow, int iColumn, bstr_t text)
 	{
-		short s = (short)m_this->GetItemData(iRow, Column_S);
-		short r = (short)m_this->GetItemData(iRow, Column_R);
-		short c = (short)m_this->GetItemData(iRow, Column_C);
+		shapesheet::SRC src = GetRowSRC(m_this, iRow);
 
-		IVCellPtr cell = m_shape->GetCellsSRC(s, r, c);
+		bool result = true;
 
-		try
+		for (std::set<long>::const_iterator it = m_shape_ids.begin(); it != m_shape_ids.end(); ++it)
 		{
-			if (iColumn == Column_FormulaU)
-				cell->PutFormulaForceU(text);
-			else
-				cell->PutFormulaForce(text);
+			IVShapePtr shape = GetShapeFromId(*it);
 
-			return TRUE;
+			if (!shapesheet::CellExists(shape, src))
+				continue;
+
+			IVCellPtr cell = shapesheet::GetShapeCell(shape, src);
+
+			try
+			{
+				if (iColumn == Column_FormulaU)
+					cell->PutFormulaForceU(text);
+				else
+					cell->PutFormulaForce(text);
+			}
+			catch (_com_error& e)
+			{
+				AfxMessageBox(FormatErrorMessage(e));
+				result = false;
+			}
 		}
-		catch (_com_error& e)
-		{
-			AfxMessageBox(FormatErrorMessage(e));
-			return FALSE;
-		}
+
+		return result;
 	}
 
-	BOOL OnEditFormula(int iRow, int iColumn)
+	BOOL SetCellFormula(int iRow, int iColumn, LPCTSTR text)
 	{
 		VisioScopeLock lock(theApp.GetVisioApp(), L"Edit Formula");
 
 		if (iRow >= m_this->GetRowCount() - 1)
 			return FALSE;
 
-		bstr_t text = 
-			m_this->GetItemText(iRow, iColumn);
+		BOOL success = SetFormula(iRow, iColumn, text);
+		
+		if (success)
+			lock.Commit();
 
-		if (!SetFormula(iRow, iColumn, text))
-			return FALSE;
-
-		lock.Commit();
-		return TRUE;
+		UpdateGridRows(true);
+		return success;
 	}
 
 	/**------------------------------------------------------------------------
@@ -621,27 +675,57 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
+	IVShapePtr GetShapeFromId(long id) const
+	{
+		return m_window->GetPageAsObj()->GetShapes()->GetItemFromID(id);
+	}
+
+	void GetCellNames(const CString& cell_name_mask, std::set<shapesheet::SRC>& result)
+	{
+		for (std::set<long>::const_iterator it = m_shape_ids.begin(); it != m_shape_ids.end(); ++it)
+		{
+			IVShapePtr shape = GetShapeFromId(*it);
+
+			shapesheet::GetCellNames(shape, cell_name_mask, result);
+		}
+	}
+
+	bool CellExists(const shapesheet::SRC& src) const
+	{
+		for (std::set<long>::const_iterator it = m_shape_ids.begin(); it != m_shape_ids.end(); ++it)
+		{
+			IVShapePtr shape = GetShapeFromId(*it);
+
+			if (shapesheet::CellExists(shape, src))
+				return true;
+		}
+		
+		return false;
+	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	LRESULT OnBeginItemEdit(int iRow, int iColumn, Strings* arrOptions)
 	{
 		if (!IsCellEditable(iRow, iColumn))
 			return -1;
 
-		using namespace shapesheet;
-
 		switch (iColumn)
 		{
 		case Column_Mask:
-			if (m_shape && arrOptions)
+			if (arrOptions)
 			{
-				std::set<SRC> srcs;
-				GetCellNames(m_shape, L"*", srcs);
+				std::set<shapesheet::SRC> srcs;
+				GetCellNames(L"*", srcs);
 
 				Strings names;
-				for (std::set<SRC>::const_iterator it = srcs.begin(); it != srcs.end(); ++it)
+				for (std::set<shapesheet::SRC>::const_iterator it = srcs.begin(); it != srcs.end(); ++it)
 				{
-					const SRC& src = (*it);
+					const shapesheet::SRC& src = (*it);
 
-					if (m_shape->GetCellsSRCExists(src.s, src.r, src.c, VARIANT_FALSE))
+					if (CellExists(src))
 						arrOptions->push_back(src.name);
 				}
 
@@ -656,7 +740,7 @@ struct CShapeSheetGridCtrl::Impl
 			{
 				LPARAM index = m_this->GetItemData(iRow, Column_Name);
 
-				const SSInfo& ss_info = GetSSInfo(index);
+				const shapesheet::SSInfo& ss_info = shapesheet::GetSSInfo(index);
 
 				SplitList(ss_info.values, L";", *arrOptions);
 			}
@@ -676,7 +760,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		case Column_Formula:
 		case Column_FormulaU:
-			return OnEditFormula(iRow, iColumn);
+			return SetCellFormula(iRow, iColumn, m_this->GetItemText(iRow, iColumn));
 		}
 
 		return -1;
@@ -702,7 +786,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		case Column_Formula:
 		case Column_FormulaU:
-			return SetFormula(iRow, iColumn, L"No Formula");
+			return SetCellFormula(iRow, iColumn, L"No Formula");
 		}
 
 		return FALSE;
@@ -719,7 +803,7 @@ struct CShapeSheetGridCtrl::Impl
 
 private:
 
-	IVShapePtr m_shape;
+	std::set<long> m_shape_ids;
 	ViewSettings* m_view_settings;
 
 	CShapeSheetGridCtrl	*m_this;
