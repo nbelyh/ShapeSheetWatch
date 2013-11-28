@@ -30,6 +30,7 @@
 
 #include <vector>
 #include <set>
+#include <map>
 #include <algorithm>
 
 #pragma warning( disable : 4278 )

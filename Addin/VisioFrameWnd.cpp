@@ -38,7 +38,6 @@ CString GetHtmlFilePath(LPCWSTR file_name)
 		NULL, path, &path_len, FALSE, NULL, 0))
 	{
 
-#ifdef DEBUG
 		GetModuleFileName(AfxGetInstanceHandle(), path, MAX_PATH);
 		PathRemoveFileSpec(path);
 		PathAddBackslash(path);
@@ -47,11 +46,6 @@ CString GetHtmlFilePath(LPCWSTR file_name)
 		PathAppend(path, L"..");
 		PathAddBackslash(path);
 		PathAppend(path, L"Data");
-#else
-		GetModuleFileName(AfxGetInstanceHandle(), path, MAX_PATH);
-		PathRemoveFileSpec(path);
-#endif
-
 	}
 
 	PathAddBackslash(path);

@@ -45,11 +45,13 @@ namespace shapesheet {
 
 		bool operator < (const SRC& other) const;
 		bool operator == (const SRC& other) const;
+
+		SRC() : s(-1), r(-1), c(-1), index(-1) {}
 	};
 
-	void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::set<SRC>& result);
+	void GetCellNames(IVShape* shape, const CString& cell_name_mask, std::set<SRC>& result);
 
-	bool CellExists(IVShapePtr shape, const SRC& src);
-	IVCellPtr GetShapeCell(IVShapePtr shape, const SRC& src);
+	bool CellExists(IVShape* shape, const SRC& src);
+	IVCellPtr GetShapeCell(IVShape* shape, const SRC& src);
 
 } // namespace shapesheet

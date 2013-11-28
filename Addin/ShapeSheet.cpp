@@ -518,7 +518,7 @@ void AddNameMatchResult(const CString& mask, CString name,
 	}
 }
 
-void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, const CString& mask, std::set<SRC>& result)
+void GetVariableIndexedSectionCellNames(IVShape* shape, short section_no, const CString& mask, std::set<SRC>& result)
 {
 	if (!shape->GetSectionExists(section_no, VARIANT_FALSE))
 		return;
@@ -545,7 +545,7 @@ void GetVariableIndexedSectionCellNames(IVShapePtr shape, short section_no, cons
 	}
 }
 
-void GetVariableNamedSectionCellNames(IVShapePtr shape, short section_no, const CString& mask, std::set<SRC>& result)
+void GetVariableNamedSectionCellNames(IVShape* shape, short section_no, const CString& mask, std::set<SRC>& result)
 {
 	if (!shape->GetSectionExists(section_no, VARIANT_FALSE))
 		return;
@@ -600,7 +600,7 @@ short GetGeometryRowCellCount(short row_type)
 	}
 }
 
-void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, std::set<SRC>& result)
+void GetVariableGeometrySectionCellNames(IVShape* shape, const CString& mask, std::set<SRC>& result)
 {
 	const SSInfos& ss_infos = GetSectionInfo(visSectionFirstComponent);
 
@@ -652,7 +652,7 @@ void GetVariableGeometrySectionCellNames(IVShapePtr shape, const CString& mask, 
 	}
 }
 
-void GetSimpleSectionCellNames(IVShapePtr shape, const CString& mask, std::set<SRC>& result)
+void GetSimpleSectionCellNames(IVShape* shape, const CString& mask, std::set<SRC>& result)
 {
 	const SSInfos& ss_info = GetSectionInfo(visSectionObject);
 	for (size_t i = 0; i < ss_info.size(); ++i)
@@ -704,7 +704,7 @@ LPCWSTR GetNamedSectionName(short s)
 }
 
 
-void GetCellNames(IVShapePtr shape, const CString& cell_name_mask, std::set<SRC>& result)
+void GetCellNames(IVShape* shape, const CString& cell_name_mask, std::set<SRC>& result)
 {
 	GetVariableNamedSectionCellNames(shape, visSectionAction, cell_name_mask, result);
 	GetVariableNamedSectionCellNames(shape, visSectionSmartTag, cell_name_mask, result);
@@ -738,7 +738,7 @@ const SSInfo& GetSSInfo(size_t index)
 	return stub;
 }
 
-bool CellExists(IVShapePtr shape, const SRC& src)
+bool CellExists(IVShape* shape, const SRC& src)
 {
 	if (IsNamedRowSection(src.s))
 	{
@@ -754,7 +754,7 @@ bool CellExists(IVShapePtr shape, const SRC& src)
 	}
 }
 
-IVCellPtr GetShapeCell( IVShapePtr shape, const SRC& src )
+IVCellPtr GetShapeCell(IVShape* shape, const SRC& src )
 {
 	if (IsNamedRowSection(src.s))
 	{
@@ -774,13 +774,13 @@ bool SRC::operator < (const SRC& other) const
 
 	if (IsNamedRowSection(s))
 	{
-		if (r < other.r) return true;
-		if (r > other.r) return false;
+		if (r_name_u < other.r_name_u) return true;
+		if (r_name_u > other.r_name_u) return false;
 	}
 	else
 	{
-		if (r_name_u < other.r_name_u) return true;
-		if (r_name_u > other.r_name_u) return false;
+		if (r < other.r) return true;
+		if (r > other.r) return false;
 	}
 
 	if (c < other.c) return true;
