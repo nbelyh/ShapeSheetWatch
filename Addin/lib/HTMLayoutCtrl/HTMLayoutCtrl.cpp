@@ -349,6 +349,12 @@ void CHTMLayoutCtrl::SetElementAttribute (const char* id, const char* attribute,
 	m_impl->SetElemAttribute(h_found, attribute, text);
 }
 
+bool CHTMLayoutCtrl::IstElementChecked(const char* id)
+{
+	HELEMENT h_found = m_impl->GetElemById(id);
+	return m_impl->GetElemState(h_found, STATE_CHECKED);
+}
+
 void CHTMLayoutCtrl::SetElementChecked(const char* id, bool enabled)
 {
 	HELEMENT h_found = m_impl->GetElemById(id);

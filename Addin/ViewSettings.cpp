@@ -49,6 +49,8 @@ void ViewSettings::Save()
 		key.SetDWORDValue(L"WindowHeight", m_window_width);
 		key.SetDWORDValue(L"WindowState", m_window_state);
 		key.SetDWORDValue(L"VisibleByDefault", m_visible_by_default);
+		key.SetDWORDValue(L"FilterLocal", m_filter_local);
+		key.SetDWORDValue(L"FilterUpdated", m_filter_udpated);
 	}
 }
 
@@ -95,6 +97,8 @@ void ViewSettings::Load()
 		key.QueryDWORDValue(L"WindowHeight", m_window_width);
 		key.QueryDWORDValue(L"WindowState", m_window_state);
 		key.QueryDWORDValue(L"VisibleByDefault", m_visible_by_default);
+		key.QueryDWORDValue(L"FilterLocal", m_filter_local);
+		key.QueryDWORDValue(L"FilterUpdated", m_filter_udpated);
 	}
 }
 
@@ -134,7 +138,9 @@ ViewSettings::ViewSettings()
 
 	m_window_state = (visWSAnchorTop | visWSAnchorRight);
 
-	m_visible_by_default = false;
+	m_visible_by_default = 0;
+	m_filter_local = 0;
+	m_filter_udpated = 0;
 }
 
 ViewSettings::~ViewSettings()
@@ -175,6 +181,26 @@ bool ViewSettings::IsVisibleByDefault() const
 void ViewSettings::SetVisibleByDefault(bool set)
 {
 	m_visible_by_default = set;
+}
+
+bool ViewSettings::IsFilterLocalOn() const
+{
+	return m_filter_local != 0;
+}
+
+void ViewSettings::SetFilterLocal(bool set)
+{
+	m_filter_local = set;
+}
+
+bool ViewSettings::IsFilterUpdatedOn() const
+{
+	return m_filter_udpated != 0;
+}
+
+void ViewSettings::SetFilterUpdated(bool set)
+{
+	m_filter_udpated = set;
 }
 
 CString GetColumnName(int i)

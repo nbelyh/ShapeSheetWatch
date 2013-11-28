@@ -38,6 +38,7 @@ public:
 	
 	void SetElementText(const char* id, LPCWSTR text);
 
+	bool IstElementChecked(const char* id);
 	void SetElementChecked (const char* id, bool set);
 
 	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
@@ -46,7 +47,6 @@ public:
 protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	DECLARE_DYNAMIC(CHTMLayoutCtrl)
-
 private:
 	struct Impl;
 	Impl* m_impl;

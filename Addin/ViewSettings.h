@@ -47,12 +47,21 @@ public:
 	bool IsVisibleByDefault() const;
 	void SetVisibleByDefault(bool set);
 
+	bool IsFilterLocalOn() const;
+	void SetFilterLocal(bool set);
+
+	bool IsFilterUpdatedOn() const;
+	void SetFilterUpdated(bool set);
+
 	void Save();
 	void Load();
 
 private:
 	std::vector<bool> m_column_visible;
 	std::vector<int> m_column_widths;
+
+	DWORD m_filter_local;
+	DWORD m_filter_udpated;
 
 	DWORD m_window_top;
 	DWORD m_window_left;

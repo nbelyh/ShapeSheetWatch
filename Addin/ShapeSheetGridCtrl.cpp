@@ -137,6 +137,11 @@ struct CShapeSheetGridCtrl::Impl
 
 		case UpdateHint_Rows:
 			UpdateGridRows(UpdateOption_Hilight|UpdateOption_UseId);
+			break;
+
+		case UpdateHint_Filter:
+			UpdateGridRows(UpdateOption_Filter|UpdateOption_UseId);
+			break;
 		}
 	}
 
@@ -177,17 +182,12 @@ struct CShapeSheetGridCtrl::Impl
 		long count = selection->Count;
 
 		if (count == 0)
-			return L"";
+			return L" ";
 
-		if (count <= 3)
-		{
-			Strings names;
-			for (long i = 1; i <= selection->Count; ++i)
-				names.push_back(static_cast<LPCWSTR>(selection->Item[i]->Name));
-			return JoinList(names, L", ");
-		}
+		if (count == 1)
+			return static_cast<LPCWSTR>(selection->Item[1L]->Name);
 
-		return L"<multiple selection>";
+		return L"<Multiple selection>";
 	}
 
 	/**------------------------------------------------------------------------
@@ -231,43 +231,78 @@ struct CShapeSheetGridCtrl::Impl
 	}
 
 	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
+	struct CellInfo
+	{
+		CellInfo()
+			: data(0), image(-1), bk_color(CLR_DEFAULT), fg_color(CLR_DEFAULT)
+		{
+		}
+
+		CString text;
+		LPARAM	data;
+		int		image;
+
+		COLORREF bk_color;
+		COLORREF fg_color;
+	};
+
+	struct RowInfo
+	{
+		RowInfo()
+			: cells(Column_Count), status(0)
+		{
+		}
+
+		enum Status
+		{
+			Status_Local	= 1,
+			Status_Updated	= 2,
+		};
+
+		int	status;
+		std::vector<CellInfo> cells;
+
+		bool operator < (const RowInfo& other) const
+		{
+			return GetCellInfoSRC(*this) < GetCellInfoSRC(other);
+		}
+	};
+
+	typedef std::set<RowInfo> RowInfos;
+
+	/**------------------------------------------------------------------------
 		Set "read-only" column text
 	-------------------------------------------------------------------------*/
 
-	bool GetCellColors(int row, int col, COLORREF& bk, COLORREF& fg)
+	void UpdateCellColors(CellInfo& cell_info, int col) const
 	{
-		if (row == 0)
-		{
-			bk = COLOR_TH_BK; 
-			fg = COLOR_TH_FG; 
-			return true;
-		}
-
 		switch (col)
 		{
 		case Column_Mask:
-			bk = COLOR_MASK_BK; 
-			fg = COLOR_MASK_FG; 
-			return true;
+			cell_info.bk_color = COLOR_MASK_BK; 
+			cell_info.fg_color = COLOR_MASK_FG; 
+			return;
 
 		case Column_Name:
 		case Column_S:
 		case Column_R:
 		case Column_RU:
 		case Column_C:
-			bk = COLOR_SRC_BK;
-			fg = COLOR_SRC_FG;
-			return true;
+
+			cell_info.bk_color = COLOR_SRC_BK; 
+			cell_info.fg_color = COLOR_SRC_FG; 
+			return;
 		}
 
-		if (!IsCellEditable(row, col))
+		if (!IsCellEditable(col))
 		{
-			bk = COLOR_RO_BK;
-			fg = COLOR_RO_FG;
-			return true;
+			cell_info.bk_color = COLOR_RO_BK; 
+			cell_info.fg_color = COLOR_RO_FG; 
+			return;
 		}
-
-		return false;
 	}
 
 	/**------------------------------------------------------------------------
@@ -300,13 +335,33 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
+	static shapesheet::SRC GetCellInfoSRC(const RowInfo& row_info)
+	{
+		shapesheet::SRC src;
+
+		src.s = (short)row_info.cells[Column_S].data;
+		src.r = (short)row_info.cells[Column_R].data;
+		src.c = (short)row_info.cells[Column_C].data;
+
+		src.s_name = row_info.cells[Column_S].text;
+		src.r_name_u = row_info.cells[Column_RU].text;
+		src.r_name_l = row_info.cells[Column_R].text;
+		src.c_name = row_info.cells[Column_C].text;
+
+		return src;
+	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
 	struct CellKey
 	{
 		CellKey(CShapeSheetGridCtrl* p_this, CCellID id)
 		{
 			col = id.col;
 
-			if (id.col >= 0)
+			if (col >= 0)
 			{
 				src = GetRowSRC(p_this, id.row);
 				mask = p_this->GetItemText(id.row, Column_Mask);
@@ -328,7 +383,7 @@ struct CShapeSheetGridCtrl::Impl
 			return mask < other.mask;
 		}
 
-		bool operator == (const CellKey& other)
+		bool operator == (const CellKey& other) const
 		{
 			return src == other.src && col == other.col && mask == other.mask;
 		}
@@ -338,51 +393,21 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	struct SRCStatus
+	bool IsUpdated(const RowInfo& row, int col, const CString& new_val) const
 	{
-		CShapeSheetGridCtrl* m_this;
+		RowInfos::const_iterator found = m_rows.find(row);
+		if (found == m_rows.end())
+			return true;
 
-		SRCStatus(CShapeSheetGridCtrl* p_this)
-			: m_this(p_this)
-		{
-			Capture();
-		}
-
-		typedef std::map<CellKey, CString> SRCValues;
-		SRCValues m_old_vals[Column_Count];
-
-		void Capture()
-		{
-			for (int row = 1; row < m_this->GetRowCount()-1; ++row)
-			{
-				for (int col = 0; col < m_this->GetColumnCount(); ++col)
-				{
-					CellKey key(m_this, CCellID(row, col));
-					m_old_vals[col][key] = m_this->GetItemText(row, col);
-				}
-			}
-		};
-
-		bool IsUpdated(const CellKey& key, const CString& new_val) const
-		{
-			const SRCValues& column_old_vals = m_old_vals[key.col];
-
-			const SRCValues::const_iterator found = 
-				column_old_vals.find(key);
-
-			if (found == column_old_vals.end())
-				return true;
-
-			return new_val != found->second;
-		}
-	};
+		return found->cells[col].text != new_val;
+	}
 
 	/**------------------------------------------------------------------------
 		
 	-------------------------------------------------------------------------*/
 
-	void UpdateValueCellText(int row, int col, const shapesheet::SRC& src, 
-		const SRCStatus& status, int options)
+	void UpdateValueCellInfo(RowInfo& result, int col, 
+		const shapesheet::SRC& src, int options) const
 	{
 		bool have_local = false;
 
@@ -424,38 +449,43 @@ struct CShapeSheetGridCtrl::Impl
 			}
 		}
 
+		CellInfo& cell_info = result.cells[col];
+
 		if (have_local)
-			m_this->SetItemFgColour(row, col, RGB(0,0,255));
+		{
+			result.status |= RowInfo::Status_Local;
+			cell_info.fg_color = RGB(0,0,255);
+		}
 
 		if (missing_count + valid_count > 1)
-			m_this->SetItemImage(row, Column_Name, valid_count ? (missing_count ? 1 : 2) : 0);
+			result.cells[Column_Name].image = valid_count ? (missing_count ? 1 : 2) : 0;
 
 		if (options & UpdateOption_Hilight)
 		{
-			CellKey key(m_this, CCellID(row, col));
-			if (status.IsUpdated(key, new_val))
-				m_this->SetItemBkColour(row, col, RGB(255,255,128));
+			if (IsUpdated(result, col, new_val))
+			{
+				result.status |= RowInfo::Status_Updated;
+				cell_info.bk_color = RGB(255,255,128);
+			}
 		}
 
-		m_this->SetItemText(row, col, new_val);
+		cell_info.text = new_val;
 	}
 
 	/**------------------------------------------------------------------------
 		
 	-------------------------------------------------------------------------*/
 
-	void UpdateCellText(int row, int col, LPCWSTR text)
+	void UpdateCellInfo(RowInfo& result_row, int col, LPCWSTR text, LPARAM data) const
 	{
-		COLORREF bk;
-		COLORREF fg;
+		CellInfo& cell_info = result_row.cells[col];
 
-		if (GetCellColors(row, col, bk, fg))
-		{
-			m_this->SetItemBkColour(row, col, bk);
-			m_this->SetItemFgColour(row, col, fg);
-		}
+		UpdateCellColors(cell_info, col);
 
-		m_this->SetItemText(row, col, text);
+		if (text != NULL)
+			cell_info.text = text;
+
+		cell_info.data = data;
 	}
 
 	/**------------------------------------------------------------------------
@@ -470,7 +500,9 @@ struct CShapeSheetGridCtrl::Impl
 
 		for (int i = 0; i < Column_Count; ++i)
 		{
-			UpdateCellText(0, i, GetColumnName(i));
+			m_this->SetItemFgColour(0, i, COLOR_TH_FG);
+			m_this->SetItemBkColour(0, i, COLOR_TH_BK);
+			m_this->SetItemText(0, i, GetColumnName(i));
 
 			if (m_view_settings->IsColumnVisible(i))
 				m_this->SetColumnWidth(i, m_view_settings->GetColumnWidth(i));
@@ -556,22 +588,175 @@ struct CShapeSheetGridCtrl::Impl
 	{
 		UpdateOption_UseId = 1,
 		UpdateOption_Hilight = 2,
+		UpdateOption_Filter = 4,
 	};
 
-	void UpdateGridRows(int option)
+	typedef std::vector< std::set<shapesheet::SRC> > GroupCellInfos;
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
+	RowInfos m_rows;
+
+	void FillRows(RowInfos& rows, const Strings& cell_name_masks, const GroupCellInfos& cell_names, int options)
 	{
-		SaveFocus save(m_this, (option & UpdateOption_UseId) != 0);
-		SRCStatus status(m_this);
+		for (size_t i = 0; i < cell_name_masks.size(); ++i)
+		{
+			if (cell_names[i].empty())
+			{
+				RowInfo result_row;
+
+				UpdateCellInfo(result_row, Column_Mask, cell_name_masks[i], i);
+				UpdateCellInfo(result_row, Column_Name, NULL, -1);
+				UpdateCellInfo(result_row, Column_S, L"", Column_S);
+				UpdateCellInfo(result_row, Column_R, L"", Column_R);
+				UpdateCellInfo(result_row, Column_RU, L"", Column_RU);
+				UpdateCellInfo(result_row, Column_C, L"", Column_C);
+
+				rows.insert(result_row);
+			}
+			else 
+			{
+				for (std::set<shapesheet::SRC>::const_iterator it = cell_names[i].begin(); it != cell_names[i].end(); ++it)
+				{
+					RowInfo result_row;
+
+					const shapesheet::SRC& src = (*it);
+
+					UpdateCellInfo(result_row, Column_Mask, cell_name_masks[i], i);
+					UpdateCellInfo(result_row, Column_Name, src.name, src.index);
+					UpdateCellInfo(result_row, Column_S, src.s_name, src.s);
+					UpdateCellInfo(result_row, Column_R, src.r_name_l, src.r);
+					UpdateCellInfo(result_row, Column_RU, src.r_name_u, src.r);
+					UpdateCellInfo(result_row, Column_C, src.c_name, src.c);
+
+					if (CellExists(src))
+					{
+						UpdateValueCellInfo(result_row, Column_Formula, src, options);
+						UpdateValueCellInfo(result_row, Column_FormulaU, src, options);
+						UpdateValueCellInfo(result_row, Column_Value, src, options);
+						UpdateValueCellInfo(result_row, Column_ValueU, src, options);
+					}
+
+					rows.insert(result_row);
+				}
+			}
+		}
+	}
+
+	void FilterRows(RowInfos& result)
+	{
+		for (RowInfos::const_iterator it = m_rows.begin(); it != m_rows.end(); ++it)
+		{
+			const RowInfo& result_row = (*it);
+
+			if (theApp.GetViewSettings()->IsFilterLocalOn() && (result_row.status & RowInfo::Status_Local) == 0)
+				continue;
+
+			if (theApp.GetViewSettings()->IsFilterUpdatedOn() && (result_row.status & RowInfo::Status_Updated) == 0)
+				continue;
+
+			result.insert(result_row);
+		}
+	}
+
+	/**------------------------------------------------------------------------
+		
+	-------------------------------------------------------------------------*/
+
+	void FillGridRows(const RowInfos& rows)
+	{
+		int m_start = 0;
+		int m_count = 0;
+		CString m_last = L"{3E299FD6-E96E-40b5-A861-CD0222D64278}";
+
+		int s_start = 0;
+		int s_count = 0;
+		CString s_last = L"{FCA496EB-7858-452d-9B05-89E5319CC262}";
+
+		int r_start = 0;
+		int r_count = 0;
+		short r_last = -1;
+
+		int row = 0;
+		for (RowInfos::const_iterator it = rows.begin(); it != rows.end(); ++it)
+		{
+			const RowInfo& row_info = (*it);
+
+			for (int col = 0; col < Column_Count; ++col)
+			{
+				const CellInfo& cell_info = row_info.cells[col];
+
+				m_this->SetItemText(1 + row, col, cell_info.text);
+				m_this->SetItemImage(1 + row, col, cell_info.image);
+				m_this->SetItemBkColour(1 + row, col, cell_info.bk_color);
+				m_this->SetItemFgColour(1 + row, col, cell_info.fg_color);
+				m_this->SetItemData(1 + row, col, cell_info.data);
+			}
+
+			shapesheet::SRC src = GetCellInfoSRC(row_info);
+			const CString& mask = row_info.cells[Column_Mask].text;
+
+			if (r_last == src.r && s_last == src.s_name && m_last == mask)
+				++r_count;
+			else
+			{
+				if (r_count > 1)
+					m_this->MergeCells(1 + r_start, Column_R, row, Column_R);
+
+				r_last = src.r;
+				r_start = row;
+				r_count = 1;
+			}
+
+			if (s_last == src.s_name && m_last == mask)
+				++s_count;
+			else
+			{
+				if (s_count > 1)
+					m_this->MergeCells(1 + s_start, Column_S, row, Column_S);
+
+				s_last = src.s_name;
+				s_start = row;
+				s_count = 1;
+			}
+
+			if (m_last == mask)
+				++m_count;
+			else
+			{
+				if (m_count > 1)
+					m_this->MergeCells(1 + m_start, Column_Mask, row, Column_Mask);
+
+				m_last = mask;
+				m_start = row;
+				m_count = 1;
+			}
+
+			++row;
+		}
+
+		if (m_count > 1)
+			m_this->MergeCells(1 + m_start, Column_Mask, rows.size(), Column_Mask);
+
+		if (s_count > 1)
+			m_this->MergeCells(1 + s_start, Column_S, rows.size(), Column_S);
+
+		if (r_count > 1)
+			m_this->MergeCells(1 + r_start, Column_R, rows.size(), Column_R);
+	}
+
+	void UpdateGridRows(int options)
+	{
+		SaveFocus save(m_this, (options & UpdateOption_UseId) != 0);
 
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
-		typedef std::vector< std::set<shapesheet::SRC> > GroupCellInfos;
 		GroupCellInfos cell_names(cell_name_masks.size());
 
 		for (size_t i = 0; i < cell_name_masks.size(); ++i)
 			GetCellNames(cell_name_masks[i], cell_names[i]);
-
-		m_this->SetRowCount(1);
 
 		int row_count = 0;
 		for (int i = 0; i < int(cell_names.size()); ++i)
@@ -582,105 +767,22 @@ struct CShapeSheetGridCtrl::Impl
 			row_count += cell_names_count > 0 ? cell_names_count : 1;
 		}
 
-		m_this->SetRowCount(1 + row_count);
-
-		int row = 1;
-		for (int i = 0; i < int(cell_name_masks.size()); ++i)
+		if ((options & UpdateOption_Filter) == 0)
 		{
-			int m_row = row;
-
-			if (cell_names[i].empty())
-			{
-				m_this->SetItemData(row, Column_Mask, i);
-				m_this->SetItemData(row, Column_Name, -1);
-
-				UpdateCellText(row, Column_Mask, cell_name_masks[i]);
-				UpdateCellText(row, Column_S, L"");
-				UpdateCellText(row, Column_R, L"");
-				UpdateCellText(row, Column_C, L"");
-
-				m_this->SetItemData(row, Column_S, Column_S);
-				m_this->SetItemData(row, Column_R, Column_R);
-				m_this->SetItemData(row, Column_C, Column_C);
-
-				++row;
-			}
-			else 
-			{
-				int s_start = row;
-				int s_count = 0;
-				short s_last = -1;
-
-				int r_start = row;
-				int r_count = 0;
-				short r_last = -1;
-
-				for (std::set<shapesheet::SRC>::const_iterator it = cell_names[i].begin(); it != cell_names[i].end(); ++it)
-				{
-					const shapesheet::SRC& src = (*it);
-
-					UpdateCellText(row, Column_Mask, cell_name_masks[i]);
-
-					UpdateCellText(row, Column_Name, src.name);
-					m_this->SetItemData(row, Column_Name, src.index);
-
-					UpdateCellText(row, Column_S, src.s_name);
-					UpdateCellText(row, Column_R, src.r_name_l);
-					UpdateCellText(row, Column_RU, src.r_name_u);
-					UpdateCellText(row, Column_C, src.c_name);
-
-					m_this->SetItemData(row, Column_S, src.s);
-					m_this->SetItemData(row, Column_R, src.r);
-					m_this->SetItemData(row, Column_C, src.c);
-					m_this->SetItemData(row, Column_Mask, i);
-
-					if (CellExists(src))
-					{
-						UpdateValueCellText(row, Column_Formula, src, status, option);
-						UpdateValueCellText(row, Column_FormulaU, src, status, option);
-						UpdateValueCellText(row, Column_Value, src, status, option);
-						UpdateValueCellText(row, Column_ValueU, src, status, option);
-					}
-
-					if (s_last == src.s)
-						++s_count;
-					else
-					{
-						if (s_count > 1)
-							m_this->MergeCells(s_start, Column_S, row - 1, Column_S);
-
-						s_last = src.s;
-						s_start = row;
-						s_count = 1;
-					}
-
-					if (r_last == src.r)
-						++r_count;
-					else
-					{
-						if (r_count > 1)
-							m_this->MergeCells(r_start, Column_R, row - 1, Column_R);
-
-						r_last = src.r;
-						r_start = row;
-						r_count = 1;
-					}
-
-					++row;
-				}
-
-				if (s_count > 1)
-					m_this->MergeCells(s_start, Column_S, row - 1, Column_S);
-
-				if (r_count > 1)
-					m_this->MergeCells(r_start, Column_R, row - 1, Column_R);
-			}
-
-			if (row > m_row + 1)
-				m_this->MergeCells(m_row, Column_Mask, row - 1, Column_Mask);
+			RowInfos rows;
+			FillRows(rows, cell_name_masks, cell_names, options);
+			std::swap(m_rows, rows);
 		}
 
-		m_this->SetRowCount(1 + row_count + 1);
+		RowInfos rows;
+		FilterRows(rows);
+
+		m_this->SetRowCount(1);
+		m_this->SetRowCount(1 + rows.size());
+
+		FillGridRows(rows);
+
+		m_this->SetRowCount(1 + rows.size() + 1);
 
 		m_this->Refresh();
 	}
@@ -767,7 +869,7 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	bool IsCellEditable(int iRow, int iColumn) const
+	bool IsCellEditable(int iColumn) const
 	{
 		switch (iColumn)
 		{
@@ -814,7 +916,7 @@ struct CShapeSheetGridCtrl::Impl
 
 	LRESULT OnBeginItemEdit(int iRow, int iColumn, Strings* arrOptions)
 	{
-		if (!IsCellEditable(iRow, iColumn))
+		if (!IsCellEditable(iColumn))
 			return -1;
 
 		switch (iColumn)

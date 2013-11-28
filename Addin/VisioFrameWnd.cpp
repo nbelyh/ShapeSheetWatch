@@ -212,10 +212,25 @@ void CVisioFrameWnd::SetChecks()
 		bool visible = theApp.GetViewSettings()->IsColumnVisible(i);
 		m_html.SetElementChecked(GetColumnDbName(i), visible);
 	}
+
+	m_html.SetElementChecked("filter-local", theApp.GetViewSettings()->IsFilterLocalOn());
+	m_html.SetElementChecked("filter-updated", theApp.GetViewSettings()->IsFilterUpdatedOn());
 }
 
 bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 {
+	if (id == L"filter-local")
+	{
+		theApp.GetViewSettings()->SetFilterLocal(visible);
+		theApp.UpdateViews(UpdateHint_Filter);
+	}
+
+	if (id == L"filter-updated")
+	{
+		theApp.GetViewSettings()->SetFilterUpdated(visible);
+		theApp.UpdateViews(UpdateHint_Filter);
+	}
+
 	int col = GetColumnFromDbName(id);
 
 	if (col >= 0)

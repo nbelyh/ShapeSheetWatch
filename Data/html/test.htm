@@ -14,6 +14,7 @@
         #shape-caption {
             font-size: 150%;
 			padding: 4px;
+			margin-left: 10px;
 			border: 1px solid transparent;
 			border-radius: 3px;
 			width: auto;
@@ -24,28 +25,25 @@
 			background-color: ThreeDLightShadow;
 		}
 		*/
-        #settings {
+        .popup {
             behavior: dropdown;
-            position: absolute;
-            bottom: 2;
-            right: 2;
         }
-        #settings div.button {
+        .button {
             width: 48px;
             height: 32px;
-            background-image: url(settings.png);
             background-position: center;
             background-repeat: no-repeat;
             border: 1px solid ThreeDShadow;
             border-radius: 3px;
         }
-        #settings:hover {
+        .button:hover {
             background-color: ThreeDLightShadow;
         }
-        #settings:owns-popup div.button {
+        .popup:owns-popup .button {
             background-color: ThreeDShadow;
+            border-color: ThreeDDarkShadow;
         }
-        #settings popup {
+        .popup popup {
             background-color: ThreeDFace;
             padding: 0.1em;
         }
@@ -54,7 +52,7 @@
             padding-left: 1em 1em 0.5em 1em;
             list-style-type: none;
         }
-        popup #settings-caption {
+        popup .tab-caption {
             font-size: 150%;
             margin: 0.5em;
         }
@@ -68,7 +66,7 @@
             top: 48;
             left: 0;
             right: 0;
-            bottom: 40;
+            bottom: 0;
         }
         label {
             padding: 2px;
@@ -76,43 +74,76 @@
         input[type=checkbox]:checked + label {
             font-weight: bold;
         }
+		#hr-head {
+			position:absolute;
+			top:47;
+		}
+		#settings-button {
+            background-image: url(settings.png);
+		}
+		.checkbox {
+            border: 1px solid ThreeDShadow;
+            border-radius: 3px;
+			behavior: check;
+			width: 1.5em;
+			padding: 4px;
+			text-align: center;
+			font-weight: bold;
+			margin: 4px;
+		}
+		.checkbox:hover {
+            background-color: ThreeDLightShadow;
+		}
+		#filter-local:checked {
+            color: #0000ff;
+            background-color: #ffffef;
+            border-color: ThreeDDarkShadow;
+		}
+		#filter-updated:checked {
+            color: #000000;
+            background-color: #ffff7f;
+            border-color: ThreeDDarkShadow;
+		}
     </style>
 </head>
 <body>
     <div id="head">
-        <div id="shape-caption" ></div>
-    </div>
+    	<div class="popup" style="float:left">
+        	<div id="settings-button" class="button" />
+        	<popup>
+			<div class="tab-caption">Columns</div>
+
+    	     <ul>
+			    <li><input type="checkbox" id="col_Mask"/><label for="col_Mask">Mask</label><div class="help">Cell name or mask (editable), like "Prop.*.Value" or "PinX"</div></li>
+		    	<li><input type="checkbox" id="col_Name"/><label for="col_Name">Name</label><div class="help">Full cell name (read-only), like "Prop.Row_X.Value"</div></li>
+
+			    <li><input type="checkbox" id="col_Section"/><label for="col_Section">Section</label><div class="help">ShapeSheet Section name, like "Geometry1"</div></li>
+			    <li><input type="checkbox" id="col_RowU"/><label for="col_RowU">Row (U)</label><div class="help">ShapeSheet Row name or number (universal)</div></li>
+			    <li><input type="checkbox" id="col_Row"/><label for="col_Row">Row</label><div class="help">ShapeSheet Row name or number, like "Row_1"</div></li>
+		    	<li><input type="checkbox" id="col_Column"/><label for="col_Column">Column</label><div class="help">ShapeSheet Column name, like "Label" or "X"</div></li>
+
+			    <li><input type="checkbox" id="col_FormulaU"/><label for="col_FormulaU">Formula (U)</label><div class="help">Current ShapeSheet cell formula (universal)</div></li>
+			    <li><input type="checkbox" id="col_Formula"/><label for="col_Formula">Formula</label><div class="help">Current ShapeSheet cell formula</div></li>
+
+			    <li><input type="checkbox" id="col_ResultU"/><label for="col_ResultU">Result (U)</label><div class="help">Current ShapeSheet cell Value (Universal)</div></li>
+			    <li><input type="checkbox" id="col_Result"/><label for="col_Result">Result</label><div class="help">Current ShapeSheet cell Value</div></li>
+				<li>
+				    <hr/>
+			    	<label for="units">Value units:</label>
+				    <select id="units">
+				    	<option value="0">Inch</option>
+				    	<option>mm</option>
+				    	<option value="2">Default</option>
+			    	</select>
+				</li>
+         	</ul>
+			</popup>
+    	</div>
+        <div id="shape-caption" style="float:left"></div>
+		<div id="filter-updated" class="checkbox" style="float:right">H</div>
+		<div id="filter-local" class="checkbox" style="float:right">L</div>
+	</div>
+	<hr id="hr-head"/>
     <widget type='sheet' />
-    <div id="settings">
-        <div class="button" />
-        <popup>
-		<div id="settings-caption">Columns</div>
-
-         <ul>
-		    <li><input type="checkbox" id="col_Mask"/><label for="col_Mask">Mask</label><div class="help">Cell name or mask (editable), like "Prop.*.Value" or "PinX"</div></li>
-		    <li><input type="checkbox" id="col_Name"/><label for="col_Name">Name</label><div class="help">Full cell name (read-only), like "Prop.Row_X.Value"</div></li>
-
-		    <li><input type="checkbox" id="col_Section"/><label for="col_Section">Section</label><div class="help">ShapeSheet Section name, like "Geometry1"</div></li>
-		    <li><input type="checkbox" id="col_RowU"/><label for="col_RowU">Row (U)</label><div class="help">ShapeSheet Row name or number (universal)</div></li>
-		    <li><input type="checkbox" id="col_Row"/><label for="col_Row">Row</label><div class="help">ShapeSheet Row name or number, like "Row_1"</div></li>
-		    <li><input type="checkbox" id="col_Column"/><label for="col_Column">Column</label><div class="help">ShapeSheet Column name, like "Label" or "X"</div></li>
-
-		    <li><input type="checkbox" id="col_FormulaU"/><label for="col_FormulaU">Formula (U)</label><div class="help">Current ShapeSheet cell formula (universal)</div></li>
-		    <li><input type="checkbox" id="col_Formula"/><label for="col_Formula">Formula</label><div class="help">Current ShapeSheet cell formula</div></li>
-
-		    <li><input type="checkbox" id="col_ResultU"/><label for="col_ResultU">Result (U)</label><div class="help">Current ShapeSheet cell Value (Universal)</div></li>
-		    <li><input type="checkbox" id="col_Result"/><label for="col_Result">Result</label><div class="help">Current ShapeSheet cell Value</div></li>
-			<li>
-			    <hr/>
-			    <label for="units">Value units:</label>
-			    <select id="units">
-				    <option value="0">Inch</option>
-				    <option>mm</option>
-				    <option value="2">Default</option>
-			    </select>
-			</li>
-         </ul>
-
-	</popup>
-    </div>
 </body>
+

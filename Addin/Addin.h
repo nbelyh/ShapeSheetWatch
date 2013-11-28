@@ -7,6 +7,7 @@ enum UpdateHint
 {
 	UpdateHint_Columns,
 	UpdateHint_Rows,
+	UpdateHint_Filter,
 
 	UpdateHint_Count
 };
