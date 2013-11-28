@@ -35,6 +35,8 @@ protected:
 	virtual bool OnCheckButton(const CString& id, bool set);
 	void SetChecks();
 
+	virtual bool OnValueChanged(const CString& id, const CString& text);
+
 	IVWindowPtr m_window;
 	IVWindowPtr m_this_window;
 	CHTMLayoutCtrl m_html;

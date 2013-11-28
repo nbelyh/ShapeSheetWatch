@@ -110,6 +110,111 @@ CGridCellBase* CGridCellBase::GetDefaultCell() const
 }
 
 
+namespace  {
+
+	struct StringItem
+	{
+		CString text;
+		bool highlight;
+	};
+
+	typedef std::vector<StringItem> StringItems;
+
+	void SplitHighlightString(StringItems& items, const CString& text, const CString& strHighlightText)
+	{
+		INT nHighlightTextLen = strHighlightText.GetLength();
+
+		LPCWSTR begin = text;
+
+		while (LPCWSTR found = StrStrI(begin, strHighlightText))
+		{
+			StringItem itemBegin;
+			itemBegin.highlight = false;
+			itemBegin.text.SetString(begin, found-begin);
+			items.push_back(itemBegin);
+
+			StringItem itemHighlight;
+			itemBegin.highlight = true;
+			itemHighlight.text.SetString(found, nHighlightTextLen);
+			items.push_back(itemHighlight);
+
+			begin = found + nHighlightTextLen;
+		}
+
+		if (*begin)
+		{
+			StringItem last_item;
+			last_item.highlight = false;
+			last_item.text = begin;
+			items.push_back(last_item);
+		}
+	}
+
+	void DrawItemTextHighlight(CDC* pDC, const StringItem& item, CRect& rect)
+	{
+		COLORREF bk_clr;
+		int bk_mode;
+
+		if (rect.left > rect.right)
+			return;
+
+		if (item.highlight)
+		{
+			bk_clr = pDC->GetBkColor();
+			bk_mode = pDC->GetBkMode();
+
+			pDC->SetBkColor(RGB(255,255,127));
+			pDC->SetBkMode(OPAQUE);
+		}
+
+		UINT nFlags = 
+			DT_NOPREFIX|DT_SINGLELINE|DT_VCENTER;
+
+		CRect actual_rect;
+		pDC->DrawText(item.text, -1, &actual_rect, nFlags|DT_CALCRECT);
+
+		pDC->DrawText(item.text, -1, &rect, nFlags|DT_END_ELLIPSIS);
+		rect.left += actual_rect.Width();
+
+		if (item.highlight)
+		{
+			pDC->SetBkMode(bk_mode);
+			pDC->SetBkColor(bk_clr);
+		}
+	}
+
+	void UpdateTextRect(CRect& rectText, CDC* pDC, LPCWSTR text, const CRect& rectBounds, UINT nFlags)
+	{
+		CRect rectActual;
+		pDC->DrawText(text, &rectActual, DT_NOPREFIX|DT_SINGLELINE|DT_VCENTER);
+
+		if (nFlags & DT_CENTER)
+			rectText.left = rectBounds.left + rectBounds.Width() / 2 - rectActual.Width() / 2;
+		if (nFlags & DT_RIGHT)
+			rectText.left = rectBounds.right - rectActual.Width();
+	}
+
+	void DrawTextHighlight(CDC* pDC, LPCWSTR text, LPCWSTR strTextHighlight, CRect& rectBounds, UINT nFlags)
+	{
+		if (!strTextHighlight || !lstrlen(strTextHighlight))
+		{
+			pDC->DrawText(text, -1, rectBounds, DT_NOPREFIX|DT_END_ELLIPSIS|DT_SINGLELINE|DT_VCENTER|nFlags);
+			return;
+		}
+
+		StringItems items;
+		SplitHighlightString(items, text, strTextHighlight);
+
+		CRect rectText = rectBounds;
+		if (nFlags & (DT_CENTER|DT_RIGHT))
+			UpdateTextRect(rectText, pDC, text, rectBounds, nFlags);
+
+		for (StringItems::const_iterator it = items.begin(); it != items.end(); ++it)
+			DrawItemTextHighlight(pDC, *it, rectText);
+	}
+
+} // namespace
+
 /////////////////////////////////////////////////////////////////////////////
 // CGridCellBase Operations
 
@@ -117,7 +222,7 @@ CGridCellBase* CGridCellBase::GetDefaultCell() const
 // color schemes.  Also removed printing references as that's now done
 // by PrintCell() and fixed the sort marker so that it doesn't draw out
 // of bounds.
-BOOL CGridCellBase::Draw(CDC* pDC, int nRow, int nCol, CRect rect,  BOOL bEraseBkgnd /*=TRUE*/)
+BOOL CGridCellBase::Draw(CDC* pDC, int nRow, int nCol, CRect rect, LPCWSTR szHighlightText, BOOL bEraseBkgnd /*=TRUE*/)
 {
     // Note - all through this function we totally brutalise 'rect'. Do not
     // depend on it's value being that which was passed in.
@@ -427,7 +532,7 @@ BOOL CGridCellBase::Draw(CDC* pDC, int nRow, int nCol, CRect rect,  BOOL bEraseB
     rect.right++;    
     rect.bottom++;
 
-    DrawText(pDC->m_hDC, GetText(), -1, rect, GetFormat() | DT_NOPREFIX);
+	DrawTextHighlight(pDC, GetText(), szHighlightText, rect, GetFormat() | DT_NOPREFIX);
 
     pDC->RestoreDC(nSavedDC);
 

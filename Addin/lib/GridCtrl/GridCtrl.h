@@ -352,6 +352,9 @@ public:
     void EnableRowHide(BOOL bEnable = TRUE)       { m_bAllowRowHide = bEnable;        }
     BOOL GetRowHide()                             { return m_bAllowRowHide;           }
 
+	void SetHighlightText(const CString& text)	  { m_szHighlightText = text; }
+	CString GetHighlightText() const			  { return m_szHighlightText; }
+
 ///////////////////////////////////////////////////////////////////////////////////
 // default Grid cells. Use these for setting default values such as colors and fonts
 ///////////////////////////////////////////////////////////////////////////////////
@@ -676,6 +679,8 @@ protected:
     BOOL        m_bTrackFocusCell;
     BOOL        m_bFrameFocus;
     UINT        m_nAutoSizeColumnStyle;
+
+	CString		m_szHighlightText;
 
     // Cell size details
     int         m_nRows, m_nFixedRows, m_nCols, m_nFixedCols;

@@ -203,6 +203,16 @@ void ViewSettings::SetFilterUpdated(bool set)
 	m_filter_udpated = set;
 }
 
+CString ViewSettings::GetFilterText() const
+{
+	return m_filter_text;
+}
+
+void ViewSettings::SetFilterText(const CString& text)
+{
+	m_filter_text = text;
+}
+
 CString GetColumnName(int i)
 {
 	switch (i)

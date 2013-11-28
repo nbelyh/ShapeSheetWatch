@@ -7,6 +7,7 @@ struct IHTMLayoutControlManager
 	virtual bool	DestroyControl(const CString& type, CWnd* wnd) = 0;
 
 	virtual	bool	OnButton(const CString& id) { return false; }
+	virtual	bool	OnValueChanged(const CString& id, const CString& text) { return false; }
 	virtual bool	OnCheckButton(const CString& id, bool set) { return false; }
 	virtual bool	OnHyperlink(const CString& id, const CString& href) { return false; }
 };
@@ -37,12 +38,13 @@ public:
 	bool LoadHtmlFile(LPCWSTR filename);
 	
 	void SetElementText(const char* id, LPCWSTR text);
+	CString GetElementText(const char* id) const;
 
 	bool IstElementChecked(const char* id);
 	void SetElementChecked (const char* id, bool set);
 
 	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
-	CString GetElementAttribute (const char* id, const char* attribute);
+	CString GetElementAttribute (const char* id, const char* attribute) const;
 
 protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);

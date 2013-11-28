@@ -1636,7 +1636,12 @@ void CGridCtrl::OnVScroll(UINT nSBCode, UINT /*nPos*/, CScrollBar* /*pScrollBar*
 void CGridCtrl::MergeAwareDrawCell (CGridCellBase* pCell, const CRect& rect, int row, int col, CDC* pDC)
 {
 	pCell->SetCoords(row,col);
-	pCell->Draw(pDC, row, col, rect, FALSE);
+
+	LPCWSTR szHighlightText = (row < m_nFixedRows || col < m_nFixedCols)
+		? NULL
+		: m_szHighlightText;
+
+	pCell->Draw(pDC, row, col, rect, szHighlightText, FALSE);
 
 	CRect border = rect;
 	border.DeflateRect(0,0,1,1);
@@ -1927,13 +1932,13 @@ BOOL CGridCtrl::RedrawCell(int nRow, int nCol, CDC* pDC /* = NULL */)
 		{
 			CGridCellBase* pCell = GetCell(nRow, nCol);
 			if (pCell)
-				bResult = pCell->Draw(pDC, nRow, nCol, rect, TRUE);
+				bResult = pCell->Draw(pDC, nRow, nCol, rect, NULL, TRUE);
 		}
 		else
 		{
 			CGridCellBase* pCell = GetCell(nRow, nCol);
 			if (pCell)
-				bResult = pCell->Draw(pDC, nRow, nCol, rect, TRUE);
+				bResult = pCell->Draw(pDC, nRow, nCol, rect, m_szHighlightText, TRUE);
 
 			// Since we have erased the background, we will need to redraw the gridlines
 			CPen pen;

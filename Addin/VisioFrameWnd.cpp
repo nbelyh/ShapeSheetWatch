@@ -241,3 +241,11 @@ bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 
 	return true;
 }
+
+bool CVisioFrameWnd::OnValueChanged(const CString& id, const CString& text)
+{
+	theApp.GetViewSettings()->SetFilterText(text);
+	theApp.UpdateViews(UpdateHint_Filter);
+
+	return true;
+}

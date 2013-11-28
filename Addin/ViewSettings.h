@@ -56,7 +56,12 @@ public:
 	void Save();
 	void Load();
 
+	CString GetFilterText() const;
+	void SetFilterText(const CString& text);
+
 private:
+	CString m_filter_text;
+
 	std::vector<bool> m_column_visible;
 	std::vector<int> m_column_widths;
 

@@ -465,7 +465,7 @@ struct CShapeSheetGridCtrl::Impl
 			if (IsUpdated(result, col, new_val))
 			{
 				result.status |= RowInfo::Status_Updated;
-				cell_info.bk_color = RGB(255,255,128);
+				cell_info.bk_color = RGB(255,255,192);
 			}
 		}
 
@@ -645,6 +645,27 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
+	bool RowContainsFilterText(const RowInfo& result_row) const
+	{
+		CString filter_text = theApp.GetViewSettings()->GetFilterText();
+
+		if (filter_text.IsEmpty())
+			return true;
+
+		for (int i = 0; i <= Column_Count; ++i)
+		{
+			if (!theApp.GetViewSettings()->IsColumnVisible(i))
+				continue;
+
+			CString cell_text = result_row.cells[i].text;
+
+			if (StrStrI(cell_text, filter_text))
+				return true;
+		}
+
+		return false;
+	}
+
 	void FilterRows(RowInfos& result)
 	{
 		for (RowInfos::const_iterator it = m_rows.begin(); it != m_rows.end(); ++it)
@@ -655,6 +676,9 @@ struct CShapeSheetGridCtrl::Impl
 				continue;
 
 			if (theApp.GetViewSettings()->IsFilterUpdatedOn() && (result_row.status & RowInfo::Status_Updated) == 0)
+				continue;
+
+			if (!RowContainsFilterText(result_row))
 				continue;
 
 			result.insert(result_row);
@@ -784,6 +808,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		m_this->SetRowCount(1 + rows.size() + 1);
 
+		m_this->SetHighlightText(theApp.GetViewSettings()->GetFilterText());
 		m_this->Refresh();
 	}
 

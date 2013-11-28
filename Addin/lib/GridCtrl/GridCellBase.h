@@ -139,7 +139,7 @@ public:
 	void SetMergeRange(CCellRange range);
     virtual void Reset();
 
-    virtual BOOL Draw(CDC* pDC, int nRow, int nCol, CRect rect, BOOL bEraseBkgnd = TRUE);
+    virtual BOOL Draw(CDC* pDC, int nRow, int nCol, CRect rect, LPCWSTR szHighlightText, BOOL bEraseBkgnd);
     virtual BOOL GetTextRect( LPRECT pRect);    // i/o:  i=dims of cell rect; o=dims of text rect
     virtual BOOL GetTipTextRect( LPRECT pRect); 
     virtual CSize GetTextExtent(LPCTSTR str, CDC* pDC = NULL);

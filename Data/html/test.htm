@@ -104,6 +104,10 @@
             background-color: #ffff7f;
             border-color: ThreeDDarkShadow;
 		}
+
+		#filter-text {
+			padding: 4px;
+		}
     </style>
 </head>
 <body>
@@ -139,9 +143,10 @@
          	</ul>
 			</popup>
     	</div>
-        <div id="shape-caption" style="float:left"></div>
+		<div id="filter-text" style="float:right"><input type="text" id="filter"/></div>
 		<div id="filter-updated" class="checkbox" style="float:right">H</div>
-		<div id="filter-local" class="checkbox" style="float:right">L</div>
+		<div id="filter-local" class="checkbox" title="Show only local symbols" style="float:right">L</div>
+        <div id="shape-caption" style="float:left"></div>
 	</div>
 	<hr id="hr-head"/>
     <widget type='sheet' />

@@ -59,6 +59,9 @@ struct CHTMLayoutCtrl::Impl
 		if (params->cmd == BUTTON_STATE_CHANGED)
 			return m_control_manager->OnCheckButton(GetElemAttribute(he, "id"), GetElemState(he, STATE_CHECKED));
 
+		if (params->cmd == EDIT_VALUE_CHANGED)
+			return m_control_manager->OnValueChanged(GetElemAttribute(he, "id"), GetElemText(he));
+
 		if (params->cmd == HYPERLINK_CLICK)
 			return m_control_manager->OnHyperlink(GetElemAttribute(he, "id"), GetElemAttribute(he, "href"));
 
@@ -229,6 +232,19 @@ struct CHTMLayoutCtrl::Impl
 			HTMLayoutSetElementState(elem, bits, 0, TRUE);
 	}
 
+	void SetElemText(HELEMENT h_found, LPCWSTR text)
+	{
+		HTMLayoutSetElementInnerText16(h_found, text, (UINT)lstrlenW(text));
+	}
+
+	CString GetElemText(HELEMENT h_found)
+	{
+		LPWSTR text = L"";
+		HTMLayoutGetElementInnerText16(h_found, &text);
+		return text;
+	}
+
+
 	HWND m_hwnd;
 };
 
@@ -331,13 +347,19 @@ UINT CHTMLayoutCtrl::GetMinWidth () const
 	return ::HTMLayoutGetMinWidth(m_hWnd);
 }
 
+CString CHTMLayoutCtrl::GetElementText(const char* id) const
+{
+	HELEMENT h_found = m_impl->GetElemById(id);
+	return m_impl->GetElemText(h_found);
+}
+
 void CHTMLayoutCtrl::SetElementText(const char* id, LPCWSTR text)
 {
 	HELEMENT h_found = m_impl->GetElemById(id);
-	HTMLayoutSetElementInnerText16(h_found, text, (UINT)lstrlenW(text));
+	return m_impl->SetElemText(h_found, text);
 }
 
-CString CHTMLayoutCtrl::GetElementAttribute (const char* id, const char* attribute)
+CString CHTMLayoutCtrl::GetElementAttribute (const char* id, const char* attribute) const
 {
 	HELEMENT h_found = m_impl->GetElemById(id);
 	return m_impl->GetElemAttribute(h_found, attribute);
