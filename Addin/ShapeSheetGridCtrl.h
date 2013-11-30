@@ -13,6 +13,8 @@ public:
 	BOOL Create(CWnd* parent, UINT id, IVWindowPtr window);
 	void Destroy();
 
+	CCellID GetBaseCellID(const CCellID& id) const;
+
 protected:
 	void OnBeginLabelEdit(NMHDR*nmhdr, LRESULT* result);
 	void OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result);

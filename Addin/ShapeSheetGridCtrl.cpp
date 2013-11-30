@@ -132,11 +132,11 @@ struct CShapeSheetGridCtrl::Impl
 		{
 		case UpdateHint_Columns:
 			UpdateGridColumns();
-			UpdateGridRows(UpdateOption_UseId);
+			UpdateGridRows(UpdateOption_UseKey);
 			break;
 
 		case UpdateHint_Rows:
-			UpdateGridRows(UpdateOption_Hilight|UpdateOption_UseId);
+			UpdateGridRows(UpdateOption_Hilight|UpdateOption_UseKey);
 			break;
 
 		case UpdateHint_Pin:
@@ -144,7 +144,7 @@ struct CShapeSheetGridCtrl::Impl
 			break;
 
 		case UpdateHint_Filter:
-			UpdateGridRows(UpdateOption_Filter|UpdateOption_UseId);
+			UpdateGridRows(UpdateOption_Filter|UpdateOption_UseKey);
 			break;
 		}
 	}
@@ -260,7 +260,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		bool new_selection = !m_shapes.empty();
 
-		UpdateGridRows(UpdateOption_UseId | (old_selection && new_selection ? UpdateOption_Hilight : 0));
+		UpdateGridRows(UpdateOption_UseKey | (old_selection && new_selection ? UpdateOption_Hilight : 0));
 	}
 
 	/**------------------------------------------------------------------------
@@ -418,7 +418,22 @@ struct CShapeSheetGridCtrl::Impl
 
 		bool operator == (const CellKey& other) const
 		{
-			return src == other.src && col == other.col && mask == other.mask;
+			if (mask != other.mask)
+				return false;
+
+			if (src.c != other.src.c) 
+				return false;
+
+			if (src.s != other.src.s || src.s_name != other.src.s_name)
+				return false;
+
+			if (col != other.col)
+				return false;
+
+			if (shapesheet::IsNamedRowSection(src.s))
+				return (src.r == other.src.r);
+			else
+				return (src.r_name_u == other.src.r_name_u);
 		}
 	};
 
@@ -558,7 +573,7 @@ struct CShapeSheetGridCtrl::Impl
 		src.r = (short)p_this->GetItemData(iRow, Column_R);
 		src.c = (short)p_this->GetItemData(iRow, Column_C);
 
-		src.c_name = p_this->GetItemText(iRow, Column_S);
+		src.s_name = p_this->GetItemText(iRow, Column_S);
 		src.r_name_u = p_this->GetItemText(iRow, Column_RU);
 		src.r_name_l = p_this->GetItemText(iRow, Column_R);
 		src.c_name = p_this->GetItemText(iRow, Column_C);
@@ -574,14 +589,14 @@ struct CShapeSheetGridCtrl::Impl
 	{
 		CShapeSheetGridCtrl* m_this;
 
-		bool m_use_id;
+		bool m_use_key;
 		CCellID m_focus_id;
 		CellKey m_focus_key;
 
-		SaveFocus(CShapeSheetGridCtrl* p_this, bool use_id)
+		SaveFocus(CShapeSheetGridCtrl* p_this, bool use_key)
 			: m_this(p_this)
-			, m_use_id(use_id)
-			, m_focus_key(m_this, m_this->GetFocusCell())
+			, m_use_key(use_key)
+			, m_focus_key(p_this, p_this->GetBaseCellID(m_this->GetFocusCell()))
 			, m_focus_id(m_this->GetFocusCell())
 		{
 		}
@@ -598,7 +613,7 @@ struct CShapeSheetGridCtrl::Impl
 			{
 				for (int c = 0; c < m_this->GetColumnCount(); ++c)
 				{
-					CCellID id(r,c);
+					CCellID id = m_this->GetBaseCellID(CCellID(r,c));
 					CellKey key(m_this, id);
 
 					if (key == focus_key)
@@ -612,16 +627,16 @@ struct CShapeSheetGridCtrl::Impl
 			if (!m_focus_id.IsValid())
 				return;
 
-			if (m_use_id)
-				RestoreFocusUsingId(m_focus_id);
-			else
+			if (m_use_key)
 				RestoreFocusUsingKey(m_focus_key);
+			else
+				RestoreFocusUsingId(m_focus_id);
 		}
 	};
 
 	enum UpdateOption
 	{
-		UpdateOption_UseId = 1,
+		UpdateOption_UseKey = 1,
 		UpdateOption_Hilight = 2,
 		UpdateOption_Filter = 4,
 	};
@@ -798,7 +813,7 @@ struct CShapeSheetGridCtrl::Impl
 
 	void UpdateGridRows(int options)
 	{
-		SaveFocus save(m_this, (options & UpdateOption_UseId) != 0);
+		SaveFocus save(m_this, (options & UpdateOption_UseKey) != 0);
 
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
@@ -867,7 +882,7 @@ struct CShapeSheetGridCtrl::Impl
 			m_view_settings->AddCellMask(text);
 		}
 
-		UpdateGridRows(UpdateOption_UseId);
+		UpdateGridRows(0);
 		return TRUE;
 	}
 
@@ -1047,7 +1062,7 @@ struct CShapeSheetGridCtrl::Impl
 				LPARAM idx = m_this->GetItemData(iRow, iColumn);
 
 				m_view_settings->RemoveCellMask(idx);
-				UpdateGridRows(UpdateOption_Hilight|UpdateOption_UseId);
+				UpdateGridRows(UpdateOption_Hilight);
 			}
 			return TRUE;
 
@@ -1136,4 +1151,14 @@ BOOL CShapeSheetGridCtrl::Create(CWnd* parent, UINT id, IVWindowPtr window)
 void CShapeSheetGridCtrl::Destroy()
 {
 	m_impl->Detach();
+}
+
+CCellID CShapeSheetGridCtrl::GetBaseCellID( const CCellID& id ) const
+{
+	CGridCellBase* cell = GetCell(id.row, id.col);
+
+	if (cell && cell->IsMerged())
+		return cell->GetMergeRange().GetTopLeft();
+	else
+		return id;
 }

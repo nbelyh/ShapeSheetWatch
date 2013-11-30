@@ -44,7 +44,6 @@ namespace shapesheet {
 		size_t index;
 
 		bool operator < (const SRC& other) const;
-		bool operator == (const SRC& other) const;
 
 		SRC() : s(-1), r(-1), c(-1), index(-1) {}
 	};
@@ -53,5 +52,6 @@ namespace shapesheet {
 
 	bool CellExists(IVShape* shape, const SRC& src);
 	IVCellPtr GetShapeCell(IVShape* shape, const SRC& src);
+	bool IsNamedRowSection(short s);
 
 } // namespace shapesheet
