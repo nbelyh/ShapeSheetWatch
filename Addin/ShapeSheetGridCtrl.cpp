@@ -278,6 +278,8 @@ struct CShapeSheetGridCtrl::Impl
 		LPARAM	data;
 		int		image;
 
+		std::set<CString> values;
+
 		COLORREF bk_color;
 		COLORREF fg_color;
 	};
@@ -297,14 +299,9 @@ struct CShapeSheetGridCtrl::Impl
 
 		int	status;
 		std::vector<CellInfo> cells;
-
-		bool operator < (const RowInfo& other) const
-		{
-			return GetCellInfoSRC(*this) < GetCellInfoSRC(other);
-		}
 	};
 
-	typedef std::set<RowInfo> RowInfos;
+	typedef std::map<shapesheet::SRC, RowInfo> RowInfos;
 
 	/**------------------------------------------------------------------------
 		Set "read-only" column text
@@ -368,7 +365,7 @@ struct CShapeSheetGridCtrl::Impl
 		
 	-------------------------------------------------------------------------*/
 
-	static shapesheet::SRC GetCellInfoSRC(const RowInfo& row_info)
+	static shapesheet::SRC GetRowInfoSRC(const RowInfo& row_info)
 	{
 		shapesheet::SRC src;
 
@@ -443,11 +440,11 @@ struct CShapeSheetGridCtrl::Impl
 
 	bool IsUpdated(const RowInfos& rows, const RowInfo& row, int col, const CString& new_val) const
 	{
-		RowInfos::const_iterator found = rows.find(row);
+		RowInfos::const_iterator found = rows.find(GetRowInfoSRC(row));
 		if (found == rows.end())
 			return true;
 
-		return found->cells[col].text != new_val;
+		return found->second.cells[col].text != new_val;
 	}
 
 	/**------------------------------------------------------------------------
@@ -466,6 +463,9 @@ struct CShapeSheetGridCtrl::Impl
 
 		CString new_val = L"?";
 
+		CellInfo& cell_info = result.cells[col];
+
+		cell_info.values.clear();
 		for (Shapes::const_iterator it = m_shapes.begin(); it != m_shapes.end(); ++it)
 		{
 			CComPtr<IVShape> shape = it->second;
@@ -485,6 +485,8 @@ struct CShapeSheetGridCtrl::Impl
 
 				CString val = GetCellValue(cell, col);
 
+				cell_info.values.insert(val);
+
 				if (val != new_val)
 				{
 					if (new_val == L"?")
@@ -498,8 +500,6 @@ struct CShapeSheetGridCtrl::Impl
 				++missing_count;
 			}
 		}
-
-		CellInfo& cell_info = result.cells[col];
 
 		if (have_local)
 		{
@@ -677,7 +677,7 @@ struct CShapeSheetGridCtrl::Impl
 				UpdateValueCellInfo(src_rows, result_row, Column_ValueU, src, options);
 			}
 
-			dst_rows.insert(result_row);
+			dst_rows.insert( std::make_pair(GetRowInfoSRC(result_row), result_row) );
 		}
 	}
 
@@ -706,7 +706,7 @@ struct CShapeSheetGridCtrl::Impl
 	{
 		for (RowInfos::const_iterator it = src_rows.begin(); it != src_rows.end(); ++it)
 		{
-			const RowInfo& result_row = (*it);
+			const RowInfo& result_row = it->second;
 
 			if (theApp.GetViewSettings()->IsFilterLocalOn() && (result_row.status & RowInfo::Status_Local) == 0)
 				continue;
@@ -717,7 +717,7 @@ struct CShapeSheetGridCtrl::Impl
 			if (!RowContainsFilterText(result_row))
 				continue;
 
-			dst_rows.insert(result_row);
+			dst_rows.insert( std::make_pair(GetRowInfoSRC(result_row), result_row) );
 		}
 	}
 
@@ -746,7 +746,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		for (RowInfos::const_iterator it = rows.begin(); it != rows.end(); ++it)
 		{
-			const RowInfo& row_info = (*it);
+			const RowInfo& row_info = it->second;
 
 			for (int col = 0; col < Column_Count; ++col)
 			{
@@ -759,7 +759,7 @@ struct CShapeSheetGridCtrl::Impl
 				m_this->SetItemData(1 + row, col, cell_info.data);
 			}
 
-			shapesheet::SRC src = GetCellInfoSRC(row_info);
+			shapesheet::SRC src = GetRowInfoSRC(row_info);
 			const CString& mask = row_info.cells[Column_Mask].text;
 
 			if (r_last == src.r && s_last == src.s_name && m_last == mask)
@@ -850,7 +850,7 @@ struct CShapeSheetGridCtrl::Impl
 				UpdateCellInfo(result_row, Column_RU, L"", Column_RU);
 				UpdateCellInfo(result_row, Column_C, L"", Column_C);
 
-				rows.insert(result_row);
+				rows.insert( std::make_pair(GetRowInfoSRC(result_row), result_row) );
 			}
 
 			FillGridRows(rows);
@@ -1025,6 +1025,24 @@ struct CShapeSheetGridCtrl::Impl
 				const shapesheet::SSInfo& ss_info = shapesheet::GetSSInfo(index);
 
 				SplitList(ss_info.values, L";", *arrOptions);
+
+				if (arrOptions->empty())
+				{
+					LPARAM mask = m_this->GetItemData(iRow, Column_Mask);
+					if (m_this->GetItemText(iRow, iColumn) == L"<multiselect>")
+					{
+						RowInfos& row_infos = m_rows[mask];
+
+						shapesheet::SRC src = GetRowSRC(m_this, iRow);
+
+						const RowInfos::const_iterator found = row_infos.find(src);
+						if (found != row_infos.end())
+						{
+							const std::set<CString>& values = found->second.cells[iColumn].values;
+							arrOptions->insert(arrOptions->end(), values.begin(), values.end());
+						}
+					}
+				}
 			}
 			return TRUE;
 
