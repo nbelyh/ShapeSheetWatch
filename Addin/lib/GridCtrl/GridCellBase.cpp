@@ -130,7 +130,7 @@ namespace  {
 		{
 			StringItem itemBegin;
 			itemBegin.highlight = false;
-			itemBegin.text.SetString(begin, found-begin);
+			itemBegin.text.SetString(begin, (int)(found-begin));
 			items.push_back(itemBegin);
 
 			StringItem itemHighlight;

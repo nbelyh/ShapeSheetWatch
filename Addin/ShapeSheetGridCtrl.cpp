@@ -196,7 +196,7 @@ struct CShapeSheetGridCtrl::Impl
 
 	CString GetSelectionCaption()
 	{
-		long count = m_shapes.size();
+		size_t count = m_shapes.size();
 
 		if (count == 0)
 			return L" ";
@@ -726,7 +726,8 @@ struct CShapeSheetGridCtrl::Impl
 		int r_count = 0;
 		short r_last = -1;
 
-		m_this->SetRowCount(1 + row + rows.size());
+		int row_count = static_cast<int>(rows.size());
+		m_this->SetRowCount(1 + row + row_count);
 
 		for (RowInfos::const_iterator it = rows.begin(); it != rows.end(); ++it)
 		{
