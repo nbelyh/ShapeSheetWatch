@@ -74,40 +74,52 @@
         input[type=checkbox]:checked + label {
             font-weight: bold;
         }
-		#hr-head {
-			position:absolute;
-			top:47;
-		}
-		#settings-button {
+	#hr-head {
+		position:absolute;
+		top:47;
+	}
+	#settings-button {
             background-image: url(settings.png);
-		}
-		.checkbox {
-            border: 1px solid ThreeDShadow;
-            border-radius: 3px;
-			behavior: check;
-			width: 1.5em;
-			padding: 4px;
-			text-align: center;
-			font-weight: bold;
-			margin: 4px;
-		}
-		.checkbox:hover {
-            background-color: ThreeDLightShadow;
-		}
-		#filter-local:checked {
-            color: #0000ff;
-            background-color: #ffffef;
-            border-color: ThreeDDarkShadow;
-		}
-		#filter-updated:checked {
-            color: #000000;
-            background-color: #ffff7f;
-            border-color: ThreeDDarkShadow;
-		}
-
-		#filter-text {
-			padding: 4px;
-		}
+	}
+	.checkbox {
+           	border: 1px solid ThreeDShadow;
+            	border-radius: 3px;
+		behavior: check;
+		width: 1.5em;
+		padding: 4px;
+		text-align: center;
+		font-weight: bold;
+		margin: 4px;
+	}
+	.checkbox:hover {
+         	background-color: ThreeDLightShadow;
+	}
+	#filter-local:checked {
+           	color: #0000ff;
+            	background-color: #ffffef;
+            	border-color: ThreeDDarkShadow;
+	}
+	#filter-updated:checked {
+           	color: #000000;
+            	background-color: #ffff7f;
+            	border-color: ThreeDDarkShadow;
+	}
+	#filter-text {
+		padding: 4px;
+	}
+	#filter-pin:checked {
+            	color: #000000;
+            	background-color: ThreeDShadow;
+            	border-color: ThreeDDarkShadow;
+	}
+	.tip {
+		font-weight: normal;
+		padding: 4px;
+		max-width: 200px;
+	}
+	.tip h1 {
+		font-size: 120%;
+	}
     </style>
 </head>
 <body>
@@ -144,10 +156,30 @@
 			</popup>
     	</div>
 		<div id="filter-text" style="float:right"><input type="text" id="filter"/></div>
-		<div id="filter-updated" class="checkbox" style="float:right">H</div>
-		<div id="filter-local" class="checkbox" title="Show only local symbols" style="float:right">L</div>
+		<div id="filter-updated" class="checkbox" titleid="tip-filter-updated" style="float:right">U</div>
+		<div id="filter-local" class="checkbox" titleid="tip-filter-local" style="float:right">L</div>
+		<div id="filter-pin" class="checkbox" titleid="tip-filter-pin" style="float:right">Pin</div>
         <div id="shape-caption" style="float:left"></div>
 	</div>
+
+	<popup class="tip" id="tip-filter-updated">
+		<h1><strong>U</strong>pdated cells only</h1>
+		Allows you to show only updated (backgroudn highlited light-yellow) 
+		rows in teh grid. Toggle to activate.
+	</popup>
+		
+	<popup class="tip" id="tip-filter-local">
+		<h1><strong>L</strong>ocal cells only</h1>
+		Allows you to show only overloaded (blue text) 
+		rows in teh grid. Toggle to activate.
+	</popup>
+		
+	<popup class="tip" id="tip-filter-pin">
+		<h1>Pin to the current shape</h1>
+		Bind (pin) the sheet to the currently selected shape(s).
+		Toggle to pin/unpin the sheet.
+	</popup>
+		
 	<hr id="hr-head"/>
     <widget type='sheet' />
 </body>

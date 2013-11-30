@@ -231,6 +231,12 @@ bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 		theApp.UpdateViews(UpdateHint_Filter);
 	}
 
+	if (id == L"filter-pin")
+	{
+		theApp.GetViewSettings()->SetFilterPin(visible);
+		theApp.UpdateViews(UpdateHint_Pin);
+	}
+
 	int col = GetColumnFromDbName(id);
 
 	if (col >= 0)

@@ -8,6 +8,7 @@ enum UpdateHint
 	UpdateHint_Columns,
 	UpdateHint_Rows,
 	UpdateHint_Filter,
+	UpdateHint_Pin,
 
 	UpdateHint_Count
 };

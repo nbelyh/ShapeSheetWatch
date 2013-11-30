@@ -168,7 +168,7 @@ namespace  {
 		}
 
 		UINT nFlags = 
-			DT_NOPREFIX|DT_SINGLELINE|DT_VCENTER;
+			DT_NOPREFIX|DT_SINGLELINE;
 
 		CRect actual_rect;
 		pDC->DrawText(item.text, -1, &actual_rect, nFlags|DT_CALCRECT);
@@ -186,7 +186,7 @@ namespace  {
 	void UpdateTextRect(CRect& rectText, CDC* pDC, LPCWSTR text, const CRect& rectBounds, UINT nFlags)
 	{
 		CRect rectActual;
-		pDC->DrawText(text, &rectActual, DT_NOPREFIX|DT_SINGLELINE|DT_VCENTER);
+		pDC->DrawText(text, &rectActual, DT_NOPREFIX|DT_SINGLELINE);
 
 		if (nFlags & DT_CENTER)
 			rectText.left = rectBounds.left + rectBounds.Width() / 2 - rectActual.Width() / 2;
@@ -198,7 +198,7 @@ namespace  {
 	{
 		if (!strTextHighlight || !lstrlen(strTextHighlight))
 		{
-			pDC->DrawText(text, -1, rectBounds, DT_NOPREFIX|DT_END_ELLIPSIS|DT_SINGLELINE|DT_VCENTER|nFlags);
+			pDC->DrawText(text, -1, rectBounds, DT_NOPREFIX|DT_END_ELLIPSIS|DT_SINGLELINE|nFlags);
 			return;
 		}
 

@@ -141,6 +141,7 @@ ViewSettings::ViewSettings()
 	m_visible_by_default = 0;
 	m_filter_local = 0;
 	m_filter_udpated = 0;
+	m_filter_pin = 0;
 }
 
 ViewSettings::~ViewSettings()
@@ -201,6 +202,16 @@ bool ViewSettings::IsFilterUpdatedOn() const
 void ViewSettings::SetFilterUpdated(bool set)
 {
 	m_filter_udpated = set;
+}
+
+bool ViewSettings::IsFilterPinOn() const
+{
+	return m_filter_pin != 0;
+}
+
+void ViewSettings::SetFilterPin(bool set)
+{
+	m_filter_pin = set;
 }
 
 CString ViewSettings::GetFilterText() const

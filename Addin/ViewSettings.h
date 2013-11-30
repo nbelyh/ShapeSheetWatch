@@ -53,6 +53,9 @@ public:
 	bool IsFilterUpdatedOn() const;
 	void SetFilterUpdated(bool set);
 
+	bool IsFilterPinOn() const;
+	void SetFilterPin(bool set);
+
 	void Save();
 	void Load();
 
@@ -67,6 +70,7 @@ private:
 
 	DWORD m_filter_local;
 	DWORD m_filter_udpated;
+	DWORD m_filter_pin;
 
 	DWORD m_window_top;
 	DWORD m_window_left;
