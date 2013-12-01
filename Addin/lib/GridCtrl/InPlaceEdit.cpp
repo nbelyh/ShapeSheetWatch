@@ -209,9 +209,6 @@ void CInPlaceEdit::EndEdit()
     if (pOwner)
         pOwner->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&dispinfo );
 
-    // Close this window (PostNcDestroy will delete this)
-    if (IsWindow(GetSafeHwnd()))
-        SendMessage(WM_CLOSE, 0, 0);
     bAlreadyEnding = FALSE;
 }
 

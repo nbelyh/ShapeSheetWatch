@@ -384,3 +384,20 @@ void CHTMLayoutCtrl::SetElementChecked(const char* id, bool enabled)
 }
 
 IMPLEMENT_DYNAMIC(CHTMLayoutCtrl, CWnd)
+
+void CHTMLayoutCtrl::HidePopup(LPCSTR popup_id)
+{
+	HELEMENT h_popup = m_impl->GetElemById(popup_id);
+
+	HTMLayoutHidePopup(h_popup);
+}
+
+void CHTMLayoutCtrl::ShowPopup(LPCSTR popup_id, LPCSTR msg_id, CPoint pt, const CString& text)
+{
+	HELEMENT h_popup = m_impl->GetElemById(popup_id);
+
+	HELEMENT h_text = m_impl->GetElemById(msg_id);
+	m_impl->SetElemText(h_text, text);
+
+	HTMLayoutShowPopupAt(h_popup, pt, MAKELONG(1, 1));
+}

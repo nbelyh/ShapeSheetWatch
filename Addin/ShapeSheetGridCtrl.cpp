@@ -876,6 +876,11 @@ struct CShapeSheetGridCtrl::Impl
 
 		bool result = true;
 
+		CHTMLayoutCtrl* html = GetHtmlControl();
+
+		if (html)
+			html->HidePopup("#error-msg");
+
 		for (Shapes::const_iterator it = m_shapes.begin(); it != m_shapes.end(); ++it)
 		{
 			CComPtr<IVShape> shape = it->second;
@@ -894,7 +899,17 @@ struct CShapeSheetGridCtrl::Impl
 			}
 			catch (_com_error& e)
 			{
-				AfxMessageBox(FormatErrorMessage(e));
+				CRect rc;
+
+				m_this->GetCellRect(iRow, iColumn, &rc);
+				m_this->ClientToScreen(&rc);
+
+				if (html)
+				{
+					html->ScreenToClient(&rc);
+					html->ShowPopup("#error-msg", "#error-msg-text", rc.TopLeft(), FormatErrorMessage(e));
+				}
+
 				result = false;
 			}
 		}
@@ -902,7 +917,7 @@ struct CShapeSheetGridCtrl::Impl
 		return result;
 	}
 
-	BOOL SetCellFormula(int iRow, int iColumn, LPCTSTR text)
+	LRESULT SetCellFormula(int iRow, int iColumn, LPCTSTR text)
 	{
 		VisioScopeLock lock(theApp.GetVisioApp(), L"Edit Formula");
 
@@ -917,7 +932,7 @@ struct CShapeSheetGridCtrl::Impl
 		if (success)
 			theApp.UpdateViews(UpdateOption_Hilight);
 
-		return success;
+		return success ? 1 : -1;
 	}
 
 	/**------------------------------------------------------------------------
@@ -1031,6 +1046,16 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
+	LRESULT OnCancelItemEdit(int iRow, int iColumn)
+	{
+		CHTMLayoutCtrl* html = GetHtmlControl();
+
+		if (html)
+			html->HidePopup("#error-msg");
+
+		return 0;
+	}
+
 	LRESULT OnEndItemEdit( int iRow, int iColumn)
 	{
 		switch (iColumn)
@@ -1099,6 +1124,7 @@ private:
 BEGIN_MESSAGE_MAP(CShapeSheetGridCtrl, CGridCtrl)
 	ON_NOTIFY_REFLECT(GVN_BEGINLABELEDIT, OnBeginLabelEdit)
 	ON_NOTIFY_REFLECT(GVN_ENDLABELEDIT, OnEndLabelEdit)
+	ON_NOTIFY_REFLECT(GVN_CANCELLABELEDIT, OnCancelLabelEdit)
 	ON_NOTIFY_REFLECT(GVN_DELETEITEM, OnDeleteItem)
 	ON_NOTIFY_REFLECT(GVN_ENDCOLUMWIDTHEDIT, OnEndColumnWidthEdit)
 END_MESSAGE_MAP()
@@ -1113,6 +1139,12 @@ void CShapeSheetGridCtrl::OnEndLabelEdit(NMHDR*nmhdr, LRESULT* result)
 {
 	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
 	*result = m_impl->OnEndItemEdit(nmgv->iRow, nmgv->iColumn);
+}
+
+void CShapeSheetGridCtrl::OnCancelLabelEdit(NMHDR*nmhdr, LRESULT* result)
+{
+	NM_GRIDVIEW *nmgv  = (NM_GRIDVIEW *)nmhdr;
+	*result = m_impl->OnCancelItemEdit(nmgv->iRow, nmgv->iColumn);
 }
 
 void CShapeSheetGridCtrl::OnEndColumnWidthEdit(NMHDR*nmhdr, LRESULT* result)

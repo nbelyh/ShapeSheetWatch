@@ -118,7 +118,8 @@
 		max-width: 200px;
 	}
 	.tip h1 {
-		font-size: 120%;
+		font-size: 100%;
+		font-weight: bold;
 	}
     </style>
 </head>
@@ -178,6 +179,11 @@
 		<h1>Pin to the current shape</h1>
 		Bind (pin) the sheet to the currently selected shape(s).
 		Toggle to pin/unpin the sheet.
+	</popup>
+
+	<popup class="tip" id="error-msg">
+		<h1>Cannot set formula</h1>
+		<span id="error-msg-text" />
 	</popup>
 		
 	<hr id="hr-head"/>

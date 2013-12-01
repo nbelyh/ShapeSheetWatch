@@ -245,10 +245,7 @@ void CInPlaceList::EndEdit()
     CWnd* pOwner = GetOwner();
     if (IsWindow(pOwner->GetSafeHwnd()))
         pOwner->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&dispinfo );
- 
-    // Close this window (PostNcDestroy will delete this)
-    PostMessage(WM_CLOSE, 0, 0);
-}
+ }
 
 void CInPlaceList::PostNcDestroy() 
 {

@@ -148,7 +148,6 @@ public:
     // Editing
     virtual BOOL Edit( int /* nRow */, int /* nCol */, CRect /* rect */, CPoint /* point */, 
                        UINT /* nID */, UINT /* nChar */, Strings& arrOptions) { ASSERT( FALSE); return FALSE;}
-	virtual BOOL ValidateEdit(LPCTSTR str);
     virtual void EndEdit() {}
 
     // EFW - Added to print cells properly

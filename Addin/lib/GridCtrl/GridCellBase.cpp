@@ -29,7 +29,6 @@
 // C Maunder     - 19 May 2000 - Fixed sort arrow drawing (Ivan Ilinov)
 // C Maunder     - 29 Aug 2000 - operator= checks for NULL font before setting (Martin Richter)
 // C Maunder     - 15 Oct 2000 - GetTextExtent fixed (Martin Richter)
-// C Maunder     -  1 Jan 2001 - Added ValidateEdit
 // Yogurt        - 13 Mar 2004 - GetCellExtent fixed
 //
 // NOTES: Each grid cell should take care of it's own drawing, though the Draw()
@@ -598,12 +597,6 @@ BOOL CGridCellBase::OnSetCursor()
 void CGridCellBase::OnEndEdit() 
 {
 	ASSERT( FALSE); 
-}
-
-BOOL CGridCellBase::ValidateEdit(LPCTSTR str)
-{
-    UNUSED_ALWAYS(str);
-	return TRUE;
 }
 
 /////////////////////////////////////////////////////////////////////////////

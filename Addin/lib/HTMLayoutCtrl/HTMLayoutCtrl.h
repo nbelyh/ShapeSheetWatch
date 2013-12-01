@@ -46,9 +46,13 @@ public:
 	void SetElementAttribute(const char* id, const char* attribute, LPCWSTR text);
 	CString GetElementAttribute (const char* id, const char* attribute) const;
 
+	void ShowPopup(LPCSTR popup_id, LPCSTR msg_id, CPoint pt, const CString& text);
+	void HidePopup(LPCSTR popup_id);
+
 protected:
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	DECLARE_DYNAMIC(CHTMLayoutCtrl)
+
 private:
 	struct Impl;
 	Impl* m_impl;

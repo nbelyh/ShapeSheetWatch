@@ -1373,7 +1373,21 @@ void CGridCtrl::OnEndInPlaceEdit(NMHDR* pNMHDR, LRESULT* pResult)
 	if (!IsWindow(GetSafeHwnd()))
 		return;
 
-	OnEndEditCell(pgvItem->row, pgvItem->col, pgvItem->strText);
+	CWnd* edit = CWnd::FromHandle(pgvDispInfo->hdr.hwndFrom);
+
+	if (!OnEndEditCell(pgvItem->row, pgvItem->col, pgvItem->strText))
+	{
+		edit->SetFocus();
+		return;
+	}
+
+	if (edit)
+		edit->PostMessage(WM_CLOSE, 0, 0);
+
+	CGridCellBase* pCell = GetCell(pgvItem->row, pgvItem->col);
+	if (pCell)
+		pCell->OnEndEdit();
+
 	//InvalidateCellRect(CCellID(pgvItem->row, pgvItem->col));
 
 	switch (pgvItem->lParam)
@@ -2330,30 +2344,7 @@ void CGridCtrl::OnSelecting(const CCellID& currentCell)
 	// SetFocusCell(max(currentCell.row, m_nFixedRows), max(currentCell.col, m_nFixedCols));
 }
 
-void CGridCtrl::ValidateAndModifyCellContents(int nRow, int nCol, LPCTSTR strText)
-{
-	if (!IsCellEditable(nRow, nCol))
-		return;
-
-	if (SendBeginEditToParent(nRow, nCol, NULL) >= 0)
-	{
-		CString strCurrentText = GetItemText(nRow, nCol);
-		if (strCurrentText != strText)
-		{
-			SetItemText(nRow, nCol, strText);
-			if (ValidateEdit(nRow, nCol, strText) && 
-				SendMessageToParent(nRow, nCol, GVN_ENDLABELEDIT) >= 0)
-			{
-				SetModified(TRUE, nRow, nCol);
-				RedrawCell(nRow, nCol);
-			}
-			else
-			{
-				SetItemText(nRow, nCol, strCurrentText);
-			}
-		}
-	}
-}
+#ifndef GRIDCONTROL_NO_CLIPBOARD
 
 void CGridCtrl::ClearCells(CCellRange Selection)
 {
@@ -2371,7 +2362,29 @@ void CGridCtrl::ClearCells(CCellRange Selection)
 	Refresh();
 }
 
-#ifndef GRIDCONTROL_NO_CLIPBOARD
+void CGridCtrl::ValidateAndModifyCellContents(int nRow, int nCol, LPCTSTR strText)
+{
+	if (!IsCellEditable(nRow, nCol))
+		return;
+
+	if (SendBeginEditToParent(nRow, nCol, NULL) >= 0)
+	{
+		CString strCurrentText = GetItemText(nRow, nCol);
+		if (strCurrentText != strText)
+		{
+			SetItemText(nRow, nCol, strText);
+			if (SendMessageToParent(nRow, nCol, GVN_ENDLABELEDIT) >= 0)
+			{
+				SetModified(TRUE, nRow, nCol);
+				RedrawCell(nRow, nCol);
+			}
+			else
+			{
+				SetItemText(nRow, nCol, strCurrentText);
+			}
+		}
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Clipboard functions
@@ -7744,39 +7757,25 @@ void CGridCtrl::EndEditing()
 }
 
 // virtual
-void CGridCtrl::OnEndEditCell(int nRow, int nCol, CString str)
+bool CGridCtrl::OnEndEditCell(int nRow, int nCol, CString str)
 {
 	CString strCurrentText = GetItemText(nRow, nCol);
-	if (strCurrentText != str)
+	if (strCurrentText == str)
 	{
-		SetItemText(nRow, nCol, str);
-		if (ValidateEdit(nRow, nCol, str) && 
-			SendMessageToParent(nRow, nCol, GVN_ENDLABELEDIT) >= 0)
-		{
-			SetModified(TRUE, nRow, nCol);
-			RedrawCell(nRow, nCol);
-		}
-		else
-		{
-			SetItemText(nRow, nCol, strCurrentText);
-		}
+		SendMessageToParent(nRow, nCol, GVN_CANCELLABELEDIT);
+		return true;
 	}
 
-	CGridCellBase* pCell = GetCell(nRow, nCol);
-	if (pCell)
-		pCell->OnEndEdit();
-}
+	SetItemText(nRow, nCol, str);
+	if (SendMessageToParent(nRow, nCol, GVN_ENDLABELEDIT) < 0)
+	{
+		SetItemText(nRow, nCol, strCurrentText);
+		return false;
+	}
 
-// If this returns FALSE then the editing isn't allowed
-// virtual
-BOOL CGridCtrl::ValidateEdit(int nRow, int nCol, LPCTSTR str)
-{
-	CGridCellBase* pCell = GetCell(nRow, nCol);
-	ASSERT(pCell);
-	if (!pCell)
-		return TRUE;
-
-	return pCell->ValidateEdit(str);
+	SetModified(TRUE, nRow, nCol);
+	RedrawCell(nRow, nCol);
+	return true;
 }
 
 // virtual

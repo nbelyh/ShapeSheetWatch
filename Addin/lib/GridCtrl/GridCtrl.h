@@ -168,6 +168,7 @@ typedef BOOL (CALLBACK* GRIDCALLBACK)(GV_DISPINFO *, LPARAM);
 #define GVHT_BELOW              0x0100
 
 // Messages sent to the grid's parent (More will be added in future)
+#define GVN_CANCELLABELEDIT		(LVN_FIRST-11)
 #define GVN_ENDCOLUMWIDTHEDIT	(LVN_FIRST-10)
 #define GVN_BEGINDRAG           LVN_BEGINDRAG        // LVN_FIRST-9
 #define GVN_BEGINLABELEDIT      LVN_BEGINLABELEDIT   // LVN_FIRST-5
@@ -418,8 +419,6 @@ public:
     BOOL DeleteNonFixedRows();
     BOOL DeleteAllItems();
 
-	void ClearCells(CCellRange Selection);
-
     BOOL AutoSizeRow(int nRow, BOOL bResetScroll = TRUE);
     BOOL AutoSizeColumn(int nCol, UINT nAutoSizeStyle = GVS_DEFAULT, BOOL bResetScroll = TRUE);
     void AutoSizeRows();
@@ -468,6 +467,8 @@ public:
 // Clipboard, drag and drop, and cut n' paste operations
 ///////////////////////////////////////////////////////////////////////////////////
 #ifndef GRIDCONTROL_NO_CLIPBOARD
+	void ClearCells(CCellRange Selection);
+	void ValidateAndModifyCellContents(int nRow, int nCol, LPCTSTR strText);
     virtual void CutSelectedText();
     virtual COleDataSource* CopyTextFromGrid();
     virtual BOOL PasteTextToGrid(CCellID cell, COleDataObject* pDataObject, BOOL bSelectPastedCells=TRUE);
@@ -600,7 +601,6 @@ protected:
 
     CPoint GetPointClicked(int nRow, int nCol, const CPoint& point);
 
-	void ValidateAndModifyCellContents(int nRow, int nCol, LPCTSTR strText);
 
 // Overrrides
     // ClassWizard generated virtual function overrides
@@ -631,8 +631,7 @@ protected:
 
     // Editing
     virtual void  OnEditCell(int nRow, int nCol, CPoint point, UINT nChar);
-    virtual void  OnEndEditCell(int nRow, int nCol, CString str);
-	virtual BOOL  ValidateEdit(int nRow, int nCol, LPCTSTR str);
+    virtual bool  OnEndEditCell(int nRow, int nCol, CString str);
     virtual void  EndEditing();
 
     // Drawing
