@@ -652,7 +652,7 @@ struct CShapeSheetGridCtrl::Impl
 		if (filter_text.IsEmpty())
 			return true;
 
-		for (int i = 0; i <= Column_Count; ++i)
+		for (int i = 0; i < Column_Count; ++i)
 		{
 			if (!theApp.GetViewSettings()->IsColumnVisible(i))
 				continue;
