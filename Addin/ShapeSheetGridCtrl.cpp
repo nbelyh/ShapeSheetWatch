@@ -35,6 +35,7 @@ struct CShapeSheetGridCtrl::Impl
 {
 	Impl(CShapeSheetGridCtrl* p_this)
 		: m_this(p_this)
+		, m_had_shapes(false)
 	{
 	}
 
@@ -105,7 +106,7 @@ struct CShapeSheetGridCtrl::Impl
 
 		UpdateGridColumns();
 
-		OnSelectionChanged(window);
+		CaptureSelectionChange(window);
 
 		theApp.AddView(this);
 	}
@@ -120,33 +121,6 @@ struct CShapeSheetGridCtrl::Impl
 		theApp.DelView(this);
 
 		m_window = NULL;
-	}
-
-	/**------------------------------------------------------------------------
-		IView
-	-------------------------------------------------------------------------*/
-
-	void Update(int hint)
-	{
-		switch (hint)
-		{
-		case UpdateHint_Columns:
-			UpdateGridColumns();
-			UpdateGridRows(UpdateOption_UseKey);
-			break;
-
-		case UpdateHint_Rows:
-			UpdateGridRows(UpdateOption_Hilight|UpdateOption_UseKey);
-			break;
-
-		case UpdateHint_Pin:
-			OnSelectionChanged(m_window);
-			break;
-
-		case UpdateHint_Filter:
-			UpdateGridRows(UpdateOption_Filter|UpdateOption_UseKey);
-			break;
-		}
 	}
 
 	/**------------------------------------------------------------------------
@@ -178,7 +152,8 @@ struct CShapeSheetGridCtrl::Impl
 
 	void OnCellChanged(IVCellPtr cell)
 	{
-		theApp.UpdateViews(UpdateHint_Rows);
+		CString val = cell->Name;
+		theApp.UpdateViews(UpdateOption_Hilight|UpdateOption_UseKey);
 	}
 
 	/**------------------------------------------------------------------------
@@ -234,10 +209,8 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	}
 
-	void OnSelectionChanged(IVWindowPtr window)
+	void CaptureSelectionChange(IVWindowPtr window)
 	{
-		bool old_selection = !m_shapes.empty();
-
 		if (!theApp.GetViewSettings()->IsFilterPinOn())
 		{
 			m_shapes.clear();
@@ -253,14 +226,12 @@ struct CShapeSheetGridCtrl::Impl
 
 			HookToSelectionEvents();
 		}
+	}
 
-		CHTMLayoutCtrl* html = GetHtmlControl();
-		if (html)
-			html->SetElementText("shape-caption", GetSelectionCaption());
-
-		bool new_selection = !m_shapes.empty();
-
-		UpdateGridRows(UpdateOption_UseKey | (old_selection && new_selection ? UpdateOption_Hilight : 0));
+	void OnSelectionChanged(IVWindowPtr window)
+	{
+		CaptureSelectionChange(window);
+		theApp.UpdateViews(UpdateOption_UseKey|UpdateOption_Hilight);
 	}
 
 	/**------------------------------------------------------------------------
@@ -634,13 +605,6 @@ struct CShapeSheetGridCtrl::Impl
 		}
 	};
 
-	enum UpdateOption
-	{
-		UpdateOption_UseKey = 1,
-		UpdateOption_Hilight = 2,
-		UpdateOption_Filter = 4,
-	};
-
 	typedef std::set<shapesheet::SRC> CellSet;
 	typedef std::vector<CellSet> GroupCellInfos;
 
@@ -811,15 +775,31 @@ struct CShapeSheetGridCtrl::Impl
 			m_this->MergeCells(1 + r_start, Column_R, row, Column_R);
 	}
 
-	void UpdateGridRows(int options)
+	bool m_had_shapes;
+
+	void Update(int options)
 	{
+		if (options & UpdateOption_Pin)
+			CaptureSelectionChange(m_window);
+
+		if (options & UpdateOption_Columns)
+			UpdateGridColumns();
+
+		if (!m_had_shapes)
+			options &= ~UpdateOption_Hilight;
+
+		m_had_shapes = !m_shapes.empty();
+
+		CHTMLayoutCtrl* html = GetHtmlControl();
+		if (html)
+			html->SetElementText("shape-caption", GetSelectionCaption());
+
 		SaveFocus save(m_this, (options & UpdateOption_UseKey) != 0);
 
 		const Strings& cell_name_masks = m_view_settings->GetCellMasks();
 
 		m_this->SetRowCount(1);
 
-		
 		m_rows.resize(cell_name_masks.size());
 		
 		for (size_t i = 0; i < cell_name_masks.size(); ++i)
@@ -882,7 +862,7 @@ struct CShapeSheetGridCtrl::Impl
 			m_view_settings->AddCellMask(text);
 		}
 
-		UpdateGridRows(0);
+		Update(0);
 		return TRUE;
 	}
 
@@ -935,7 +915,7 @@ struct CShapeSheetGridCtrl::Impl
 			lock.Commit();
 
 		if (success)
-			theApp.UpdateViews(UpdateHint_Rows);
+			theApp.UpdateViews(UpdateOption_Hilight);
 
 		return success;
 	}
@@ -1080,7 +1060,7 @@ struct CShapeSheetGridCtrl::Impl
 				LPARAM idx = m_this->GetItemData(iRow, iColumn);
 
 				m_view_settings->RemoveCellMask(idx);
-				UpdateGridRows(UpdateOption_Hilight);
+				Update(UpdateOption_Hilight);
 			}
 			return TRUE;
 

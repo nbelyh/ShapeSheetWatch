@@ -222,19 +222,19 @@ bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 	if (id == L"filter-local")
 	{
 		theApp.GetViewSettings()->SetFilterLocal(visible);
-		theApp.UpdateViews(UpdateHint_Filter);
+		theApp.UpdateViews(UpdateOption_Filter|UpdateOption_UseKey);
 	}
 
 	if (id == L"filter-updated")
 	{
 		theApp.GetViewSettings()->SetFilterUpdated(visible);
-		theApp.UpdateViews(UpdateHint_Filter);
+		theApp.UpdateViews(UpdateOption_Filter|UpdateOption_UseKey);
 	}
 
 	if (id == L"filter-pin")
 	{
 		theApp.GetViewSettings()->SetFilterPin(visible);
-		theApp.UpdateViews(UpdateHint_Pin);
+		theApp.UpdateViews(UpdateOption_Pin|UpdateOption_Hilight);
 	}
 
 	int col = GetColumnFromDbName(id);
@@ -242,7 +242,7 @@ bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 	if (col >= 0)
 	{
 		theApp.GetViewSettings()->SetColumnVisible(col, visible);
-		theApp.UpdateViews(UpdateHint_Columns);
+		theApp.UpdateViews(UpdateOption_Columns|UpdateOption_UseKey);
 	}
 
 	return true;
@@ -251,7 +251,7 @@ bool CVisioFrameWnd::OnCheckButton(const CString& id, bool visible)
 bool CVisioFrameWnd::OnValueChanged(const CString& id, const CString& text)
 {
 	theApp.GetViewSettings()->SetFilterText(text);
-	theApp.UpdateViews(UpdateHint_Filter);
+	theApp.UpdateViews(UpdateOption_Filter|UpdateOption_UseKey);
 
 	return true;
 }

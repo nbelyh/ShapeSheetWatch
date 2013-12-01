@@ -3,14 +3,13 @@
 
 #include "ViewSettings.h"
 
-enum UpdateHint
+enum UpdateOption
 {
-	UpdateHint_Columns,
-	UpdateHint_Rows,
-	UpdateHint_Filter,
-	UpdateHint_Pin,
-
-	UpdateHint_Count
+	UpdateOption_UseKey = 1,
+	UpdateOption_Hilight = 2,
+	UpdateOption_Filter = 4,
+	UpdateOption_Columns = 8,
+	UpdateOption_Pin = 16,
 };
 
 struct IView

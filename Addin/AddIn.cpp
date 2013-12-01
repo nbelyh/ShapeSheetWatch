@@ -175,7 +175,7 @@ void CAddinApp::OnCommand(UINT id)
 						ShowShapeSheetWatchWindow(window, true);
 
 					GetViewSettings()->AddCellMask(selected_cell->Name);
-					UpdateViews(UpdateHint_Rows);
+					UpdateViews(UpdateOption_Hilight|UpdateOption_UseKey);
 				}
 			}
 		}
@@ -223,7 +223,15 @@ struct UpdateViewsTask : VisioIdleTask
 
 	virtual bool Equals(VisioIdleTask* otehr) const
 	{
-		return dynamic_cast<UpdateViewsTask*>(otehr) != NULL;
+		UpdateViewsTask* other_update_task = 
+			dynamic_cast<UpdateViewsTask*>(otehr);
+
+		if (other_update_task == NULL)
+			return false;
+
+		other_update_task->m_hint |= m_hint;
+
+		return true;
 	}
 };
 
