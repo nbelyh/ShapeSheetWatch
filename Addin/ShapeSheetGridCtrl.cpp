@@ -109,6 +109,8 @@ struct CShapeSheetGridCtrl::Impl
 		CaptureSelectionChange(window);
 
 		theApp.AddView(this);
+
+		theApp.UpdateViews(0);
 	}
 
 	void Detach()
@@ -1075,7 +1077,7 @@ struct CShapeSheetGridCtrl::Impl
 		Delete row and remove it's mask from view settings
 	-------------------------------------------------------------------------*/
 
-	BOOL OnItemDelete( int iRow, int iColumn )
+	LRESULT OnItemDelete( int iRow, int iColumn )
 	{
 		switch (iColumn)
 		{
