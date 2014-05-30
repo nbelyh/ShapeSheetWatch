@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{96a93665-03bc-46bb-93fb-cbe3c9a7af37}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+    <Filter Include="lib">
+      <UniqueIdentifier>{83cbf482-53cd-43eb-ac68-815f915cfbfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lib\GridCtrl">
+      <UniqueIdentifier>{f0c41336-8c6d-4ebf-955d-778ac3a52c12}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="AddIn.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AddIn.rgs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="AddIn.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\checkboxes.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon16.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon32.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="res\Ribbon.xml">
+      <Filter>Resource Files</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lib\Language.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\PictureConvert.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\TextFile.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\UI.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\Utils.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\Visio.cpp">
+      <Filter>lib</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\GridCtrl\GridCell.cpp">
+      <Filter>lib\GridCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\GridCtrl\GridCellBase.cpp">
+      <Filter>lib\GridCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\GridCtrl\GridCtrl.cpp">
+      <Filter>lib\GridCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\GridCtrl\InPlaceEdit.cpp">
+      <Filter>lib\GridCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\GridCtrl\TitleTip.cpp">
+      <Filter>lib\GridCtrl</Filter>
+    </ClCompile>
+    <ClCompile Include="AddIn.cpp" />
+    <ClCompile Include="lib\HTMLayoutCtrl\HTMLayoutCtrl.cpp" />
+    <ClCompile Include="lib\GridCtrl\InPlaceList.cpp" />
+    <ClCompile Include="ShapeSheet.cpp" />
+    <ClCompile Include="ShapeSheetGridCtrl.cpp" />
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="ViewSettings.cpp" />
+    <ClCompile Include="VisioConnect.cpp" />
+    <ClCompile Include="VisioFrameWnd.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\Language.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\PictureConvert.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\TextFile.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\UI.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Utils.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\Visio.h">
+      <Filter>lib</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GridCtrl\CellRange.h">
+      <Filter>lib\GridCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GridCtrl\GridCell.h">
+      <Filter>lib\GridCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GridCtrl\GridCellBase.h">
+      <Filter>lib\GridCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GridCtrl\GridCtrl.h">
+      <Filter>lib\GridCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GridCtrl\InPlaceEdit.h">
+      <Filter>lib\GridCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GridCtrl\TitleTip.h">
+      <Filter>lib\GridCtrl</Filter>
+    </ClInclude>
+    <ClInclude Include="Addin.h" />
+    <ClInclude Include="lib\HTMLayoutCtrl\HTMLayoutCtrl.h" />
+    <ClInclude Include="lib\GridCtrl\InPlaceList.h" />
+    <ClInclude Include="lib\GridCtrl\MemDC.h" />
+    <ClInclude Include="lib\Ptr.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ShapeSheet.h" />
+    <ClInclude Include="ShapeSheetGridCtrl.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ViewSettings.h" />
+    <ClInclude Include="VisioConnect.h" />
+    <ClInclude Include="VisioFrameWnd.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="Addin.idl" />
+  </ItemGroup>
+</Project>

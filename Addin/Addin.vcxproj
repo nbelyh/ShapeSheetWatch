@@ -1,0 +1,104 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7BF6658F-2268-4B0F-AC4B-E8D413353208}</ProjectGuid>
+    <RootNamespace>Addin</RootNamespace>
+    <_ProjectFileVersion>12.0.21005.1</_ProjectFileVersion>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <UseOfMfc>Static</UseOfMfc>
+    <UseOfAtl>Static</UseOfAtl>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="Addin.props" />
+  <ItemGroup>
+    <ResourceCompile Include="AddIn.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="AddIn.rgs" />
+    <None Include="AddIn.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\checkboxes.bmp" />
+    <Image Include="res\icon16.png" />
+    <Image Include="res\icon32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="res\Ribbon.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lib\Language.cpp" />
+    <ClCompile Include="lib\PictureConvert.cpp" />
+    <ClCompile Include="lib\TextFile.cpp" />
+    <ClCompile Include="lib\UI.cpp" />
+    <ClCompile Include="lib\Utils.cpp" />
+    <ClCompile Include="lib\Visio.cpp" />
+    <ClCompile Include="lib\GridCtrl\GridCell.cpp" />
+    <ClCompile Include="lib\GridCtrl\GridCellBase.cpp" />
+    <ClCompile Include="lib\GridCtrl\GridCtrl.cpp" />
+    <ClCompile Include="lib\GridCtrl\InPlaceEdit.cpp" />
+    <ClCompile Include="lib\GridCtrl\TitleTip.cpp" />
+    <ClCompile Include="AddIn.cpp" />
+    <ClCompile Include="lib\HTMLayoutCtrl\HTMLayoutCtrl.cpp" />
+    <ClCompile Include="lib\GridCtrl\InPlaceList.cpp" />
+    <ClCompile Include="ShapeSheet.cpp" />
+    <ClCompile Include="ShapeSheetGridCtrl.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="ViewSettings.cpp" />
+    <ClCompile Include="VisioConnect.cpp" />
+    <ClCompile Include="VisioFrameWnd.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\Language.h" />
+    <ClInclude Include="lib\PictureConvert.h" />
+    <ClInclude Include="lib\TextFile.h" />
+    <ClInclude Include="lib\UI.h" />
+    <ClInclude Include="lib\Utils.h" />
+    <ClInclude Include="lib\Visio.h" />
+    <ClInclude Include="lib\GridCtrl\CellRange.h" />
+    <ClInclude Include="lib\GridCtrl\GridCell.h" />
+    <ClInclude Include="lib\GridCtrl\GridCellBase.h" />
+    <ClInclude Include="lib\GridCtrl\GridCtrl.h" />
+    <ClInclude Include="lib\GridCtrl\InPlaceEdit.h" />
+    <ClInclude Include="lib\GridCtrl\TitleTip.h" />
+    <ClInclude Include="Addin.h" />
+    <ClInclude Include="lib\HTMLayoutCtrl\HTMLayoutCtrl.h" />
+    <ClInclude Include="lib\GridCtrl\InPlaceList.h" />
+    <ClInclude Include="lib\GridCtrl\MemDC.h" />
+    <ClInclude Include="lib\Ptr.h" />
+    <ClInclude Include="Resource.h" />
+    <ClInclude Include="ShapeSheet.h" />
+    <ClInclude Include="ShapeSheetGridCtrl.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ViewSettings.h" />
+    <ClInclude Include="VisioConnect.h" />
+    <ClInclude Include="VisioFrameWnd.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="Addin.idl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

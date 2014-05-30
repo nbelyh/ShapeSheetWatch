@@ -56,7 +56,7 @@ struct MenuItemVisitor
 
 void IterateMenuItems(CMenu* popup_menu, MenuItemVisitor& v)
 {
-	for (UINT i = 0; i < popup_menu->GetMenuItemCount(); ++i)
+	for (int i = 0; i < popup_menu->GetMenuItemCount(); ++i)
 	{
 		v.Visit(popup_menu, i);
 
@@ -206,7 +206,7 @@ void AddinUi::FillMenuItems( long position, Office::CommandBarControlsPtr menu_i
 {
 	// For each items in the menu,
 	bool begin_group = false;
-	for (UINT i = 0; i < popup_menu->GetMenuItemCount(); ++i)
+	for (int i = 0; i < popup_menu->GetMenuItemCount(); ++i)
 	{
 		CMenu* sub_menu = popup_menu->GetSubMenu(i);
 

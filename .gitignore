@@ -11,3 +11,8 @@ obj
 *.ncb
 ship.bat
 ship
+Addin.opensdf
+*.sdf
+ipch
+*.tlb
+*.log

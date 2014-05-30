@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
 
-  <?define Binaries="$(var.SolutionDir)$(var.Platform)\$(var.Configuration)" ?>
   <?define Version="1.0.7.0"?>
   
   <?if $(var.Platform)=x64 ?>
   <?define Win64YesNo="yes" ?>
   <?define UpgradeCode = "{3B19F747-0488-4ebf-B7E0-0E7EBE36CA9D}" ?>
   <?define cf="ProgramFiles64Folder" ?>
+  <?define Binaries="$(var.SolutionDir)bin\x64\$(var.Configuration)\" ?>
   <?else ?>
   <?define Win64YesNo="no" ?>
   <?define UpgradeCode = "{2FDC7389-B149-4aab-B803-05A7BADAC008}" ?>
   <?define cf="ProgramFilesFolder" ?>
+  <?define Binaries="$(var.SolutionDir)bin\x86\$(var.Configuration)\" ?>
   <?endif ?>
   
   <Product Id="*" 
@@ -42,10 +43,10 @@
           <Directory Id="PRODUCTDIR" Name="ShapeSheetWatch">
 
             <Component Id="HTMLayoutDLL" Win64="$(var.Win64YesNo)">
-              <File KeyPath="yes" Source="lib\$(var.Platform)\htmlayout.dll" />
+              <File KeyPath="yes" Source="$(var.Binaries)htmlayout.dll" />
             </Component>
             <Component Id="ProductComponent" Win64="$(var.Win64YesNo)">
-              <File KeyPath="yes" Source="$(var.Binaries)\Addin.dll" >
+              <File KeyPath="yes" Source="$(var.Binaries)Addin.dll" >
                 <TypeLib Id="{03AB8311-3616-4692-A9BE-447DD0F3F6DF}" Description="ShapeSheetWatch Addin 1.0 Type Library" HelpDirectory="TARGETDIR" Language="0" MajorVersion="1" MinorVersion="0">
                   <Class Id="{46288C2D-7FDA-4f64-91C3-17BD6773640D}" Context="InprocServer32" Description="VisioConnect Class" ThreadingModel="apartment" Programmable="yes">
                     <ProgId Id="ShapeSheetWatchAddin.VisioConnect.1" Description="VisioConnect Class">
